@@ -36,6 +36,74 @@ class TimepointKind(Enum):
     START = auto()
     END = auto()
 
+class PreconditionTimepointKind(Enum):
+    """
+    `Enum` representing all the possible :func:`kinds <unified_planning.model.PreconditionTimepoint.kind>` of a :class:`~unified_planning.model.Timepoint`.
+    The `kind` of a PreconditionTimepoint defines it's semantic:
+
+    START        => At the start of the `Action`
+    OVERALL        => through the whole execution of the `Action`
+    END          => At the end of the `Action`
+    """
+
+    START = auto()
+    OVERALL = auto()
+    END = auto()
+
+
+class PreconditionTimepoint:
+    """Class used to define the precondition point in the time from which a :class:`~unified_planning.model.Timing` is considered."""
+
+    def __init__(self, kind: PreconditionTimepointKind):
+        """
+        Creates a new `PreconditionTimepoint`.
+
+        It is used to refer to:
+         - the time a precondition of action needs to hole
+         - at start, end or during the whole execution
+
+        Parameters
+        ----------
+        kind: PreconditionTimepointKind
+          Kind of the Preconditiontimepoint.
+        """
+        self._kind = kind
+
+    def __repr__(self):
+        if (
+            self._kind == PreconditionTimepointKind.START
+        ):
+            qualifier = "start"
+        elif (
+                self._kind == PreconditionTimepointKind.OVERALL
+        ):
+            qualifier = "overall"
+        else:
+            qualifier = "end"
+
+        return qualifier
+
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, Timepoint):
+            return self._kind == oth._kind
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        return hash(self._kind)
+
+    def __add__(self, delay: Union[int, Fraction]) -> "Timing":
+        return Timing(delay, self)
+
+    def __sub__(self, delay: Union[int, Fraction]) -> "Timing":
+        return Timing(-delay, self)
+
+    @property
+    def kind(self) -> PreconditionTimepointKind:
+        """Returns the `kind` of this `Timepoint`; the `kind` defines the semantic of the `Timepoint`."""
+        return self._kind
+
 
 class Timepoint:
     """Class used to define the point in the time from which a :class:`~unified_planning.model.Timing` is considered."""
@@ -97,6 +165,7 @@ class Timepoint:
     def container(self):
         """Returns the `container` in which this `Timepoint` is defined or `None` if it refers to the enclosing `action/method`."""
         return self._container
+
 
 
 class Timing:
@@ -162,6 +231,47 @@ class Timing:
     def is_from_end(self) -> bool:
         """Returns `True` if this `Timing` is from the end, `False` if it is from the start."""
         return not self.is_from_start()
+
+
+def StartPreconditionTiming() -> PreconditionTimepoint:
+    """
+    Returns the start timing of an :class:`~unified_planning.model.Action`.
+
+    For example, action starts at time 5:
+    `StartTiming() = 5`
+    `StartTiming(3) = 5+3 = 8`.
+
+    :param container: Identifier of the container in which the `Timepoint` is defined.
+        If not set, then refers to the enclosing `action or method`.
+    :return: The created `PreconditionTiming`.
+    """
+
+    return PreconditionTimepoint(PreconditionTimepointKind.START)
+
+def OverallPreconditionTiming() -> PreconditionTimepoint:
+    """
+    Returns the overall timing of an :class:`~unified_planning.model.Action`.
+
+    :param container: Identifier of the container in which the `Timepoint` is defined.
+        If not set, then refers to the enclosing `action or method`.
+    :return: The created `PreconditionTiming`.
+    """
+
+    return PreconditionTimepoint(PreconditionTimepointKind.OVERALL)
+def EndPreconditionTiming() -> PreconditionTimepoint:
+    """
+    Returns the end timing of an :class:`~unified_planning.model.Action`.
+
+    For example, `Action` ends at time 10:
+    `EndTiming() = 10`
+    `EndTiming() - 4 = 10 - 4 = 6`.
+
+    :param container: Identifier of the container in which the `Timepoint` is defined.
+        If not set, then refers to the enclosing `action or method`.
+    :return: The created `PreconditionTiming`.
+    """
+
+    return PreconditionTimepoint(PreconditionTimepointKind.END)
 
 
 def StartTiming(

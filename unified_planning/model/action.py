@@ -12,6 +12,7 @@ from fractions import Fraction
 from typing import Dict, List, Set, Tuple, Union, Optional, cast, Callable
 from collections import OrderedDict
 
+
 # from unified_planning.model.mixins.timed_conds_effs import TimedCondsEffs
 
 
@@ -19,11 +20,11 @@ class Action:
     """This is the `Action` interface."""
 
     def __init__(
-        self,
-        _name: str,
-        _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
-        _env: Optional[Environment] = None,
-        **kwargs: "up.model.types.Type",
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
     ):
         self._environment = get_environment(_env)
         self._name = _name
@@ -125,11 +126,11 @@ class InstantaneousAction(Action):
     """Represents an instantaneous action."""
 
     def __init__(
-        self,
-        _name: str,
-        _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
-        _env: Optional[Environment] = None,
-        **kwargs: "up.model.types.Type",
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
     ):
         Action.__init__(self, _name, _parameters, _env, **kwargs)
         self._preconditions: List["up.model.fnode.FNode"] = []
@@ -139,7 +140,6 @@ class InstantaneousAction(Action):
         self._fluents_assigned: Dict[
             "up.model.fnode.FNode", "up.model.fnode.FNode"
         ] = {}
-
 
     def __repr__(self) -> str:
         s = []
@@ -173,15 +173,15 @@ class InstantaneousAction(Action):
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, InstantaneousAction):
             cond = (
-                self._environment == oth._environment
-                and self._name == oth._name
-                and self._parameters == oth._parameters
+                    self._environment == oth._environment
+                    and self._name == oth._name
+                    and self._parameters == oth._parameters
             )
             return (
-                cond
-                and set(self._preconditions) == set(oth._preconditions)
-                and set(self._effects) == set(oth._effects)
-                and set(self._probabilistic_effects) == set(
+                    cond
+                    and set(self._preconditions) == set(oth._preconditions)
+                    and set(self._effects) == set(oth._effects)
+                    and set(self._probabilistic_effects) == set(
                 oth._probabilistic_effects)
             )
         else:
@@ -226,21 +226,25 @@ class InstantaneousAction(Action):
         """Returns the `list` of the `Action effects`."""
         return self._effects
 
+    @property
+    def probabilistic_effects(self) -> List["up.model.effect.ProbabilisticEffect"]:
+        """Returns the `list` of the `Action effects`."""
+        return self._probabilistic_effects
+
     def clear_effects(self):
         """Removes all the `Action's effects`."""
         self._effects = []
         self._probabilistic_effects = []
         self._fluents_assigned = {}
 
-
     def add_precondition(
-        self,
-        precondition: Union[
-            "up.model.fnode.FNode",
-            "up.model.fluent.Fluent",
-            "up.model.parameter.Parameter",
-            bool,
-        ],
+            self,
+            precondition: Union[
+                "up.model.fnode.FNode",
+                "up.model.fluent.Fluent",
+                "up.model.parameter.Parameter",
+                bool,
+            ],
     ):
         """
         Adds the given expression to `action's preconditions`.
@@ -264,42 +268,36 @@ class InstantaneousAction(Action):
             self._preconditions.append(precondition_exp)
 
     def add_effect(
-        self,
-        fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
-        value: "up.model.expression.Expression",
-        condition: "up.model.expression.BoolExpression" = True,
+            self,
+            fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
+            value: "up.model.expression.Expression",
     ):
         """
         Adds the given `assignment` to the `action's effects`.
 
         :param fluent: The `fluent` of which `value` is modified by the `assignment`.
         :param value: The `value` to assign to the given `fluent`.
-        :param condition: The `condition` in which this `effect` is applied; the default
-            value is `True`.
         """
         (
             fluent_exp,
             value_exp,
-            condition_exp,
-        ) = self._environment.expression_manager.auto_promote(fluent, value, condition)
+        ) = self._environment.expression_manager.auto_promote(fluent, value)
         if not fluent_exp.is_fluent_exp():
             raise UPUsageError(
                 "fluent field of add_effect must be a Fluent or a FluentExp"
             )
-        if not self._environment.type_checker.get_type(condition_exp).is_bool_type():
-            raise UPTypeError("Effect condition is not a Boolean condition!")
         if not fluent_exp.type.is_compatible(value_exp.type):
             # Value is not assignable to fluent (its type is not a subset of the fluent's type).
             raise UPTypeError(
                 f"InstantaneousAction effect has an incompatible value type. Fluent type: {fluent_exp.type} // Value type: {value_exp.type}"
             )
         self._add_effect_instance(
-            up.model.effect.Effect(fluent_exp, value_exp, condition_exp)
+            up.model.effect.Effect(fluent_exp, value_exp)
         )
 
     def _add_effect_instance(self, effect: "up.model.effect.Effect"):
         assert (
-            effect.environment == self._environment
+                effect.environment == self._environment
         ), "effect does not have the same environment of the action"
         up.model.effect.check_conflicting_effects(
             effect,
@@ -355,8 +353,6 @@ class InstantaneousAction(Action):
         )
         self._probabilistic_effects.append(probabilistic_effect)
 
-
-
     def _set_preconditions(self, preconditions: List["up.model.fnode.FNode"]):
         self._preconditions = preconditions
 
@@ -364,17 +360,25 @@ class InstantaneousAction(Action):
 class DurativeAction(Action):
     """Represents a durative action."""
 
-    def __init__(
-        self,
-        _name: str,
-        _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
-        _env: Optional[Environment] = None,
-        **kwargs: "up.model.types.Type",
+    def __init__(  # TODO: should I add fluents assignment like in instantaneous action
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
     ):
         Action.__init__(self, _name, _parameters, _env, **kwargs)
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0))
         )
+        self._preconditions: Dict[up.model.timing.PreconditionTimepoint, List["up.model.fnode.FNode"]] = {}
+        self._during_effects: List[up.model.effect.Effect] = []
+        self._effects: List[up.model.effect.Effect] = []
+        self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
+        # # fluent assigned is the mapping of the fluent to it's value
+        self._fluents_assigned: Dict[
+            "up.model.fnode.FNode", "up.model.fnode.FNode"
+        ] = {}
 
     def __repr__(self) -> str:
         s = []
@@ -390,18 +394,24 @@ class DurativeAction(Action):
         if not first:
             s.append(")")
         s.append(" {\n")
-        s.append(f"    duration = {str(self._duration)}\n")
-        s.append("    conditions = [\n")
-        for i, cl in self.conditions.items():
-            s.append(f"      {str(i)}:\n")
-            for c in cl:
-                s.append(f"        {str(c)}\n")
+        s.append("    preconditions = [\n")
+        for t in self.preconditions:
+            s.append(f"      {str(t)}\n")
+            for p in self.preconditions[t]:
+                s.append(f"      {str(p)}\n")
         s.append("    ]\n")
+        s.append(f"    duration = {str(self._duration)}\n")
         s.append("    effects = [\n")
-        for t, el in self.effects.items():
-            s.append(f"      {str(t)}:\n")
-            for e in el:
-                s.append(f"        {str(e)}:\n")
+        for e in self.effects:
+            s.append(f"      {str(e)}\n")
+        s.append("    ]\n")
+        s.append("    probabilistic effects = [\n")
+        for pe in self._probabilistic_effects:
+            s.append(f"      {str(pe)}\n")
+        s.append("    ]\n")
+        s.append("   during effects = [\n")
+        for de in self.during_effects:
+            s.append(f"      {str(de)}\n")
         s.append("    ]\n")
         s.append("  }")
         return "".join(s)
@@ -410,10 +420,15 @@ class DurativeAction(Action):
         if not isinstance(oth, DurativeAction):
             return False
         if (
-            self._environment != oth._environment
-            or self._name != oth._name
-            or self._parameters != oth._parameters
-            or self._duration != oth._duration
+                self._environment != oth._environment
+                or self._name != oth._name
+                or self._parameters != oth._parameters
+                or self._duration != oth._duration
+                or set(self._preconditions) == set(oth._preconditions)
+                or set(self._effects) == set(oth._effects)
+                or set(self._probabilistic_effects) == set(
+            oth._probabilistic_effects)
+                or set(self.during_effects) == set(oth._during_effects)
         ):
             return False
         return True
@@ -422,6 +437,14 @@ class DurativeAction(Action):
         res = hash(self._name) + hash(self._duration)
         for ap in self._parameters.items():
             res += hash(ap)
+        for p in self._preconditions:
+            res += hash(p)
+        for e in self._effects:
+            res += hash(e)
+        for pe in self._probabilistic_effects:
+            res += hash(pe)
+        for de in self._during_effects:
+            res += hash(de)
         return res
 
     def clone(self):
@@ -430,40 +453,46 @@ class DurativeAction(Action):
         )
         new_durative_action = DurativeAction(self._name, new_params, self._environment)
         new_durative_action._duration = self._duration
+        new_durative_action._effects = [e.clone() for e in self._effects]
+        new_durative_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
+        new_durative_action._during_effects = [de.clone() for de in self._during_effects]
 
         return new_durative_action
+
+    @property
+    def preconditions(self) -> Dict["up.model.timing.PreconditionTimepoint", List["up.model.fnode.FNode"]]:
+        """Returns the `list` of the `Action` `preconditions`."""
+        return self._preconditions
+
+    def clear_preconditions(self):
+        """Removes all the `Action preconditions`"""
+        self._preconditions = []
+
+    @property
+    def effects(self) -> List["up.model.effect.Effect"]:
+        """Returns the `list` of the `Action effects`."""
+        return self._effects
+
+    @property
+    def during_effects(self) -> List["up.model.effect.Effect"]:
+        """Returns the `list` of the `Action effects`."""
+        return self._during_effects
+
+    @property
+    def probabilistic_effects(self) -> List["up.model.effect.ProbabilisticEffect"]:
+        """Returns the `list` of the `Action effects`."""
+        return self._probabilistic_effects
+
+    def clear_effects(self):
+        """Removes all the `Action's effects`."""
+        self._effects = []
+        self._probabilistic_effects = []
+        self._during_effects = []
 
     @property
     def duration(self) -> "up.model.timing.DurationInterval":
         """Returns the `action` `duration interval`."""
         return self._duration
-
-    def set_duration_constraint(self, duration: "up.model.timing.DurationInterval"):
-        """
-        Sets the `duration interval` for this `action`.
-
-        :param duration: The new `duration interval` of this `action`.
-        """
-        lower, upper = duration.lower, duration.upper
-        tlower = self._environment.type_checker.get_type(lower)
-        tupper = self._environment.type_checker.get_type(upper)
-        assert tlower.is_int_type() or tlower.is_real_type()
-        assert tupper.is_int_type() or tupper.is_real_type()
-        if (
-            lower.is_constant()
-            and upper.is_constant()
-            and (
-                upper.constant_value() < lower.constant_value()
-                or (
-                    upper.constant_value() == lower.constant_value()
-                    and (duration.is_left_open() or duration.is_right_open())
-                )
-            )
-        ):
-            raise UPProblemDefinitionError(
-                f"{duration} is an empty interval duration of action: {self.name}."
-            )
-        self._duration = duration
 
     def set_fixed_duration(self, value: Union["up.model.fnode.FNode", int, Fraction]):
         """
@@ -474,82 +503,166 @@ class DurativeAction(Action):
         (value_exp,) = self._environment.expression_manager.auto_promote(value)
         self.set_duration_constraint(up.model.timing.FixedDuration(value_exp))
 
-    def set_closed_duration_interval(
-        self,
-        lower: Union["up.model.fnode.FNode", int, Fraction],
-        upper: Union["up.model.fnode.FNode", int, Fraction],
+
+    def add_precondition(
+            self,
+            preconditionTiming: "up.model.timing.PreconditionTimepoint",
+            precondition: Union[
+                "up.model.fnode.FNode",
+                "up.model.fluent.Fluent",
+                "up.model.parameter.Parameter",
+                bool,
+            ],
     ):
         """
-        Sets the `duration interval` for this `action` as the interval `[lower, upper]`.
+        Adds the given expression to `action's preconditions`.
 
-        :param lower: The value set as the lower edge of this `action's duration`.
-        :param upper: The value set as the upper edge of this `action's duration`.
+        :param preconditionTiming: The timing the precondition must hold.
+        :param precondition: The expression that must be added to the `action's preconditions`.
         """
-        lower_exp, upper_exp = self._environment.expression_manager.auto_promote(
-            lower, upper
+        (precondition_exp,) = self._environment.expression_manager.auto_promote(
+            precondition
         )
-        self.set_duration_constraint(
-            up.model.timing.ClosedDurationInterval(lower_exp, upper_exp)
+        assert self._environment.type_checker.get_type(precondition_exp).is_bool_type()
+        if precondition_exp == self._environment.expression_manager.TRUE():
+            return
+        free_vars = self._environment.free_vars_oracle.get_free_variables(
+            precondition_exp
         )
+        if len(free_vars) != 0:
+            raise UPUnboundedVariablesError(
+                f"The precondition {str(precondition_exp)} has unbounded variables:\n{str(free_vars)}"
+            )
+        name = preconditionTiming.kind.name
+        if name in self._preconditions:
+            if precondition_exp not in self._preconditions[name]:
+                self._preconditions[name].append(precondition_exp)
+        else:
+            self._preconditions[name] = [precondition_exp]
 
-    def set_open_duration_interval(
-        self,
-        lower: Union["up.model.fnode.FNode", int, Fraction],
-        upper: Union["up.model.fnode.FNode", int, Fraction],
+    def add_effect(
+            self,
+            fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
+            value: "up.model.expression.Expression",
     ):
         """
-        Sets the `duration interval` for this action as the interval `]lower, upper[`.
+        Adds the given `assignment` to the `action's effects`.
 
-        :param lower: The value set as the lower edge of this `action's duration`.
-        :param upper: The value set as the upper edge of this `action's duration`.
-
-        Note that `lower` and `upper` are not part of the interval.
+        :param fluent: The `fluent` of which `value` is modified by the `assignment`.
+        :param value: The `value` to assign to the given `fluent`..
         """
-        lower_exp, upper_exp = self._environment.expression_manager.auto_promote(
-            lower, upper
-        )
-        self.set_duration_constraint(
-            up.model.timing.OpenDurationInterval(lower_exp, upper_exp)
+        (
+            fluent_exp,
+            value_exp,
+        ) = self._environment.expression_manager.auto_promote(fluent, value)
+        if not fluent_exp.is_fluent_exp():
+            raise UPUsageError(
+                "fluent field of add_effect must be a Fluent or a FluentExp"
+            )
+        if not fluent_exp.type.is_compatible(value_exp.type):
+            # Value is not assignable to fluent (its type is not a subset of the fluent's type).
+            raise UPTypeError(
+                f"InstantaneousAction effect has an incompatible value type. Fluent type: {fluent_exp.type} // Value type: {value_exp.type}"
+            )
+        self._add_effect_instance(
+            up.model.effect.Effect(fluent_exp, value_exp)
         )
 
-    def set_left_open_duration_interval(
-        self,
-        lower: Union["up.model.fnode.FNode", int, Fraction],
-        upper: Union["up.model.fnode.FNode", int, Fraction],
+    def _add_effect_instance(self, effect: "up.model.effect.Effect"):
+        assert (
+                effect.environment == self._environment
+        ), "effect does not have the same environment of the action"
+        up.model.effect.check_conflicting_effects(
+            effect,
+            None,
+            self._fluents_assigned,
+            "action"
+        )
+        self._effects.append(effect)
+
+    def add_duration_effect(
+            self,
+            fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
+            value: "up.model.expression.Expression",
     ):
         """
-        Sets the `duration interval` for this `action` as the interval `]lower, upper]`.
+        Adds the given `assignment` to the `action's effects`.
 
-        :param lower: The value set as the lower edge of this `action's duration`.
-        :param upper: The value set as the upper edge of this `action's duration`.
-
-        Note that `lower` is not part of the interval.
+        :param fluent: The `fluent` of which `value` is modified by the `assignment`.
+        :param value: The `value` to assign to the given `fluent`.
         """
-        lower_exp, upper_exp = self._environment.expression_manager.auto_promote(
-            lower, upper
-        )
-        self.set_duration_constraint(
-            up.model.timing.LeftOpenDurationInterval(lower_exp, upper_exp)
+        (
+            fluent_exp,
+            value_exp,
+        ) = self._environment.expression_manager.auto_promote(fluent, value)
+        if not fluent_exp.is_fluent_exp():
+            raise UPUsageError(
+                "fluent field of add_effect must be a Fluent or a FluentExp"
+            )
+        if not fluent_exp.type.is_compatible(value_exp.type):
+            # Value is not assignable to fluent (its type is not a subset of the fluent's type).
+            raise UPTypeError(
+                f"InstantaneousAction effect has an incompatible value type. Fluent type: {fluent_exp.type} // Value type: {value_exp.type}"
+            )
+        self._add_duration_effect_instance(
+            up.model.effect.Effect(fluent_exp, value_exp)
         )
 
-    def set_right_open_duration_interval(
-        self,
-        lower: Union["up.model.fnode.FNode", int, Fraction],
-        upper: Union["up.model.fnode.FNode", int, Fraction],
+    def _add__during_effect_instance(self, effect: "up.model.effect.Effect"):
+        assert (
+                effect.environment == self._environment
+        ), "effect does not have the same environment of the action"
+        up.model.effect.check_conflicting_effects(
+            effect,
+            None,
+            self._fluents_assigned,
+            "action"
+        )
+        self._during_effects.append(effect)
+
+    def add_probabilistic_effect(
+            self,
+            fluents: List["up.model.fnode.FNode"],
+            probability_func: Callable[
+                [
+                    "up.model.problem.AbstractProblem",
+                    "up.model.state.ROState",
+                ],
+                Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
+            ]
     ):
         """
-        Sets the `duration interval` for this `action` as the interval `[lower, upper[`.
+        Adds the given `assignment` to the `action's probabilistic_effects`.
 
-        :param lower: The value set as the lower edge of this `action's duration`.
-        :param upper: The value set as the upper edge of this `action's duration`.
-
-        Note that `upper` is not part of the interval.
+        :param fluents: The `fluents` of which `value` is modified by the `assignment`.
+        :param probability_func: based on the probability function a value is chosen from the values param
         """
-        lower_exp, upper_exp = self._environment.expression_manager.auto_promote(
-            lower, upper
-        )
-        self.set_duration_constraint(
-            up.model.timing.RightOpenDurationInterval(lower_exp, upper_exp)
+
+        fluents_exp = self._environment.expression_manager.auto_promote(fluents)
+
+        for f in fluents_exp:
+            if not f.is_fluent_exp():
+                raise UPUsageError(
+                    "fluent field of add_effect must be a Fluent or a FluentExp"
+                )
+
+        self._add_probabilistic_effect_instance(
+            up.model.effect.ProbabilisticEffect(fluents_exp, probability_func)
         )
 
+    def _add_probabilistic_effect_instance(self, probabilistic_effect: "up.model.effect.ProbabilisticEffect"):
+        assert (
+                probabilistic_effect.environment() == self._environment
+        ), "effect does not have the same environment of the action"
+        up.model.effect.check_conflicting_probabilistic_effects(
+            probabilistic_effect,
+            None,
+            self._fluents_assigned,
+            self._probabilistic_effects,
+            self._effects,
+            "action",
+        )
+        self._probabilistic_effects.append(probabilistic_effect)
 
+    def _set_preconditions(self, preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.fnode.FNode"]]):
+        self._preconditions = preconditions

@@ -15,28 +15,22 @@ import inspect as i
 class Effect:
     """
     This class represent an effect. It has a :class:`~unified_planning.model.Fluent`, modified by this effect, a value
-    that determines how the `Fluent` is modified, a `condition` that determines if the `Effect`
-    is actually applied or not and an `EffectKind` that determines the semantic of the `Effect`.
+    that determines how the `Fluent` is modified.
     """
 
     def __init__(
         self,
         fluent: "up.model.fnode.FNode",
         value: "up.model.fnode.FNode",
-        condition: "up.model.fnode.FNode",
     ):
         self._fluent = fluent
         self._value = value
-        self._condition = condition
         assert (
             fluent.environment == value.environment
-            and value.environment == condition.environment
         ), "Effect expressions have different environment."
 
     def __repr__(self) -> str:
         s = []
-        if self.is_conditional():
-            s.append(f"if {str(self._condition)} then")
         s.append(f"{str(self._fluent)}")
         s.append(f"{str(self._value)}")
         return " ".join(s)
@@ -46,7 +40,6 @@ class Effect:
             return (
                 self._fluent == oth._fluent
                 and self._value == oth._value
-                and self._condition == oth._condition
             )
         else:
             return False
@@ -55,20 +48,11 @@ class Effect:
         return (
             hash(self._fluent)
             + hash(self._value)
-            + hash(self._condition)
-            + hash(self._kind)
         )
 
     def clone(self):
-        new_effect = Effect(self._fluent, self._value, self._condition, self._kind)
+        new_effect = Effect(self._fluent, self._value)
         return new_effect
-
-    def is_conditional(self) -> bool:
-        """
-        Returns `True` if the `Effect` condition is not `True`; this means that the `Effect` might
-        not always be applied but depends on the runtime evaluation of it's :func:`condition <unified_planning.model.Effect.condition>`.
-        """
-        return not self._condition.is_true()
 
     @property
     def fluent(self) -> "up.model.fnode.FNode":
@@ -88,18 +72,6 @@ class Effect:
         """
         self._value = new_value
 
-    @property
-    def condition(self) -> "up.model.fnode.FNode":
-        """Returns the `condition` required for this `Effect` to be applied."""
-        return self._condition
-
-    def set_condition(self, new_condition: "up.model.fnode.FNode"):
-        """
-        Sets the `condition` required for this `Effect` to be applied.
-
-        :param new_condition: The expression set as this `effect's condition`.
-        """
-        self._condition = new_condition
 
     @property
     def environment(self) -> "up.environment.Environment":
