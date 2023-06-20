@@ -134,12 +134,13 @@ class InstantaneousAction(Action):
         Action.__init__(self, _name, _parameters, _env, **kwargs)
         self._preconditions: List["up.model.fnode.FNode"] = []
         self._effects: List[up.model.effect.Effect] = []
-        # fluent assigned is the mapping of the fluent to it's value if it is an unconditional assignment
+        self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
+        # fluent assigned is the mapping of the fluent to it's value
         self._fluents_assigned: Dict[
             "up.model.fnode.FNode", "up.model.fnode.FNode"
         ] = {}
-        # fluent_inc_dec is the set of the fluents that have an unconditional increase or decrease
-        self._fluents_inc_dec: Set["up.model.fnode.FNode"] = set()
+
+
     def __repr__(self) -> str:
         s = []
         s.append(f"action {self.name}")
@@ -162,6 +163,10 @@ class InstantaneousAction(Action):
         for e in self.effects:
             s.append(f"      {str(e)}\n")
         s.append("    ]\n")
+        s.append("    probabilistic effects = [\n")
+        for pe in self._probabilistic_effects:
+            s.append(f"      {str(pe)}\n")
+        s.append("    ]\n")
         s.append("  }")
         return "".join(s)
 
@@ -176,6 +181,8 @@ class InstantaneousAction(Action):
                 cond
                 and set(self._preconditions) == set(oth._preconditions)
                 and set(self._effects) == set(oth._effects)
+                and set(self._probabilistic_effects) == set(
+                oth._probabilistic_effects)
             )
         else:
             return False
@@ -188,6 +195,8 @@ class InstantaneousAction(Action):
             res += hash(p)
         for e in self._effects:
             res += hash(e)
+        for pe in self._probabilistic_effects:
+            res += hash(pe)
         return res
 
     def clone(self):
@@ -199,8 +208,8 @@ class InstantaneousAction(Action):
         )
         new_instantaneous_action._preconditions = self._preconditions[:]
         new_instantaneous_action._effects = [e.clone() for e in self._effects]
+        new_instantaneous_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
         new_instantaneous_action._fluents_assigned = self._fluents_assigned.copy()
-        new_instantaneous_action._fluents_inc_dec = self._fluents_inc_dec.copy()
         return new_instantaneous_action
 
     @property
@@ -220,28 +229,9 @@ class InstantaneousAction(Action):
     def clear_effects(self):
         """Removes all the `Action's effects`."""
         self._effects = []
+        self._probabilistic_effects = []
         self._fluents_assigned = {}
-        self._fluents_inc_dec = set()
 
-    @property
-    def conditional_effects(self) -> List["up.model.effect.Effect"]:
-        """Returns the `list` of the `action conditional effects`.
-
-        IMPORTANT NOTE: this property does some computation, so it should be called as
-        seldom as possible."""
-        return [e for e in self._effects if e.is_conditional()]
-
-    def is_conditional(self) -> bool:
-        """Returns `True` if the `action` has `conditional effects`, `False` otherwise."""
-        return any(e.is_conditional() for e in self._effects)
-
-    @property
-    def unconditional_effects(self) -> List["up.model.effect.Effect"]:
-        """Returns the `list` of the `action unconditional effects`.
-
-        IMPORTANT NOTE: this property does some computation, so it should be called as
-        seldom as possible."""
-        return [e for e in self._effects if not e.is_conditional()]
 
     def add_precondition(
         self,
@@ -307,19 +297,63 @@ class InstantaneousAction(Action):
             up.model.effect.Effect(fluent_exp, value_exp, condition_exp)
         )
 
-
-
     def _add_effect_instance(self, effect: "up.model.effect.Effect"):
         assert (
             effect.environment == self._environment
         ), "effect does not have the same environment of the action"
-        # up.model.effect.check_conflicting_effects(
-        #     effect,
-        #     None,
-        #     self._fluents_assigned,
-        #     "action",
-        # )
+        up.model.effect.check_conflicting_effects(
+            effect,
+            None,
+            self._fluents_assigned,
+            "action"
+        )
         self._effects.append(effect)
+
+    def add_probabilistic_effect(
+            self,
+            fluents: List["up.model.fnode.FNode"],
+            probability_func: Callable[
+                [
+                    "up.model.problem.AbstractProblem",
+                    "up.model.state.ROState",
+                ],
+                Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
+            ]
+    ):
+        """
+        Adds the given `assignment` to the `action's probabilistic_effects`.
+
+        :param fluents: The `fluents` of which `value` is modified by the `assignment`.
+        :param probability_func: based on the probability function a value is chosen from the values param
+        """
+
+        fluents_exp = self._environment.expression_manager.auto_promote(fluents)
+
+        for f in fluents_exp:
+            if not f.is_fluent_exp():
+                raise UPUsageError(
+                    "fluent field of add_effect must be a Fluent or a FluentExp"
+                )
+
+        self._add_probabilistic_effect_instance(
+            up.model.effect.ProbabilisticEffect(fluents_exp, probability_func)
+        )
+
+    def _add_probabilistic_effect_instance(self, probabilistic_effect: "up.model.effect.ProbabilisticEffect"):
+        assert (
+                probabilistic_effect.environment() == self._environment
+        ), "effect does not have the same environment of the action"
+        up.model.effect.check_conflicting_probabilistic_effects(
+            probabilistic_effect,
+            None,
+            self._simulated_effect,
+            self._fluents_assigned,
+            self._fluents_inc_dec,
+            self._probabilistic_effects,
+            self._effects,
+            "action",
+        )
+        self._probabilistic_effects.append(probabilistic_effect)
 
 
 
