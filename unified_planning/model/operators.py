@@ -1,0 +1,73 @@
+"""This module defines all the operators used by the unified_planning library."""
+from enum import Enum, auto
+
+
+class OperatorKind(Enum):
+    """
+    Enum representing the type of an :class:`~unified_planning.model.FNode`. The :func:`Operator <unified_planning.model.FNode.node_type>` of an `FNode` defines the semantic for all the
+    other fields of the `FNode`.
+    """
+
+    AND = auto()
+    OR = auto()
+    NOT = auto()
+    IMPLIES = auto()
+    IFF = auto()
+    EXISTS = auto()
+    FORALL = auto()
+    FLUENT_EXP = auto()
+    PARAM_EXP = auto()
+    VARIABLE_EXP = auto()
+    OBJECT_EXP = auto()
+    TIMING_EXP = auto()
+    BOOL_CONSTANT = auto()
+    INT_CONSTANT = auto()
+    REAL_CONSTANT = auto()
+    PLUS = auto()
+    MINUS = auto()
+    TIMES = auto()
+    DIV = auto()
+    LE = auto()
+    LT = auto()
+    EQUALS = auto()
+    ALWAYS = auto()
+    SOMETIME = auto()
+    SOMETIME_BEFORE = auto()
+    SOMETIME_AFTER = auto()
+    AT_MOST_ONCE = auto()
+    DOT = auto()
+
+
+BOOL_OPERATORS = frozenset(
+    [
+        OperatorKind.AND,
+        OperatorKind.OR,
+        OperatorKind.NOT,
+        OperatorKind.IMPLIES,
+        OperatorKind.IFF,
+        OperatorKind.EXISTS,
+        OperatorKind.FORALL,
+    ]
+)
+
+CONSTANTS = frozenset(
+    [OperatorKind.BOOL_CONSTANT, OperatorKind.REAL_CONSTANT, OperatorKind.INT_CONSTANT]
+)
+
+IRA_RELATIONS = frozenset([OperatorKind.LE, OperatorKind.LT])
+
+RELATIONS = frozenset((OperatorKind.EQUALS,)) | IRA_RELATIONS
+
+IRA_OPERATORS = frozenset(
+    [OperatorKind.PLUS, OperatorKind.MINUS, OperatorKind.TIMES, OperatorKind.DIV]
+)
+
+TRAJECTORY_CONSTRAINTS = frozenset(
+    [
+        OperatorKind.ALWAYS,
+        OperatorKind.SOMETIME,
+        OperatorKind.SOMETIME_BEFORE,
+        OperatorKind.SOMETIME_AFTER,
+        OperatorKind.AT_MOST_ONCE,
+    ]
+)
