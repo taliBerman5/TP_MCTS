@@ -52,11 +52,6 @@ class AbstractProblem:
     def clone(self):
         raise NotImplementedError
 
-    @property
-    def kind(self) -> "up.model.problem_kind.ProblemKind":
-        """Returns the :class:`~unified_planning.model.ProblemKind` of this `Problem`."""
-        raise NotImplementedError
-
     def has_name(self, name: str) -> bool:
         """
         Returns `True` the given `name` is already used inside this `Problem`,

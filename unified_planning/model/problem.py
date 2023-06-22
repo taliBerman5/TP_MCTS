@@ -26,7 +26,6 @@ from unified_planning.model.mixins import (
     # MetricsMixin,
 )
 from unified_planning.model.expression import ConstantExpression
-from unified_planning.model.operators import OperatorKind
 from unified_planning.exceptions import (
     UPProblemDefinitionError,
     UPTypeError,
@@ -144,8 +143,6 @@ class Problem(  # type: ignore[misc]
 
     def __eq__(self, oth: object) -> bool:
         if not (isinstance(oth, Problem)) or self._env != oth._env:
-            return False
-        if self.kind != oth.kind or self._name != oth._name:
             return False
 
         if not UserTypesSetMixin.__eq__(self, oth):
@@ -409,8 +406,6 @@ class Problem(  # type: ignore[misc]
             up.model.effect.Effect(
                 fluent_exp,
                 value_exp,
-                condition_exp,
-                kind=up.model.effect.EffectKind.INCREASE,
             ),
         )
 
@@ -447,8 +442,6 @@ class Problem(  # type: ignore[misc]
             up.model.effect.Effect(
                 fluent_exp,
                 value_exp,
-                condition_exp,
-                kind=up.model.effect.EffectKind.DECREASE,
             ),
         )
 
@@ -547,256 +540,6 @@ class Problem(  # type: ignore[misc]
         """Removes the trajectory_constraints."""
         self._trajectory_constraints = []
 
-    @property
-    def kind(self) -> "up.model.problem_kind.ProblemKind":
-        """
-        Calculates and returns the `problem kind` of this `planning problem`.
-        If the `Problem` is modified, this method must be called again in order to be reliable.
 
-        IMPORTANT NOTE: this property does a lot of computation, so it should be called as
-        seldom as possible.
-        """
-        # Create the needed data structures
-        static_fluents: Set["up.model.fluent.Fluent"] = self.get_static_fluents()
 
-        # Create a simplifier and a linear_checker with the problem, so static fluents can be considered as constants
-        simplifier = up.model.walkers.simplifier.Simplifier(self._env, self)
-        linear_checker = up.model.walkers.linear_checker.LinearChecker(self)
-        self._kind = up.model.problem_kind.ProblemKind()
-        self._kind.set_problem_class("ACTION_BASED")
-        self._kind.set_problem_type("SIMPLE_NUMERIC_PLANNING")
-        fluents_to_only_increase, fluents_to_only_decrease = self._update_kind_metric(
-            self._kind, linear_checker
-        )
-        for fluent in self._fluents:
-            self._update_problem_kind_fluent(fluent)
-        for object in self._objects:
-            self._update_problem_kind_type(object.type)
-        for action in self._actions:
-            self._update_problem_kind_action(
-                action,
-                fluents_to_only_increase,
-                fluents_to_only_decrease,
-                static_fluents,
-                simplifier,
-                linear_checker,
-            )
-        if len(self._timed_effects) > 0:
-            self._kind.set_time("CONTINUOUS_TIME")
-            self._kind.set_time("TIMED_EFFECT")
-        for effect_list in self._timed_effects.values():
-            for effect in effect_list:
-                self._update_problem_kind_effect(
-                    effect,
-                    fluents_to_only_increase,
-                    fluents_to_only_decrease,
-                    simplifier,
-                    linear_checker,
-                )
-        if len(self._timed_goals) > 0:
-            self._kind.set_time("TIMED_GOALS")
-            self._kind.set_time("CONTINUOUS_TIME")
-        if len(self._trajectory_constraints) > 0:
-            self._kind.set_constraints_kind("TRAJECTORY_CONSTRAINTS")
-        for goal_list in self._timed_goals.values():
-            for goal in goal_list:
-                self._update_problem_kind_condition(goal, linear_checker)
-        for goal in self._goals:
-            self._update_problem_kind_condition(goal, linear_checker)
-        if (
-            not self._kind.has_continuous_numbers()
-            and not self._kind.has_discrete_numbers()
-        ):
-            self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-        else:
-            if not self._kind.has_simple_numeric_planning():
-                self._kind.set_problem_type("GENERAL_NUMERIC_PLANNING")
-        return self._kind
-
-    def _update_problem_kind_effect(
-        self,
-        e: "up.model.effect.Effect",
-        fluents_to_only_increase: Set["up.model.fluent.Fluent"],
-        fluents_to_only_decrease: Set["up.model.fluent.Fluent"],
-        simplifier: "up.model.walkers.simplifier.Simplifier",
-        linear_checker: "up.model.walkers.linear_checker.LinearChecker",
-    ):
-        value = simplifier.simplify(e.value)
-        if e.is_conditional():
-            self._update_problem_kind_condition(e.condition, linear_checker)
-            self._kind.set_effects_kind("CONDITIONAL_EFFECTS")
-        if e.is_increase():
-            self._kind.set_effects_kind("INCREASE_EFFECTS")
-            # If the value is a number (int or real) and it violates the constraint
-            # on the "fluents_to_only_increase" or on "fluents_to_only_decrease",
-            # unset simple_numeric_planning
-            if (  # value is a constant number
-                value.is_int_constant() or value.is_real_constant()
-            ):
-                if (
-                    e.fluent in fluents_to_only_increase and value.constant_value() < 0
-                ) or (
-                    e.fluent in fluents_to_only_decrease and value.constant_value() > 0
-                ):
-                    self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-            else:
-                self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-        elif e.is_decrease():
-            self._kind.set_effects_kind("DECREASE_EFFECTS")
-            # If the value is a number (int or real) and it violates the constraint
-            # on the "fluents_to_only_increase" or on "fluents_to_only_decrease",
-            # unset simple_numeric_planning
-            if (  # value is a constant number
-                value.is_int_constant() or value.is_real_constant()
-            ):
-                if (
-                    e.fluent in fluents_to_only_increase and value.constant_value() > 0
-                ) or (
-                    e.fluent in fluents_to_only_decrease and value.constant_value() < 0
-                ):
-                    self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-            else:
-                self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-        elif e.is_assignment():
-            value_type = value.type
-            if (
-                value_type.is_int_type() or value_type.is_real_type()
-            ):  # the value is a number
-                if (  # if the fluent has increase/decrease constraints or the value assigned is not a constant,
-                    # unset "SIMPLE_NUMERIC_PLANNING"
-                    e.fluent in fluents_to_only_increase
-                    or e.fluent in fluents_to_only_decrease
-                    or not value.is_constant()
-                ):
-                    self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-
-    def _update_problem_kind_condition(
-        self,
-        exp: "up.model.fnode.FNode",
-        linear_checker: "up.model.walkers.linear_checker.LinearChecker",
-    ):
-        ops = self._operators_extractor.get(exp)
-        if OperatorKind.EQUALS in ops:
-            self._kind.set_conditions_kind("EQUALITY")
-        if OperatorKind.NOT in ops:
-            self._kind.set_conditions_kind("NEGATIVE_CONDITIONS")
-        if OperatorKind.OR in ops:
-            self._kind.set_conditions_kind("DISJUNCTIVE_CONDITIONS")
-        if OperatorKind.EXISTS in ops:
-            self._kind.set_conditions_kind("EXISTENTIAL_CONDITIONS")
-        if OperatorKind.FORALL in ops:
-            self._kind.set_conditions_kind("UNIVERSAL_CONDITIONS")
-        is_linear, _, _ = linear_checker.get_fluents(exp)
-        if not is_linear:
-            self._kind.unset_problem_type("SIMPLE_NUMERIC_PLANNING")
-
-    def _update_problem_kind_type(self, type: "up.model.types.Type"):
-        if type.is_user_type():
-            self._kind.set_typing("FLAT_TYPING")
-            if cast(up.model.types._UserType, type).father is not None:
-                self._kind.set_typing("HIERARCHICAL_TYPING")
-        elif type.is_int_type():
-            self._kind.set_numbers("DISCRETE_NUMBERS")
-        elif type.is_real_type():
-            self._kind.set_numbers("CONTINUOUS_NUMBERS")
-
-    def _update_problem_kind_fluent(self, fluent: "up.model.fluent.Fluent"):
-        self._update_problem_kind_type(fluent.type)
-        if fluent.type.is_int_type() or fluent.type.is_real_type():
-            numeric_type = fluent.type
-            assert isinstance(
-                numeric_type, (up.model.types._RealType, up.model.types._IntType)
-            )
-            if (
-                numeric_type.lower_bound is not None
-                or numeric_type.upper_bound is not None
-            ):
-                self._kind.set_numbers("BOUNDED_TYPES")
-            self._kind.set_fluents_type("NUMERIC_FLUENTS")
-        elif fluent.type.is_user_type():
-            self._kind.set_fluents_type("OBJECT_FLUENTS")
-        for p in fluent.signature:
-            self._update_problem_kind_type(p.type)
-
-    def _update_problem_kind_action(
-        self,
-        action: "up.model.action.Action",
-        fluents_to_only_increase: Set["up.model.fluent.Fluent"],
-        fluents_to_only_decrease: Set["up.model.fluent.Fluent"],
-        static_fluents: Set["up.model.fluent.Fluent"],
-        simplifier: "up.model.walkers.simplifier.Simplifier",
-        linear_checker: "up.model.walkers.linear_checker.LinearChecker",
-    ):
-        for p in action.parameters:
-            self._update_problem_kind_type(p.type)
-
-        if isinstance(action, up.model.action.FixDurationStartAction):
-            self._kind.set_problem_class("ACTION_BASED_STAR_END")
-            self._kind.set_time("CONTINUOUS_TIME")
-        if isinstance(action, up.model.action.ProbabilisticAction):
-            self._kind.set_probabilistic_entities("PROBABILISTIC_EFFECTS")
-        if isinstance(action, up.model.action.SensingAction):
-            self._kind.set_problem_class("CONTINGENT")
-        if isinstance(action, up.model.action.InstantaneousAction):
-            for c in action.preconditions:
-                self._update_problem_kind_condition(c, linear_checker)
-            for e in action.effects:
-                self._update_problem_kind_effect(
-                    e,
-                    fluents_to_only_increase,
-                    fluents_to_only_decrease,
-                    simplifier,
-                    linear_checker,
-                )
-            if action.simulated_effect is not None:
-                self._kind.set_simulated_entities("SIMULATED_EFFECTS")
-        elif isinstance(action, up.model.action.DurativeAction):
-            lower, upper = action.duration.lower, action.duration.upper
-            if lower != upper:
-                self._kind.set_time("DURATION_INEQUALITIES")
-            free_vars = self.environment.free_vars_extractor.get(
-                lower
-            ) | self.environment.free_vars_extractor.get(upper)
-            if len(free_vars) > 0:
-                only_static = True
-                for fv in free_vars:
-                    if fv.fluent() not in static_fluents:
-                        only_static = False
-                        break
-                if only_static:
-                    self._kind.set_expression_duration("STATIC_FLUENTS_IN_DURATION")
-                else:
-                    self._kind.set_expression_duration("FLUENTS_IN_DURATION")
-            for i, lc in action.conditions.items():
-                if i.lower.delay != 0 or i.upper.delay != 0:
-                    for t in [i.lower, i.upper]:
-                        if (t.is_from_start() and t.delay > 0) or (
-                            t.is_from_end() and t.delay < 0
-                        ):
-                            self._kind.set_time("INTERMEDIATE_CONDITIONS_AND_EFFECTS")
-                        else:
-                            self._kind.set_time("EXTERNAL_CONDITIONS_AND_EFFECTS")
-                for c in lc:
-                    self._update_problem_kind_condition(c, linear_checker)
-            for t, le in action.effects.items():
-                if t.delay != 0:
-                    if (t.is_from_start() and t.delay > 0) or (
-                        t.is_from_end() and t.delay < 0
-                    ):
-                        self._kind.set_time("INTERMEDIATE_CONDITIONS_AND_EFFECTS")
-                    else:
-                        self._kind.set_time("EXTERNAL_CONDITIONS_AND_EFFECTS")
-                for e in le:
-                    self._update_problem_kind_effect(
-                        e,
-                        fluents_to_only_increase,
-                        fluents_to_only_decrease,
-                        simplifier,
-                        linear_checker,
-                    )
-            if len(action.simulated_effects) > 0:
-                self._kind.set_simulated_entities("SIMULATED_EFFECTS")
-            self._kind.set_time("CONTINUOUS_TIME")
-        else:
-            raise NotImplementedError
 
