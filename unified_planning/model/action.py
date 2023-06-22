@@ -669,3 +669,75 @@ class DurativeAction(Action):
 
     def _set_preconditions(self, preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.fnode.FNode"]]):
         self._preconditions = preconditions
+
+
+class InstantaneousStartAction(InstantaneousAction):
+    """Represents a start action with fix duration.
+    This is the start action of the DurativeAction action class
+    _end_action - the end action of this start action """
+    def __init__(
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
+    ):
+        InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
+        self._duration: "up.model.timing.DurationInterval" = (
+            up.model.timing.FixedDuration(self._environment.expression_manager.Int(0)))
+        self._end_action: InstantaneousAction = None
+    def __repr__(self) -> str:
+        b = InstantaneousAction.__repr__(self)[0:-3]
+        s = ["Instantaneous start action ", b]
+        s.append(f"    duration = {str(self._duration)}\n")
+        s.append(f" end action = {self._end_action.name}")
+        s.append("  }")
+        return "".join(s)
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, InstantaneousStartAction):
+            super().__eq__(oth) and \
+            self._duration == oth._duration and \
+                self._end_action == oth._end_action
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        return super().__hash__() + hash(self._duration) + self._end_action.__hash__()
+
+    def clone(self):
+        new_params = OrderedDict()
+        for param_name, param in self._parameters.items():
+            new_params[param_name] = param.type
+        new_instantaneous_start_action = InstantaneousStartAction(self._name, new_params, self._environment)
+        new_instantaneous_start_action._preconditions = self._preconditions[:]
+        new_instantaneous_start_action._effects = [e.clone() for e in self._effects]
+        new_instantaneous_start_action._fluents_assigned = self._fluents_assigned.copy()
+        new_instantaneous_start_action._duration = self._duration
+        new_instantaneous_start_action._end_action = self._end_action.clone()
+
+        return new_instantaneous_start_action
+
+    def duration(self) -> "up.model.timing.DurationInterval":
+        """Returns the `action` `duration interval`."""
+        return self._duration
+    def set_fixed_duration(self, value: Union["up.model.fnode.FNode", int, Fraction]):
+        """
+        Sets the `duration interval` for this `action` as the interval `[value, value]`.
+
+        :param value: The `value` set as both edges of this `action's duration`.
+        """
+        (value_exp,) = self._environment.expression_manager.auto_promote(value)
+        duration = up.model.timing.FixedDuration(value_exp)
+        value = duration.lower
+        tvalue = self._environment.type_checker.get_type(value)
+        assert tvalue.is_int_type() or tvalue.is_real_type()
+        self._duration = up.model.timing.FixedDuration(value_exp)
+
+    def _set_end_action(self, end_action: InstantaneousAction):
+        """Sets the `end_action`."""
+        self._end_action = end_action
+
+    def end_action(self) -> InstantaneousAction:
+        """Returns the `end_action`ץ"""
+        return self._end_action

@@ -18,9 +18,7 @@ from unified_planning.model.action import (
     Action,
     InstantaneousAction,
     DurativeAction,
-    # SensingAction,
-    # ProbabilisticAction,
-    # DurationProbabilisticAction,
+    InstantaneousStartAction,
 )
 from unified_planning.model.effect import Effect
 from unified_planning.model.expression import (
@@ -83,6 +81,7 @@ from unified_planning.model.variable import Variable, FreeVarsOracle
 __all__ = [
     "Action",
     "InstantaneousAction",
+    "InstantaneousStartAction",
     "Effect",
     "BoolExpression",
     "Expression",
