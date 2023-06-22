@@ -401,6 +401,10 @@ class DurativeAction(Action):
                 s.append(f"      {str(p)}\n")
         s.append("    ]\n")
         s.append(f"    duration = {str(self._duration)}\n")
+        s.append("   during effects = [\n")
+        for de in self.during_effects:
+            s.append(f"      {str(de)}\n")
+        s.append("    ]\n")
         s.append("    effects = [\n")
         for e in self.effects:
             s.append(f"      {str(e)}\n")
@@ -408,10 +412,6 @@ class DurativeAction(Action):
         s.append("    probabilistic effects = [\n")
         for pe in self._probabilistic_effects:
             s.append(f"      {str(pe)}\n")
-        s.append("    ]\n")
-        s.append("   during effects = [\n")
-        for de in self.during_effects:
-            s.append(f"      {str(de)}\n")
         s.append("    ]\n")
         s.append("  }")
         return "".join(s)
@@ -501,8 +501,11 @@ class DurativeAction(Action):
         :param value: The `value` set as both edges of this `action's duration`.
         """
         (value_exp,) = self._environment.expression_manager.auto_promote(value)
-        self.set_duration_constraint(up.model.timing.FixedDuration(value_exp))
-
+        duration = up.model.timing.FixedDuration(value_exp)
+        value = duration.lower
+        tvalue = self._environment.type_checker.get_type(value)
+        assert tvalue.is_int_type() or tvalue.is_real_type()
+        self._duration = up.model.timing.FixedDuration(value_exp)
 
     def add_precondition(
             self,
@@ -580,7 +583,7 @@ class DurativeAction(Action):
         )
         self._effects.append(effect)
 
-    def add_duration_effect(
+    def add_during_effect(
             self,
             fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
             value: "up.model.expression.Expression",
@@ -604,11 +607,11 @@ class DurativeAction(Action):
             raise UPTypeError(
                 f"InstantaneousAction effect has an incompatible value type. Fluent type: {fluent_exp.type} // Value type: {value_exp.type}"
             )
-        self._add_duration_effect_instance(
+        self._add_during_effect_instance(
             up.model.effect.Effect(fluent_exp, value_exp)
         )
 
-    def _add__during_effect_instance(self, effect: "up.model.effect.Effect"):
+    def _add_during_effect_instance(self, effect: "up.model.effect.Effect"):
         assert (
                 effect.environment == self._environment
         ), "effect does not have the same environment of the action"
