@@ -356,6 +356,12 @@ class InstantaneousAction(Action):
     def _set_preconditions(self, preconditions: List["up.model.fnode.FNode"]):
         self._preconditions = preconditions
 
+    def _set_effects(self, effects: List["up.model.effect.Effect"]):
+        self._effects = effects
+
+    def _set_probabilistic_effects(self, probabilistic_effects: List["up.model.effect.ProbabilisticEffect"]):
+        self._probabilistic_effects = probabilistic_effects
+
 
 class DurativeAction(Action):
     """Represents a durative action."""
@@ -688,7 +694,7 @@ class InstantaneousStartAction(InstantaneousAction):
         self._end_action: InstantaneousAction = None
     def __repr__(self) -> str:
         b = InstantaneousAction.__repr__(self)[0:-3]
-        s = ["Instantaneous start action ", b]
+        s = ["Instantaneous start ", b]
         s.append(f"    duration = {str(self._duration)}\n")
         s.append(f" end action = {self._end_action.name}")
         s.append("  }")
@@ -721,18 +727,13 @@ class InstantaneousStartAction(InstantaneousAction):
     def duration(self) -> "up.model.timing.DurationInterval":
         """Returns the `action` `duration interval`."""
         return self._duration
-    def set_fixed_duration(self, value: Union["up.model.fnode.FNode", int, Fraction]):
+    def _set_fixed_duration(self, duration: "up.model.timing.DurationInterval"):
         """
         Sets the `duration interval` for this `action` as the interval `[value, value]`.
 
-        :param value: The `value` set as both edges of this `action's duration`.
+        :param duration: The `duration` of this `action's`.
         """
-        (value_exp,) = self._environment.expression_manager.auto_promote(value)
-        duration = up.model.timing.FixedDuration(value_exp)
-        value = duration.lower
-        tvalue = self._environment.type_checker.get_type(value)
-        assert tvalue.is_int_type() or tvalue.is_real_type()
-        self._duration = up.model.timing.FixedDuration(value_exp)
+        self._duration = duration
 
     def _set_end_action(self, end_action: InstantaneousAction):
         """Sets the `end_action`."""
@@ -741,3 +742,5 @@ class InstantaneousStartAction(InstantaneousAction):
     def end_action(self) -> InstantaneousAction:
         """Returns the `end_action`ץ"""
         return self._end_action
+
+

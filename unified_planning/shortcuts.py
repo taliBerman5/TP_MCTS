@@ -22,6 +22,7 @@ import unified_planning as up
 import unified_planning.model.types
 from unified_planning.environment import get_environment
 from unified_planning.model import *
+from unified_planning.engine import *
 from typing import IO, Any, Iterable, List, Union, Dict, Tuple, Optional
 from fractions import Fraction
 
