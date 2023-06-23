@@ -117,10 +117,6 @@ class Action:
             )
         return self._parameters[parameter_name]
 
-    def is_conditional(self) -> bool:
-        """Returns `True` if the `Action` has `conditional effects`, `False` otherwise."""
-        raise NotImplementedError
-
 
 class InstantaneousAction(Action):
     """Represents an instantaneous action."""
@@ -133,7 +129,7 @@ class InstantaneousAction(Action):
             **kwargs: "up.model.types.Type",
     ):
         Action.__init__(self, _name, _parameters, _env, **kwargs)
-        self._preconditions: List["up.model.fnode.FNode"] = []
+        self._preconditions: List["up.model.precondition.Precondition"] = []
         self._effects: List[up.model.effect.Effect] = []
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
         # fluent assigned is the mapping of the fluent to it's value
@@ -213,7 +209,7 @@ class InstantaneousAction(Action):
         return new_instantaneous_action
 
     @property
-    def preconditions(self) -> List["up.model.fnode.FNode"]:
+    def preconditions(self) -> List["up.model.precondition.Precondition"]:
         """Returns the `list` of the `Action` `preconditions`."""
         return self._preconditions
 
@@ -245,14 +241,17 @@ class InstantaneousAction(Action):
                 "up.model.parameter.Parameter",
                 bool,
             ],
+            value: "up.model.expression.Expression",
     ):
         """
         Adds the given expression to `action's preconditions`.
 
         :param precondition: The expression that must be added to the `action's preconditions`.
+        :param value: The value of the expression that must hold in the precondition
+
         """
-        (precondition_exp,) = self._environment.expression_manager.auto_promote(
-            precondition
+        (precondition_exp, value_exp,) = self._environment.expression_manager.auto_promote(
+            precondition, value
         )
         assert self._environment.type_checker.get_type(precondition_exp).is_bool_type()
         if precondition_exp == self._environment.expression_manager.TRUE():
@@ -265,7 +264,7 @@ class InstantaneousAction(Action):
                 f"The precondition {str(precondition_exp)} has unbounded variables:\n{str(free_vars)}"
             )
         if precondition_exp not in self._preconditions:
-            self._preconditions.append(precondition_exp)
+            self._preconditions.append(up.model.precondition.Precondition(precondition_exp, value_exp))
 
     def add_effect(
             self,
@@ -353,7 +352,7 @@ class InstantaneousAction(Action):
         )
         self._probabilistic_effects.append(probabilistic_effect)
 
-    def _set_preconditions(self, preconditions: List["up.model.fnode.FNode"]):
+    def _set_preconditions(self, preconditions: List["up.model.precondition.Precondition"]):
         self._preconditions = preconditions
 
     def _set_effects(self, effects: List["up.model.effect.Effect"]):
@@ -377,7 +376,7 @@ class DurativeAction(Action):
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0))
         )
-        self._preconditions: Dict[up.model.timing.PreconditionTimepoint, List["up.model.fnode.FNode"]] = {}
+        self._preconditions: Dict[up.model.timing.PreconditionTimepoint, List["up.model.precondition.Precondition"]] = {}
         self._during_effects: List[up.model.effect.Effect] = []
         self._effects: List[up.model.effect.Effect] = []
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
@@ -466,7 +465,7 @@ class DurativeAction(Action):
         return new_durative_action
 
     @property
-    def preconditions(self) -> Dict["up.model.timing.PreconditionTimepoint", List["up.model.fnode.FNode"]]:
+    def preconditions(self) -> Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]]:
         """Returns the `list` of the `Action` `preconditions`."""
         return self._preconditions
 
@@ -522,15 +521,17 @@ class DurativeAction(Action):
                 "up.model.parameter.Parameter",
                 bool,
             ],
+            value: "up.model.expression.Expression",
     ):
         """
         Adds the given expression to `action's preconditions`.
 
         :param preconditionTiming: The timing the precondition must hold.
         :param precondition: The expression that must be added to the `action's preconditions`.
+        :param value: The value of the expression that must hold in the precondition
         """
-        (precondition_exp,) = self._environment.expression_manager.auto_promote(
-            precondition
+        (precondition_exp, value_exp,) = self._environment.expression_manager.auto_promote(
+            precondition, value
         )
         assert self._environment.type_checker.get_type(precondition_exp).is_bool_type()
         if precondition_exp == self._environment.expression_manager.TRUE():
@@ -545,9 +546,9 @@ class DurativeAction(Action):
         name = preconditionTiming.kind.name
         if name in self._preconditions:
             if precondition_exp not in self._preconditions[name]:
-                self._preconditions[name].append(precondition_exp)
+                self._preconditions[name].append(up.model.precondition.Precondition(precondition_exp, value_exp))
         else:
-            self._preconditions[name] = [precondition_exp]
+            self._preconditions[name] = [up.model.precondition.Precondition(precondition_exp, value_exp)]
 
     def add_effect(
             self,
@@ -673,7 +674,7 @@ class DurativeAction(Action):
         )
         self._probabilistic_effects.append(probabilistic_effect)
 
-    def _set_preconditions(self, preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.fnode.FNode"]]):
+    def _set_preconditions(self, preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]]):
         self._preconditions = preconditions
 
 

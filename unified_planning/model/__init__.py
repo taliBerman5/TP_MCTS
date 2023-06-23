@@ -29,6 +29,7 @@ from unified_planning.model.expression import (
 from unified_planning.model.fnode import FNode
 from unified_planning.model.fluent import Fluent
 from unified_planning.model.object import Object
+from unified_planning.model.precondition import Precondition
 from unified_planning.model.operators import OperatorKind
 from unified_planning.model.parameter import Parameter
 from unified_planning.model.abstract_problem import AbstractProblem
@@ -83,6 +84,7 @@ __all__ = [
     "InstantaneousAction",
     "InstantaneousStartAction",
     "Effect",
+    "Precondition",
     "BoolExpression",
     "Expression",
     "ExpressionManager",
