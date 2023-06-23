@@ -5,11 +5,9 @@ A basic `Precondition` has a `fluent` and an `expression`.
 
 
 import unified_planning as up
-from unified_planning.exceptions import UPConflictingEffectsException
-from enum import Enum, auto
-from typing import List, Callable, Dict, Optional, Set, Tuple, Union
-import numpy as np
-import inspect as i
+from unified_planning.exceptions import UPConflictingPreconditionException
+from typing import List, Dict
+
 
 class Precondition:
     """
@@ -76,3 +74,68 @@ class Precondition:
     def environment(self) -> "up.environment.Environment":
         """Returns this `Precondition's Environment`."""
         return self._fluent.environment
+
+
+def check_conflicting_precondition(precondition: "up.model.Precondition", action_preconditions: List["up.model.Precondition"], name: str):
+    """
+    This method checks if the precondition that would be added is in conflict with the preconditions
+    already in the action.
+
+    :param precondition: The target precondition to add.
+    :param action_preconditions: The preconditions already defined in the action
+    :param name: string used for better error indexing.
+
+     :raises: UPConflictingException if the given precondition is in conflict with the preconditions already in the action.
+     :returns: `False` if the precondition is already in the preconditions of the action, otherwise returns `True`
+    """
+
+    for p in action_preconditions:
+        if precondition == p:
+            return False
+        if precondition._fluent == p._fluent:
+            msg = f"The precondition {precondition} is in conflict with a precondition already in the {name}."
+            raise UPConflictingPreconditionException(msg)
+    return True
+
+
+def check_conflicting_durative_precondition(preconditionTiming: str, precondition: "up.model.Precondition", action_preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.Precondition"]], name: str):
+    """
+    This method checks if the precondition that would be added is in conflict with the preconditions
+    already in the action.
+
+    :param preconditionTiming: The target precondition timing - START, OVERALL, END
+    :param precondition: The target precondition to add.
+    :param action_preconditions: The preconditions already defined in the action
+    :param name: string used for better error indexing.
+
+     :raises: UPConflictingException if the given precondition is in conflict with the preconditions already in the action.
+     :returns: `False` if the precondition is already in the preconditions of the action, otherwise returns `True`
+    """
+
+    for p_type in action_preconditions:
+        if p_type in ['START', 'OVERALL'] and preconditionTiming in ['START', 'OVERALL']:
+
+            if any(precondition == p for p in action_preconditions[p_type]):
+                if p_type == preconditionTiming:
+                    return False
+                else:
+                    msg = f"The precondition {precondition} is in conflict with a precondition already in the {name}."
+                    raise UPConflictingPreconditionException(msg)
+
+            if any(precondition._fluent == p._fluent for p in action_preconditions[p_type]):
+                msg = f"The precondition {precondition} is in conflict with a precondition already in the {name}."
+                raise UPConflictingPreconditionException(msg)
+
+        if p_type in ['END', 'OVERALL'] and preconditionTiming in ['END', 'OVERALL']:
+
+            if any(precondition == p for p in action_preconditions[p_type]):
+                if p_type == preconditionTiming:
+                    return False
+                else:
+                    msg = f"The precondition {precondition} is in conflict with a precondition already in the {name}."
+                    raise UPConflictingPreconditionException(msg)
+
+            if any(precondition._fluent == p._fluent for p in action_preconditions[p_type]):
+                msg = f"The precondition {precondition} is in conflict with a precondition already in the {name}."
+                raise UPConflictingPreconditionException(msg)
+    return True

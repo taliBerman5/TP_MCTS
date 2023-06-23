@@ -202,7 +202,7 @@ class InstantaneousAction(Action):
         new_instantaneous_action = InstantaneousAction(
             self._name, new_params, self._environment
         )
-        new_instantaneous_action._preconditions = self._preconditions[:]
+        new_instantaneous_action._preconditions = [p.clone() for p in self._preconditions]
         new_instantaneous_action._effects = [e.clone() for e in self._effects]
         new_instantaneous_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
         new_instantaneous_action._fluents_assigned = self._fluents_assigned.copy()
@@ -263,8 +263,19 @@ class InstantaneousAction(Action):
             raise UPUnboundedVariablesError(
                 f"The precondition {str(precondition_exp)} has unbounded variables:\n{str(free_vars)}"
             )
-        if precondition_exp not in self._preconditions:
-            self._preconditions.append(up.model.precondition.Precondition(precondition_exp, value_exp))
+        self._add_precondition_instance(
+                up.model.precondition.Precondition(precondition_exp, value_exp)
+        )
+    def _add_precondition_instance(self, precondition: "up.model.precondition.Precondition"):
+        assert (
+                precondition.environment == self._environment
+        ), "precondition does not have the same environment of the action"
+        if up.model.precondition.check_conflicting_precondition(
+            precondition,
+            self._preconditions,
+            self.name
+        ):
+            self._preconditions.append(precondition)
 
     def add_effect(
             self,
@@ -376,7 +387,7 @@ class DurativeAction(Action):
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0))
         )
-        self._preconditions: Dict[up.model.timing.PreconditionTimepoint, List["up.model.precondition.Precondition"]] = {}
+        self._preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]] = {}
         self._during_effects: List[up.model.effect.Effect] = []
         self._effects: List[up.model.effect.Effect] = []
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
@@ -429,11 +440,11 @@ class DurativeAction(Action):
                 or self._name != oth._name
                 or self._parameters != oth._parameters
                 or self._duration != oth._duration
-                or set(self._preconditions) == set(oth._preconditions)
-                or set(self._effects) == set(oth._effects)
-                or set(self._probabilistic_effects) == set(
+                or set(self._preconditions) != set(oth._preconditions)
+                or set(self._effects) != set(oth._effects)
+                or set(self._probabilistic_effects) != set(
             oth._probabilistic_effects)
-                or set(self.during_effects) == set(oth._during_effects)
+                or set(self.during_effects) != set(oth._during_effects)
         ):
             return False
         return True
@@ -458,6 +469,7 @@ class DurativeAction(Action):
         )
         new_durative_action = DurativeAction(self._name, new_params, self._environment)
         new_durative_action._duration = self._duration
+        new_durative_action._preconditions = {p_type: [p.clone() for p in preconditions] for p_type, preconditions in self._preconditions.items()}
         new_durative_action._effects = [e.clone() for e in self._effects]
         new_durative_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
         new_durative_action._during_effects = [de.clone() for de in self._during_effects]
@@ -544,11 +556,23 @@ class DurativeAction(Action):
                 f"The precondition {str(precondition_exp)} has unbounded variables:\n{str(free_vars)}"
             )
         name = preconditionTiming.kind.name
-        if name in self._preconditions:
-            if precondition_exp not in self._preconditions[name]:
-                self._preconditions[name].append(up.model.precondition.Precondition(precondition_exp, value_exp))
-        else:
-            self._preconditions[name] = [up.model.precondition.Precondition(precondition_exp, value_exp)]
+        self._add_precondition_instance(name, up.model.Precondition(precondition_exp, value_exp))
+    def _add_precondition_instance(self,  preconditionTimingName: str, precondition: "up.model.precondition.Precondition"):
+        assert (
+                precondition.environment == self._environment
+        ), "precondition does not have the same environment of the action"
+        if up.model.precondition.check_conflicting_durative_precondition(
+                preconditionTimingName,
+                precondition,
+                self._preconditions,
+                self.name
+        ):
+
+            if preconditionTimingName in self._preconditions:
+                self._preconditions[preconditionTimingName].append(precondition)
+            else:
+                self._preconditions[preconditionTimingName] = [precondition]
+
 
     def add_effect(
             self,
@@ -717,7 +741,7 @@ class InstantaneousStartAction(InstantaneousAction):
         for param_name, param in self._parameters.items():
             new_params[param_name] = param.type
         new_instantaneous_start_action = InstantaneousStartAction(self._name, new_params, self._environment)
-        new_instantaneous_start_action._preconditions = self._preconditions[:]
+        new_instantaneous_start_action._preconditions = [p.clone() for p in self._preconditions]
         new_instantaneous_start_action._effects = [e.clone() for e in self._effects]
         new_instantaneous_start_action._fluents_assigned = self._fluents_assigned.copy()
         new_instantaneous_start_action._duration = self._duration
