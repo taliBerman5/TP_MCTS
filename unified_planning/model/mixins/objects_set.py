@@ -104,7 +104,18 @@ class ObjectsSetMixin:
             if o.name == name:
                 return o
         raise UPValueError(f"Object of name: {name} is not defined!")
+    def object_by_name(self, name: str) -> "up.model.Object":
+        """
+        Returns the object instance if the `problem` has `Object` with the given `name`,
+        `None` otherwise.
 
+        :param name: The `name` of the target `Object`.
+        :return: object instance if the `problem` has an `object` with the given `name`, `None` otherwise.
+        """
+        for o in self._objects:
+            if o.name == name:
+                return o
+        return None
     def has_object(self, name: str) -> bool:
         """
         Returns `True` if the `object` with the given `name` is in the `problem`,
