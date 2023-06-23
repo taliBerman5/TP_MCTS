@@ -100,6 +100,19 @@ class ActionsSetMixin:
                 return True
         return False
 
+    def action_by_name(self, name: str) -> "up.model.Action":
+        """
+        Returns the action instance if the `problem` has the `action` with the given `name`,
+        `None` otherwise.
+
+        :param name: The `name` of the target `action`.
+        :return: action instance if the `problem` has an `action` with the given `name`, `None` otherwise.
+        """
+        for a in self._actions:
+            if a.name == name:
+                return a
+        return None
+
     def add_action(self, action: "up.model.action.Action"):
         """
         Adds the given `action` to the `problem`.

@@ -373,78 +373,6 @@ class Problem(  # type: ignore[misc]
             timing, up.model.effect.Effect(fluent_exp, value_exp, condition_exp)
         )
 
-    def add_increase_effect(
-        self,
-        timing: "up.model.timing.Timing",
-        fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
-        value: "up.model.expression.Expression",
-        condition: "up.model.expression.BoolExpression" = True,
-    ):
-        """
-        Adds the given `timed increase effect` to the `Problem`; a `timed effect` is an :class:`~unified_planning.model.Effect` applied at a fixed time.
-
-        :param timing: The exact time in which the given `Effect` is applied.
-        :param fluent: The fluent increased by the `Effect`.
-        :param value: The value of which the given `fluent` is increased at the given `time`.
-        :param condition: The condition that must be evaluated to `True` in order for this `Effect` to be
-            actually applied.
-        """
-        (
-            fluent_exp,
-            value_exp,
-            condition_exp,
-        ) = self._env.expression_manager.auto_promote(fluent, value, condition)
-        assert fluent_exp.is_fluent_exp()
-        if not condition_exp.type.is_bool_type():
-            raise UPTypeError("Effect condition is not a Boolean condition!")
-        if not fluent_exp.type.is_compatible(value_exp.type):
-            raise UPTypeError("Timed effect has not compatible types!")
-        if not fluent_exp.type.is_int_type() and not fluent_exp.type.is_real_type():
-            raise UPTypeError("Decrease effects can be created only on numeric types!")
-        self._add_effect_instance(
-            timing,
-            up.model.effect.Effect(
-                fluent_exp,
-                value_exp,
-            ),
-        )
-
-    def add_decrease_effect(
-        self,
-        timing: "up.model.timing.Timing",
-        fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
-        value: "up.model.expression.Expression",
-        condition: "up.model.expression.BoolExpression" = True,
-    ):
-        """
-        Adds the given timed decrease effect to the problem; a `timed effect` is an :class:`~unified_planning.model.Effect` applied at a fixed time.
-
-        :param timing: The exact time in which the given `Effect` is applied.
-        :param fluent: The fluent decreased by the `Effect`.
-        :param value: The value of which the given `fluent` is decrease at the given `time`.
-        :param condition: The condition that must be evaluated to `True` in order for this `Effect` to be
-            actually applied.
-        """
-        (
-            fluent_exp,
-            value_exp,
-            condition_exp,
-        ) = self._env.expression_manager.auto_promote(fluent, value, condition)
-        assert fluent_exp.is_fluent_exp()
-        if not condition_exp.type.is_bool_type():
-            raise UPTypeError("Effect condition is not a Boolean condition!")
-        if not fluent_exp.type.is_compatible(value_exp.type):
-            raise UPTypeError("Timed effect has not compatible types!")
-        if not fluent_exp.type.is_int_type() and not fluent_exp.type.is_real_type():
-            raise UPTypeError("Decrease effects can be created only on numeric types!")
-        self._add_effect_instance(
-            timing,
-            up.model.effect.Effect(
-                fluent_exp,
-                value_exp,
-            ),
-        )
-
     def _add_effect_instance(
         self, timing: "up.model.timing.Timing", effect: "up.model.effect.Effect"
     ):
@@ -474,7 +402,7 @@ class Problem(  # type: ignore[misc]
         """Removes all the `timed effects` from the `Problem`."""
         self._timed_effects = {}
         self._fluents_assigned = {}
-        self._fluents_inc_dec = {}
+
 
     def add_goal(
         self, goal: Union["up.model.fnode.FNode", "up.model.fluent.Fluent", bool]
@@ -539,6 +467,8 @@ class Problem(  # type: ignore[misc]
     def clear_trajectory_constraints(self):
         """Removes the trajectory_constraints."""
         self._trajectory_constraints = []
+
+
 
 
 
