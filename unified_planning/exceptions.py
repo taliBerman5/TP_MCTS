@@ -64,6 +64,7 @@ class UPNoRequestedEngineAvailableException(UPException):
 class UPConflictingEffectsException(UPException):
     pass
 
-
+class UPConflictingPreconditionException(UPException):
+    pass
 class ANMLSyntaxError(UPException, SyntaxError):
     pass
