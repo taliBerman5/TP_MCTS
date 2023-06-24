@@ -149,8 +149,7 @@ class ProbabilisticEffect:
             "up.model.problem.AbstractProblem",
             "up.model.state.ROState",
         ],
-        List["up.model.fnode.FNode"],
-    ]:
+        Dict[float, dict["up.model.fnode.FNode", "up.model.fnode.FNode"]]]:
         """
         Return the function that contains the information on how the `fluent` of this `ProbabilisticEffect`
         is modified when this `probabilistic effect` is applied.
