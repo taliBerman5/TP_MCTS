@@ -741,9 +741,6 @@ class InstantaneousStartAction(InstantaneousAction):
         for param_name, param in self._parameters.items():
             new_params[param_name] = param.type
         new_instantaneous_start_action = InstantaneousStartAction(self._name, new_params, self._environment)
-        new_instantaneous_start_action._preconditions = [p.clone() for p in self._preconditions]
-        new_instantaneous_start_action._effects = [e.clone() for e in self._effects]
-        new_instantaneous_start_action._fluents_assigned = self._fluents_assigned.copy()
         new_instantaneous_start_action._duration = self._duration
         new_instantaneous_start_action._end_action = self._end_action.clone()
 
