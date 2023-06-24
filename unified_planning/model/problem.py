@@ -268,6 +268,10 @@ class Problem(  # type: ignore[misc]
                 raise NotImplementedError
         return up.plans.ActionInstance(new_a, tuple(params))
 
+    def _remove_action(self, action: "up.model.action.Action"):
+        if action in self.actions:
+            self.actions.remove(action)
+
     def get_static_fluents(self) -> Set["up.model.fluent.Fluent"]:
         """
         Returns the set of the `static fluents`.
