@@ -127,10 +127,10 @@ class InstantaneousAction(Action):
             **kwargs: "up.model.types.Type",
     ):
         Action.__init__(self, _name, _parameters, _env, **kwargs)
-        self._neg_preconditions: List["up.model.fnode.FNode"] = []
-        self._pos_preconditions: List["up.model.fnode.FNode"] = []
-        self._del_effects: List["up.model.fnode.FNode"] = []
-        self._add_effects: List["up.model.fnode.FNode"] = []
+        self._neg_preconditions: Set["up.model.fnode.FNode"] = set()
+        self._pos_preconditions: Set["up.model.fnode.FNode"] = set()
+        self._del_effects: Set["up.model.fnode.FNode"] = set()
+        self._add_effects: Set["up.model.fnode.FNode"] = set()
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
         # fluent assigned is the mapping of the fluent to it's value
         self._fluents_assigned: Dict[
@@ -216,31 +216,31 @@ class InstantaneousAction(Action):
         new_instantaneous_action = InstantaneousAction(
             self._name, new_params, self._environment
         )
-        new_instantaneous_action._neg_preconditions = self._neg_preconditions[:]
-        new_instantaneous_action._pos_preconditions = self._pos_preconditions[:]
-        new_instantaneous_action._del_effects = self._del_effects[:]
-        new_instantaneous_action._add_effects = self._add_effects[:]
+        new_instantaneous_action._neg_preconditions = set(self._neg_preconditions)
+        new_instantaneous_action._pos_preconditions = set(self._pos_preconditions)
+        new_instantaneous_action._del_effects = set(self._del_effects)
+        new_instantaneous_action._add_effects = set(self._add_effects)
         new_instantaneous_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
         new_instantaneous_action._fluents_assigned = self._fluents_assigned.copy()
         return new_instantaneous_action
 
     @property
-    def neg_preconditions(self) -> List["up.model.fnode.Fnode"]:
+    def neg_preconditions(self) -> Set["up.model.fnode.Fnode"]:
         """Returns the `list` of the `Action` negative `preconditions`."""
         return self._neg_preconditions
 
     @property
-    def pos_preconditions(self) -> List["up.model.fnode.Fnode"]:
+    def pos_preconditions(self) -> Set["up.model.fnode.Fnode"]:
         """Returns the `list` of the `Action` positive `preconditions`."""
         return self._pos_preconditions
 
     @property
-    def del_effects(self) -> List["up.model.fnode.Fnode"]:
+    def del_effects(self) -> Set["up.model.fnode.Fnode"]:
         """Returns the `list` of the delete `Action effects`."""
         return self._del_effects
 
     @property
-    def add_effects(self) -> List["up.model.fnode.Fnode"]:
+    def add_effects(self) -> Set["up.model.fnode.Fnode"]:
         """Returns the `list` of the `Action effects`."""
         return self._add_effects
 
@@ -250,12 +250,12 @@ class InstantaneousAction(Action):
         return self._probabilistic_effects
 
     def _set_preconditions(self, preconditions: List["up.model.precondition.Precondition"]):
-        self._neg_preconditions = [p.fluent for p in preconditions if not p.value.constant_value()]
-        self._pos_preconditions = [p.fluent for p in preconditions if p.value.constant_value()]
+        self._neg_preconditions = set([p.fluent for p in preconditions if not p.value.constant_value()])
+        self._pos_preconditions = set([p.fluent for p in preconditions if p.value.constant_value()])
 
     def _set_effects(self, effects: List["up.model.effect.Effect"]):
-        self._del_effects = [e.fluent for e in effects if not e.value.constant_value()]
-        self._add_effects = [e.fluent for e in effects if e.value.constant_value()]
+        self._del_effects = set([e.fluent for e in effects if not e.value.constant_value()])
+        self._add_effects = set([e.fluent for e in effects if e.value.constant_value()])
 
     def _set_probabilistic_effects(self, probabilistic_effects: List["up.model.effect.ProbabilisticEffect"]):
         self._probabilistic_effects = probabilistic_effects
@@ -293,17 +293,15 @@ class InstantaneousAction(Action):
             if precondition_exp in self._neg_preconditions:
                 msg = f"The precondition {precondition} is in conflict with a precondition already in the {self.name}."
                 raise UPConflictingPreconditionException(msg)
-            if precondition_exp not in self._pos_preconditions:
-                self._pos_preconditions.append(precondition_exp)
+            self._pos_preconditions.add(precondition_exp)
         else:
             if precondition_exp in self._pos_preconditions:
                 msg = f"The precondition {precondition} is in conflict with a precondition already in the {self.name}."
                 raise UPConflictingPreconditionException(msg)
-            if precondition_exp not in self._neg_preconditions:
-                self._neg_preconditions.append(precondition_exp)
+            self._neg_preconditions.add(precondition_exp)
 
-    def add_preconditions(self, priconditions: List["up.model.precondition.Precondition"]):
-        for p in priconditions:
+    def add_preconditions(self, preconditions: List["up.model.precondition.Precondition"]):
+        for p in preconditions:
             self.add_precondition(p.fluent, p.value)
 
 
@@ -336,14 +334,12 @@ class InstantaneousAction(Action):
             if fluent_exp in self._del_effects:
                 msg = f"The effect {fluent_exp} is in conflict with an effect already in the {self.name}."
                 raise UPConflictingEffectsException(msg)
-            if fluent_exp not in self._add_effects:
-                self._add_effects.append(fluent_exp)
+            self._add_effects.add(fluent_exp)
         else:
             if fluent_exp in self._add_effects:
                 msg = f"The effect {fluent_exp} is in conflict with an effect already in the {self.name}."
                 raise UPConflictingEffectsException(msg)
-            if fluent_exp not in self._del_effects:
-                self._del_effects.append(fluent_exp)
+            self._del_effects.add(fluent_exp)
 
 
 
