@@ -27,6 +27,7 @@ class Converted_problem:
                                                                a=self._action_type)
         self._add_inExecution_fluent()
         self._split_durative_actions()
+        self._convert_model_engine_actions()
         self._mutex_actions()
 
 
@@ -48,9 +49,10 @@ class Converted_problem:
 
         """
         for action in self._converted_problem._actions:
+
             if isinstance(action, up.model.DurativeAction):
 
-                start_action = up.model.InstantaneousStartAction("start_" + action._name)
+                start_action = up.engine.InstantaneousStartAction("start_" + action._name)
                 start_action._parameters = action._parameters
 
                 # creating an object start_action for inExecution predicate
@@ -60,7 +62,7 @@ class Converted_problem:
                 start_action._set_effects(action.during_effects)
                 start_action.add_effect(self._inExecution(object_start), True)
 
-                end_action = up.model.InstantaneousAction("end_" + action._name)
+                end_action = up.engine.InstantaneousAction("end_" + action._name)
                 end_action._parameters = action._parameters
                 end_action._set_effects(action.effects)
                 end_action.add_effect(self._inExecution(object_start), False)
@@ -71,9 +73,9 @@ class Converted_problem:
                 # Add preconditions to start and end action
                 for p_type in action.preconditions:
                     if p_type in {'START', 'OVERALL'}:
-                        start_action._preconditions += action.preconditions[p_type]
+                        start_action.add_preconditions(action.preconditions[p_type])
                     if p_type in {'OVERALL', 'END'}:
-                        end_action._preconditions += action.preconditions[p_type]
+                        end_action.add_preconditions(action.preconditions[p_type])
 
                 end_action.add_precondition(self._inExecution(object_start), True)
 
@@ -82,10 +84,26 @@ class Converted_problem:
                 self._converted_problem.add_action(start_action)
                 self._converted_problem.add_action(end_action)
 
-        # remove the durative actions
+        # remove the durative actions and model.InstantaneousAction
         self._converted_problem._actions = [a for a in self._converted_problem._actions if
                                           not isinstance(a, up.model.DurativeAction)]
 
+    def _convert_model_engine_actions(self):
+        """
+        convert instantaneous actions from `model` actions to be `engine` actions
+        This is for convenient purposes - there is a split to negative and positive preconditions and effects
+
+        """
+        for action in self._converted_problem._actions:
+            if isinstance(action, up.model.InstantaneousAction):
+                engine_action = up.engine.InstantaneousAction(action._name)
+                engine_action._parameters = action._parameters
+                engine_action._set_preconditions(action.preconditions)
+                engine_action._set_effects(action.effects)
+                engine_action._set_probabilistic_effects(action.probabilistic_effects)
+
+                self._converted_problem._remove_action(action)
+                self._converted_problem.add_action(engine_action)
 
     def _mutex_actions(self):
         """
