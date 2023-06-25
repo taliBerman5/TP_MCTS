@@ -322,7 +322,6 @@ class InstantaneousAction(Action):
             fluents: List["up.model.fnode.FNode"],
             probability_func: Callable[
                 [
-                    "up.model.problem.AbstractProblem",
                     "up.model.state.ROState",
                 ],
                 Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
@@ -354,9 +353,7 @@ class InstantaneousAction(Action):
         up.model.effect.check_conflicting_probabilistic_effects(
             probabilistic_effect,
             None,
-            self._simulated_effect,
             self._fluents_assigned,
-            self._fluents_inc_dec,
             self._probabilistic_effects,
             self._effects,
             "action",
@@ -659,7 +656,6 @@ class DurativeAction(Action):
             fluents: List["up.model.fnode.FNode"],
             probability_func: Callable[
                 [
-                    "up.model.problem.AbstractProblem",
                     "up.model.state.ROState",
                 ],
                 Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
