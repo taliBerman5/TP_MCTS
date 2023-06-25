@@ -1,5 +1,5 @@
 import unified_planning as up
-from typing import List
+from typing import List, Dict
 
 
 class Node:
@@ -28,8 +28,10 @@ class SNode(Node):
         super().__init__()
         self._state = state
         self._parent = parent
-        self._children: List["up.engine.node.ANode"] = []
+        self._children: Dict["up.engine.Action", "up.engine.ANode"] = {}
         self._possible_actions = possible_actions
+
+        self._add_children()
 
     def __repr__(self):
         s = "Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
@@ -55,12 +57,10 @@ class SNode(Node):
         if action in self._possible_actions:
             self._possible_actions.remove(action)
 
-    def add_child(self, child_action: "up.engine.Action"):
-        child = ANode(child_action, self)
-        self.children.append(child)
-
-    def isLeaf(self):
-        return self.children
+    def _add_children(self):
+        for action in self.possible_actions:
+            child = ANode(action, self)
+            self.children[action] = child
 
 
 
@@ -69,7 +69,8 @@ class ANode(Node):
         super().__init__()
         self._action = action
         self._parent = parent
-        self._children: List["up.engine.node.SNode"] = []
+        self._children: Dict["up.engine.State","up.engine.node.SNode"] = {}
+        self._stn = None #TODO: add
 
     def __repr__(self):
         s = "Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
@@ -87,11 +88,11 @@ class ANode(Node):
     def children(self):
         return self._children
 
-    def add_child(self, child_state: "up.engine.State", legal_action: List["up.engine.Action"]):
-        child = SNode(child_state, legal_action, self)
-        self._children.append(child)
+    def add_child(self, child_node: "up.engine.SNode"):
+        self._children[child_node.state] = child_node
 
-
+    def isLeaf(self):
+        return self.children
 
 
 
