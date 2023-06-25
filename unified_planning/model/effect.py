@@ -92,7 +92,6 @@ class ProbabilisticEffect:
         fluents: List["up.model.fnode.FNode"],
         probability_func: Callable[
             [
-                "up.model.problem.AbstractProblem",
                 "up.model.state.ROState",
             ],
             Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
@@ -146,7 +145,6 @@ class ProbabilisticEffect:
         self,
     ) -> Callable[
         [
-            "up.model.problem.AbstractProblem",
             "up.model.state.ROState",
         ],
         Dict[float, dict["up.model.fnode.FNode", "up.model.fnode.FNode"]]]:
