@@ -472,8 +472,11 @@ class Problem(  # type: ignore[misc]
         """Removes the trajectory_constraints."""
         self._trajectory_constraints = []
 
+    def get_fluent_exp(self, fluent: "up.model.fluent.Fluent"):
+        return self.environment.expression_manager.auto_promote(fluent)[0]
 
-
+    def get_fluents_exp(self, fluents: List["up.model.fluent.Fluent"]):
+        return self.environment.expression_manager.auto_promote(fluents)
 
 
 
