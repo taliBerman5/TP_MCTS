@@ -385,7 +385,7 @@ class DurativeAction(Action):
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0))
         )
         self._preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]] = {}
-        self._during_effects: List[up.model.effect.Effect] = []
+        self._start_effects: List[up.model.effect.Effect] = []
         self._effects: List[up.model.effect.Effect] = []
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
         # # fluent assigned is the mapping of the fluent to it's value
@@ -414,8 +414,8 @@ class DurativeAction(Action):
                 s.append(f"      {str(p)}\n")
         s.append("    ]\n")
         s.append(f"    duration = {str(self._duration)}\n")
-        s.append("   during effects = [\n")
-        for de in self.during_effects:
+        s.append("   start effects = [\n")
+        for de in self.start_effects:
             s.append(f"      {str(de)}\n")
         s.append("    ]\n")
         s.append("    effects = [\n")
@@ -441,7 +441,7 @@ class DurativeAction(Action):
                 or set(self._effects) != set(oth._effects)
                 or set(self._probabilistic_effects) != set(
             oth._probabilistic_effects)
-                or set(self.during_effects) != set(oth._during_effects)
+                or set(self.start_effects) != set(oth._start_effects)
         ):
             return False
         return True
@@ -456,7 +456,7 @@ class DurativeAction(Action):
             res += hash(e)
         for pe in self._probabilistic_effects:
             res += hash(pe)
-        for de in self._during_effects:
+        for de in self._start_effects:
             res += hash(de)
         return res
 
@@ -469,7 +469,7 @@ class DurativeAction(Action):
         new_durative_action._preconditions = {p_type: [p.clone() for p in preconditions] for p_type, preconditions in self._preconditions.items()}
         new_durative_action._effects = [e.clone() for e in self._effects]
         new_durative_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
-        new_durative_action._during_effects = [de.clone() for de in self._during_effects]
+        new_durative_action._start_effects = [de.clone() for de in self._start_effects]
 
         return new_durative_action
 
@@ -488,9 +488,9 @@ class DurativeAction(Action):
         return self._effects
 
     @property
-    def during_effects(self) -> List["up.model.effect.Effect"]:
+    def start_effects(self) -> List["up.model.effect.Effect"]:
         """Returns the `list` of the `Action effects`."""
-        return self._during_effects
+        return self._start_effects
 
     @property
     def probabilistic_effects(self) -> List["up.model.effect.ProbabilisticEffect"]:
@@ -501,7 +501,7 @@ class DurativeAction(Action):
         """Removes all the `Action's effects`."""
         self._effects = []
         self._probabilistic_effects = []
-        self._during_effects = []
+        self._start_effects = []
 
     @property
     def duration(self) -> "up.model.timing.DurationInterval":
@@ -611,7 +611,7 @@ class DurativeAction(Action):
         )
         self._effects.append(effect)
 
-    def add_during_effect(
+    def add_start_effect(
             self,
             fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
             value: "up.model.expression.Expression",
@@ -635,11 +635,11 @@ class DurativeAction(Action):
             raise UPTypeError(
                 f"InstantaneousAction effect has an incompatible value type. Fluent type: {fluent_exp.type} // Value type: {value_exp.type}"
             )
-        self._add_during_effect_instance(
+        self._add_start_effect_instance(
             up.model.effect.Effect(fluent_exp, value_exp)
         )
 
-    def _add_during_effect_instance(self, effect: "up.model.effect.Effect"):
+    def _add_start_effect_instance(self, effect: "up.model.effect.Effect"):
         assert (
                 effect.environment == self._environment
         ), "effect does not have the same environment of the action"
@@ -649,7 +649,7 @@ class DurativeAction(Action):
             self._fluents_assigned,
             "action"
         )
-        self._during_effects.append(effect)
+        self._start_effects.append(effect)
 
     def add_probabilistic_effect(
             self,
