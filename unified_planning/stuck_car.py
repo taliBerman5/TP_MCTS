@@ -46,8 +46,8 @@ problem.add_fluent(rock_under_car, default_initial_value=False)
 
 """ Rest Action """
 rest = unified_planning.model.DurativeAction('rest')
-rest.add_precondition(OverallPreconditionTiming(), free(bodyParts[0]))
-rest.add_precondition(OverallPreconditionTiming(), free(bodyParts[1]))
+rest.add_precondition(OverallPreconditionTiming(), free(bodyParts[0]), True)
+rest.add_precondition(OverallPreconditionTiming(), free(bodyParts[1]), True)
 rest.set_fixed_duration(1)
 rest.add_effect(tired, False)
 problem.add_action(rest)
@@ -56,21 +56,21 @@ problem.add_action(rest)
 place_rock = unified_planning.model.DurativeAction('place_rock', rock=Rock)
 rock = place_rock.parameter('rock')
 place_rock.set_fixed_duration(3)
-place_rock.add_precondition(OverallPreconditionTiming(), got_rock(rock))
+place_rock.add_precondition(OverallPreconditionTiming(), got_rock(rock), True)
 
-place_rock.add_precondition(StartPreconditionTiming(), free(bodyParts[0]))
-place_rock.add_precondition(StartPreconditionTiming(), free(bodyParts[1]))
+place_rock.add_precondition(StartPreconditionTiming(), free(bodyParts[0]), True)
+place_rock.add_precondition(StartPreconditionTiming(), free(bodyParts[1]), True)
 
-place_rock.add_during_effect(free(bodyParts[0]), False)
-place_rock.add_during_effect(free(bodyParts[1]), False)
+place_rock.add_start_effect(free(bodyParts[0]), False)
+place_rock.add_start_effect(free(bodyParts[1]), False)
 
 place_rock.add_effect(free(bodyParts[0]), True)
 place_rock.add_effect(free(bodyParts[1]), True)
 
-
-def tired_probability(problem, state):
+tired_exp = problem.get_fluent_exp(tired)
+def tired_probability(state):
     p = 0.4
-    return {p: {tired: True}, 1-p: {tired: False}}
+    return {p: {tired_exp: True}, 1-p: {tired_exp: False}}
 
 
 place_rock.add_effect(rock_under_car(rock), True)
@@ -83,21 +83,22 @@ problem.add_action(place_rock)
 search = unified_planning.model.action.DurativeAction('search')
 search.set_fixed_duration(3)
 
-search.add_precondition(StartPreconditionTiming(), free(bodyParts[0]))
-search.add_precondition(StartPreconditionTiming(), free(bodyParts[1]))
+search.add_precondition(StartPreconditionTiming(), free(bodyParts[0]), True)
+search.add_precondition(StartPreconditionTiming(), free(bodyParts[1]), True)
 
-search.add_during_effect(free(bodyParts[0]), False)
-search.add_during_effect(free(bodyParts[1]), False)
+search.add_start_effect(free(bodyParts[0]), False)
+search.add_start_effect(free(bodyParts[1]), False)
 
 search.add_effect(free(bodyParts[0]), True)
 search.add_effect(free(bodyParts[1]), True)
 
 # import inspect as i
-
-def rock_probability(problem, state):
+got_rock_0_exp = problem.get_fluent_exp(got_rock(rocks[0]))
+got_rock_1_exp = problem.get_fluent_exp(got_rock(rocks[1]))
+def rock_probability(state):
     # The probability of finding a good rock when searching
     p = 0.8
-    return {p: {got_rock(rocks[0]): True, got_rock(rocks[1]): False}, 1-p: {got_rock(rocks[0]): False, got_rock(rocks[1]): True}}
+    return {p: {got_rock_0_exp: True, got_rock_1_exp: False}, 1-p: {got_rock_0_exp: False, got_rock_1_exp: True}}
 
 
 search.add_probabilistic_effect([got_rock(rocks[0]), got_rock(rocks[1])], rock_probability)
@@ -109,29 +110,33 @@ problem.add_action(search)
 push_gas = unified_planning.model.action.DurativeAction('push_gas')
 push_gas.set_fixed_duration(2)
 
-push_gas.add_precondition(StartPreconditionTiming(), free(bodyParts[1]))
-push_gas.add_during_effect(free(bodyParts[1]), False)
+push_gas.add_precondition(StartPreconditionTiming(), free(bodyParts[1]), True)
+push_gas.add_start_effect(free(bodyParts[1]), False)
 push_gas.add_effect(free(bodyParts[1]), True)
 
-def push_gas_probability(problem, state):
+
+rock_0_under_exp = problem.get_fluent_exp(rock_under_car(rocks[0]))
+rock_1_under_exp = problem.get_fluent_exp(rock_under_car(rocks[1]))
+car_out_exp = problem.get_fluent_exp(car_out)
+def push_gas_probability(state):
     # The probability of getting the car out when pushing the gas padel
     p = 1
     predicates = state.predicates
 
-    if car_out not in predicates:
+    if car_out_exp not in predicates:
         # The bad rock is under the car
-        if rock_under_car(rocks[0]) in predicates:
+        if rock_0_under_exp in predicates:
             p = 0.8
 
         # The good rock is under the car
-        elif rock_under_car(rocks[1]) in predicates:
+        elif rock_1_under_exp in predicates:
             p = 0.8
 
         # There isn't a rock under the car
         else:
             p = 0.8
 
-    return {p: {car_out: True}, 1 - p: {car_out: False}}
+    return {p: {car_out_exp: True}, 1 - p: {car_out_exp: False}}
 
 push_gas.add_probabilistic_effect([car_out], push_gas_probability)
 
@@ -141,29 +146,29 @@ problem.add_action(push_gas)
 push_car = unified_planning.model.action.DurativeAction('push_car')
 push_car.set_fixed_duration(2)
 
-push_car.add_precondition(StartPreconditionTiming(), free(bodyParts[0]))
-push_car.add_during_effect(free(bodyParts[0]), False)
+push_car.add_precondition(StartPreconditionTiming(), free(bodyParts[0]), True)
+push_car.add_start_effect(free(bodyParts[0]), False)
 push_car.add_effect(free(bodyParts[0]), True)
 
-def push_car_probability(problem, state):
+def push_car_probability(state):
     # The probability of getting the car out when pushing the car
     p = 1
     predicates = state.predicates
 
-    if car_out not in predicates:
+    if car_out_exp not in predicates:
         # The bad rock is under the car
-        if rock_under_car(rocks[0]) in predicates:
+        if rock_0_under_exp in predicates:
             p = 0.8
 
         # The good rock is under the car
-        elif rock_under_car(rocks[1]) in predicates:
+        elif rock_1_under_exp in predicates:
             p = 0.8
 
         # There isn't a rock under the car
         else:
             p = 0.8
 
-    return {p: {car_out: True}, 1 - p: {car_out: False}}
+    return {p: {car_out_exp: True}, 1 - p: {car_out_exp: False}}
 
 push_car.add_probabilistic_effect([car_out], push_car_probability)
 push_car.add_probabilistic_effect([tired], tired_probability)
@@ -173,4 +178,7 @@ problem.add_action(push_car)
 deadline = Timing(delay=6, timepoint=Timepoint(TimepointKind.START))
 problem.add_timed_goal(deadline, car_out)
 
-print(problem)
+# print(problem)
+
+converted_problem = unified_planning.engine.Convert_problem(problem)
+print(converted_problem)
