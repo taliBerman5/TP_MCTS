@@ -15,7 +15,7 @@ import functools
 import operator
 
 
-class Converted_problem:
+class Convert_problem:
     def __init__(
             self,
             _original_problem: "up.model.Problem",
@@ -30,6 +30,30 @@ class Converted_problem:
         self._convert_model_engine_actions()
         self._mutex_actions()
 
+    def __repr__(self) -> str:
+        return self._converted_problem.__repr__()
+
+    def __hash__(self) -> int:
+        res = hash(self._original_problem)
+        res += hash(self._converted_problem)
+        res += hash(self._action_type)
+        res += hash(self._inExecution)
+        return res
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, Convert_problem):
+            return  (
+                    self._original_problem == oth._original_problem
+                    and self._converted_problem == oth._converted_problem
+                    and self._action_type == oth._action_type
+                    and self._inExecution == oth._inExecution
+            )
+        else:
+            return False
+
+    @property
+    def converted_problem(self):
+        return self._converted_problem
 
     def _add_inExecution_fluent(self):
         self._converted_problem.add_fluent(self._inExecution, default_initial_value=False)
