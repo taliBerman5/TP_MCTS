@@ -66,5 +66,10 @@ class UPConflictingEffectsException(UPException):
 
 class UPConflictingPreconditionException(UPException):
     pass
+
 class ANMLSyntaxError(UPException, SyntaxError):
+    pass
+
+
+class UPPreconditionDonHoldException(UPException):
     pass
