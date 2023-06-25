@@ -1,16 +1,5 @@
 import unified_planning as up
-from unified_planning.environment import get_environment, Environment
 import unified_planning.shortcuts
-from unified_planning.exceptions import (
-    UPTypeError,
-    UPUnboundedVariablesError,
-    UPProblemDefinitionError,
-    UPConflictingEffectsException,
-    UPUsageError,
-)
-from fractions import Fraction
-from typing import Dict, List, Set, Tuple, Union, Optional, cast, Callable
-from collections import OrderedDict
 import functools
 import operator
 
