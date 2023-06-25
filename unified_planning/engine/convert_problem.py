@@ -72,7 +72,7 @@ class Convert_problem:
                 object_start = up.model.Object("start-" + action.name, self._action_type)
 
                 start_action._set_fixed_duration(action.duration)
-                start_action._set_effects(action.during_effects)
+                start_action._set_effects(action.start_effects)
                 start_action.add_effect(self._inExecution(object_start), True)
 
                 end_action = up.engine.InstantaneousAction("end_" + action._name)
@@ -87,7 +87,7 @@ class Convert_problem:
                 for p_type in action.preconditions:
                     if p_type in {'START', 'OVERALL'}:
                         start_action.add_preconditions(action.preconditions[p_type])
-                    if p_type in {'OVERALL', 'END'}:
+                    if p_type in {'END'}:
                         end_action.add_preconditions(action.preconditions[p_type])
 
                 end_action.add_precondition(self._inExecution(object_start), True)
@@ -177,7 +177,7 @@ class Convert_problem:
         """
         neg = []
         if isinstance(action, up.model.DurativeAction):
-            neg += [de.fluent for de in action.during_effects if not de.value.constant_value()]
+            neg += [de.fluent for de in action.start_effects if not de.value.constant_value()]
         neg += [e.fluent for e in action.effects if not e.value.constant_value()]
         neg += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
         return neg
@@ -192,7 +192,7 @@ class Convert_problem:
         """
         pos = []
         if isinstance(action, up.model.DurativeAction):
-            pos += [de.fluent for de in action.during_effects if de.value.constant_value()]
+            pos += [de.fluent for de in action.start_effects if de.value.constant_value()]
         pos += [e.fluent for e in action.effects if e.value.constant_value()]
 
         return pos
