@@ -132,10 +132,7 @@ class InstantaneousAction(Action):
         self._preconditions: List["up.model.precondition.Precondition"] = []
         self._effects: List[up.model.effect.Effect] = []
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
-        # fluent assigned is the mapping of the fluent to it's value
-        self._fluents_assigned: Dict[
-            "up.model.fnode.FNode", "up.model.fnode.FNode"
-        ] = {}
+
 
     def __repr__(self) -> str:
         s = []
@@ -205,7 +202,6 @@ class InstantaneousAction(Action):
         new_instantaneous_action._preconditions = [p.clone() for p in self._preconditions]
         new_instantaneous_action._effects = [e.clone() for e in self._effects]
         new_instantaneous_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
-        new_instantaneous_action._fluents_assigned = self._fluents_assigned.copy()
         return new_instantaneous_action
 
     @property
@@ -231,7 +227,6 @@ class InstantaneousAction(Action):
         """Removes all the `Action's effects`."""
         self._effects = []
         self._probabilistic_effects = []
-        self._fluents_assigned = {}
 
     def add_precondition(
             self,
@@ -312,7 +307,6 @@ class InstantaneousAction(Action):
         up.model.effect.check_conflicting_effects(
             effect,
             None,
-            self._fluents_assigned,
             "action"
         )
         self._effects.append(effect)
@@ -353,7 +347,6 @@ class InstantaneousAction(Action):
         up.model.effect.check_conflicting_probabilistic_effects(
             probabilistic_effect,
             None,
-            self._fluents_assigned,
             self._probabilistic_effects,
             self._effects,
             "action",
@@ -384,14 +377,11 @@ class DurativeAction(Action):
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0))
         )
-        self._preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]] = {}
+        self._preconditions: Dict[str, List["up.model.precondition.Precondition"]] = {}
         self._start_effects: List[up.model.effect.Effect] = []
         self._effects: List[up.model.effect.Effect] = []
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
-        # # fluent assigned is the mapping of the fluent to it's value
-        self._fluents_assigned: Dict[
-            "up.model.fnode.FNode", "up.model.fnode.FNode"
-        ] = {}
+
 
     def __repr__(self) -> str:
         s = []
@@ -474,7 +464,7 @@ class DurativeAction(Action):
         return new_durative_action
 
     @property
-    def preconditions(self) -> Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]]:
+    def preconditions(self) -> Dict[str, List["up.model.precondition.Precondition"]]:
         """Returns the `list` of the `Action` `preconditions`."""
         return self._preconditions
 
@@ -606,7 +596,6 @@ class DurativeAction(Action):
         up.model.effect.check_conflicting_effects(
             effect,
             None,
-            self._fluents_assigned,
             "action"
         )
         self._effects.append(effect)
@@ -646,7 +635,6 @@ class DurativeAction(Action):
         up.model.effect.check_conflicting_effects(
             effect,
             None,
-            self._fluents_assigned,
             "action"
         )
         self._start_effects.append(effect)
@@ -687,7 +675,6 @@ class DurativeAction(Action):
         up.model.effect.check_conflicting_probabilistic_effects(
             probabilistic_effect,
             None,
-            self._fluents_assigned,
             self._probabilistic_effects,
             self._effects,
             "action",

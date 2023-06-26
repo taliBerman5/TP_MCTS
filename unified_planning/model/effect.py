@@ -158,15 +158,12 @@ class ProbabilisticEffect:
 def check_conflicting_effects( #TODO: need to update
     effect: Effect,
     timing: Optional["unified_planning.model.timing.Timing"],
-    fluents: Dict["unified_planning.model.fnode.FNode", "unified_planning.model.fnode.FNode"],
     name: str,
 ):
     """
     This method checks if the effect that would be added is in conflict with the effects/simulated-effects
     already in the action/problem.
 
-    Note: This method has side effects on the fluents_assigned mapping and the fluents_inc_dec set, based
-        on the given effect.
 
     :param effect: The target effect to add.
     :param timing: Optionally, the timing at which the effect is performed; None if the timing
@@ -183,7 +180,6 @@ def check_conflicting_effects( #TODO: need to update
 def check_conflicting_probabilistic_effects(  #TODO: need to update
     probabilistic_effect: ProbabilisticEffect,
     timing: Optional["up.model.timing.Timing"],
-    fluents_assigned: Dict["up.model.fnode.FNode", "up.model.fnode.FNode"],
     probabilistic_effects: List[ProbabilisticEffect],
     effects: List[Effect],
 
@@ -196,25 +192,14 @@ def check_conflicting_probabilistic_effects(  #TODO: need to update
     :param probabilistic_effect: The target simulated_effect to add.
     :param timing: Optionally, the timing at which the simulated_effect is performed; None if the timing
         is not meaningful, like in InstantaneousActions.
-    :param fluents_assigned: The mapping from a fluent to it's value of the effects happening in the
-        same instant of the given simulated_effect.
     :param probabilistic_effects: The list of probabilistic effects that happens in the same moment of the effect.
     :param effects: The list of effects that happens in the same moment of the effect.
     :param name: string used for better error indexing.
-    :raises: UPConflictingException if the given simulated_effect is in conflict with the data structure around it.
+    :raises: UPConflictingException if the given probabilistic_effect is in conflict with the data structure around it.
     """
     for f in probabilistic_effect.fluents:
-        if f in fluents_assigned:
-            if timing is None:
-                msg = f"The probabilistic effect {probabilistic_effect} is in conflict with the effects already in the {name}."
-            else:
-                msg = f"The probabilistic effect {probabilistic_effect} at timing {timing} is in conflict with the effects already in the {name}."
-            raise UPConflictingEffectsException(msg)
 
-
-        elif (
-                effects
-        ):
+        if effects:
             effects_fluents = [effect.fluent for effect in effects]
             if f in effects_fluents:
                 if timing is None:
@@ -223,9 +208,7 @@ def check_conflicting_probabilistic_effects(  #TODO: need to update
                     msg = f"The effect {probabilistic_effect} at timing {timing} is in conflict with the effects already in the {name}."
                 raise UPConflictingEffectsException(msg)
 
-        elif (
-                probabilistic_effects
-        ):
+        elif probabilistic_effects:
             probabilistic__effects_fluents = list(np.concatenate([effect.fluents for effect in probabilistic_effects]).flat)
             if f in probabilistic__effects_fluents:
                 if timing is None:
