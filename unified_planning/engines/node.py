@@ -24,22 +24,27 @@ class Node:
         self._count += 1
 
 class SNode(Node):
-    def __init__(self, state: "up.engine.State", possible_actions: List["up.engine.Action"], parent: "up.engine.ANode"=None):
+    def __init__(self, state: "up.engines.State", depth: int, possible_actions: List["up.engines.Action"], parent: "up.engines.ANode"=None):
         super().__init__()
         self._state = state
+        self._depth = depth
         self._parent = parent
-        self._children: Dict["up.engine.Action", "up.engine.ANode"] = {}
+        self._children: Dict["up.engines.Action", "up.engines.ANode"] = {}
         self._possible_actions = possible_actions
 
         self._add_children()
 
     def __repr__(self):
-        s = "Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
+        s = "state Node; depth: %d; children: %d; visits: %d; reward: %f" % (self.depth, len(self.children), self.count, self.value)
         return s
 
     @property
     def state(self):
         return self._state
+
+    @property
+    def depth(self):
+        return self._depth
 
     @property
     def parent(self):
@@ -53,7 +58,7 @@ class SNode(Node):
     def possible_actions(self):
         return self._possible_actions
 
-    def remove_action(self, action: "up.engine.Action"):
+    def remove_action(self, action: "up.engines.Action"):
         if action in self._possible_actions:
             self._possible_actions.remove(action)
 
@@ -65,15 +70,15 @@ class SNode(Node):
 
 
 class ANode(Node):
-    def __init__(self, action: "up.engine.action.Action", parent: "up.engine.node.SNode"=None):
+    def __init__(self, action: "up.engines.action.Action", parent: "up.engines.node.SNode"=None):
         super().__init__()
         self._action = action
         self._parent = parent
-        self._children: Dict["up.engine.State","up.engine.node.SNode"] = {}
+        self._children: Dict["up.engines.State","up.engines.node.SNode"] = {}
         self._stn = None #TODO: add
 
     def __repr__(self):
-        s = "Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
+        s = "action Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
         return s
 
     @property
@@ -88,7 +93,7 @@ class ANode(Node):
     def children(self):
         return self._children
 
-    def add_child(self, child_node: "up.engine.SNode"):
+    def add_child(self, child_node: "up.engines.SNode"):
         self._children[child_node.state] = child_node
 
     def isLeaf(self):

@@ -6,7 +6,7 @@ from collections import defaultdict
 
 
 class MCTS:
-    def __init__(self, mdp, root_state: "up.engine.state.State", search_depth: int, exploration_constant: float):
+    def __init__(self, mdp, root_state: "up.engines.state.State", search_depth: int, exploration_constant: float):
         self._mdp = mdp
         self._root_state = root_state
         self._search_depth = search_depth
@@ -38,17 +38,19 @@ class MCTS:
         while current_time < start_time + timeout:
 
             self.selection(root_node)
-
-
             current_time = time.time()
 
-        return root_node
+        return self.best_action(root_node)
 
-    def create_Snode(self, state: "up.engine.State", parent: "up.engine.ANode" =None):
+    def create_Snode(self, state: "up.engines.State", depth:int, parent: "up.engines.ANode" =None):
         """ Create a new Snode for the state `state` with parent `parent`"""
-        return up.engine.SNode(self.root_state, self.mdp.legal_actions(state), parent)
+        return up.engines.SNode(self.root_state, depth, self.mdp.legal_actions(state), parent)
 
-    def selection(self, snode: "up.engine.Snode"):
+    def selection(self, snode: "up.engines.Snode"):
+
+        if snode.depth > self.search_depth:
+            return 0
+
         explore_constant = self.exploration_constant
         action = self.uct(snode, explore_constant)
         terminal, next_state, reward = self.mdp.step(action, snode.state)
@@ -61,7 +63,7 @@ class MCTS:
 
             else:
                 reward += self.mdp.discount_factor * self.simulate(snodes[next_state])
-                next_snode = self.create_Snode(next_state)
+                next_snode = self.create_Snode(next_state, snode.depth + 1)
                 anode.add_child(next_snode)
 
         snode.update(reward)
@@ -70,7 +72,7 @@ class MCTS:
         return reward
 
 
-    def default_policy(self, state: "up.engine.State"):
+    def default_policy(self, state: "up.engines.State"):
         """ Choose a random action. Heustics can be used here to improve simulations. """
         return random.choice(self.mdp.legal_actions(state))
 
@@ -97,7 +99,7 @@ class MCTS:
 
         return cumulative_reward
 
-    def uct(self, snode: "up.engine.Snode", explore_constant: float): #TODO: need to check to the uct logic
+    def uct(self, snode: "up.engines.Snode", explore_constant: float): #TODO: need to check to the uct logic
         anodes = snode.children
         best_ub = float('inf')
         best_action = -1
@@ -113,6 +115,26 @@ class MCTS:
 
         assert best_action != -1
         return best_action
+
+
+    def best_action(self, root_node: "up.engines.SNode"):
+        """
+
+        :param root_node: the root node of the MCTS tree
+        :return: returns the best action for the `root_node`
+        """
+        anodes = root_node.children
+        aStart_value = float("-inf")
+        aStar = -1
+
+        for action in root_node.possible_actions:
+            if anodes[action].value > aStart_value:
+                aStart_value = anodes[action].value
+                aStar = action
+
+        return aStar
+
+
 
 
 

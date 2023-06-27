@@ -14,6 +14,7 @@ class Convert_problem:
         self._action_type: "up.model.UserType" = up.shortcuts.UserType('DurativeAction')
         self._inExecution: "up.model.Fluent" = up.model.Fluent('inExecution', up.shortcuts.BoolType(),
                                                                a=self._action_type)
+        self._grounded_actions = []
         self._add_inExecution_fluent()
         self._split_durative_actions()
         self._convert_model_engine_actions()
@@ -65,7 +66,7 @@ class Convert_problem:
 
             if isinstance(action, up.model.DurativeAction):
 
-                start_action = up.engine.InstantaneousStartAction("start_" + action._name)
+                start_action = up.engines.InstantaneousStartAction("start_" + action._name)
                 start_action._parameters = action._parameters
 
                 # creating an object start_action for inExecution predicate
@@ -75,7 +76,7 @@ class Convert_problem:
                 start_action._set_effects(action.start_effects)
                 start_action.add_effect(self._inExecution(object_start), True)
 
-                end_action = up.engine.InstantaneousAction("end_" + action._name)
+                end_action = up.engines.InstantaneousAction("end_" + action._name)
                 end_action._parameters = action._parameters
                 end_action._set_effects(action.effects)
                 end_action.add_effect(self._inExecution(object_start), False)
@@ -103,13 +104,13 @@ class Convert_problem:
 
     def _convert_model_engine_actions(self):
         """
-        convert instantaneous actions from `model` actions to be `engine` actions
+        convert instantaneous actions from `model` actions to be `engines` actions
         This is for convenient purposes - there is a split to negative and positive preconditions and effects
 
         """
         for action in self._converted_problem._actions:
             if isinstance(action, up.model.InstantaneousAction):
-                engine_action = up.engine.InstantaneousAction(action._name)
+                engine_action = up.engines.InstantaneousAction(action._name)
                 engine_action._parameters = action._parameters
                 engine_action._set_preconditions(action.preconditions)
                 engine_action._set_effects(action.effects)

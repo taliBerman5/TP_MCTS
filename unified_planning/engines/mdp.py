@@ -22,10 +22,10 @@ class MDP:
         """
         predicates = self.problem.initial_values
         pos_predicates = set([key for key, value in predicates.items() if value])
-        return up.engine.State(pos_predicates)
+        return up.engines.State(pos_predicates)
 
 
-    def is_terminal(self, state: "up.engine.state.State"): #TODO
+    def is_terminal(self, state: "up.engines.state.State"): #TODO
         """
         Checks if all the goal predicates hold in the `state`
         and if all the timed goals achieved on time
@@ -33,13 +33,13 @@ class MDP:
         :param state: checked state
         :return: True is the `state` is a terminal state, False otherwise
         """
-        self.problem.goals.issubset(state.predicates)
+        set(self.problem.goals).issubset(state.predicates)
         # for self.problem.timed_goals.values:
 
         return True
 
 
-    def legal_actions(self, state: "up.engine.state.State"):
+    def legal_actions(self, state: "up.engines.state.State"):
         """
         If the positive preconditions of an action are true in the state
         and the negative preconditions of the action are false in the state
@@ -58,7 +58,7 @@ class MDP:
         return legal_actions
 
 
-    def step(self, state:"up.engine.State", action: "up.engine.action.Action"):
+    def step(self, state:"up.engines.State", action: "up.engines.action.Action"):
         """
                Apply the action to this state to produce the next state.
         """
@@ -80,10 +80,10 @@ class MDP:
         add_predicates, del_predicates = self._apply_probabilistic_effects(state, action)
         new_preds |= add_predicates
         new_preds -= del_predicates
-        next_state = up.engine.State(new_preds)
+        next_state = up.engines.State(new_preds)
         return self.is_terminal(next_state), next_state, reward
 
-    def _apply_probabilistic_effects(self, state:"up.engine.State", action: "up.engine.Action"):
+    def _apply_probabilistic_effects(self, state:"up.engines.State", action: "up.engines.Action"):
         """
 
         :param action: draw the outcome of the probabilistic effects
@@ -93,7 +93,7 @@ class MDP:
         del_predicates = set()
 
         for pe in action.probabilistic_effects:
-            prob_outcomes = pe.probability_function(self)
+            prob_outcomes = pe.probability_function(self, None)
             index = np.random.choice(len(prob_outcomes), p=list(prob_outcomes.keys()))
             values = list(prob_outcomes.values())[index]
             for v in values:
