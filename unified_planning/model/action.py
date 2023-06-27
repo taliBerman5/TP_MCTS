@@ -366,7 +366,7 @@ class InstantaneousAction(Action):
 class DurativeAction(Action):
     """Represents a durative action."""
 
-    def __init__(  # TODO: should I add fluents assignment like in instantaneous action
+    def __init__(
             self,
             _name: str,
             _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
