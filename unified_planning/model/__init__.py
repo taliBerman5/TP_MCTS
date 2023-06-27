@@ -20,7 +20,7 @@ from unified_planning.model.action import (
     DurativeAction,
     InstantaneousStartAction,
 )
-from unified_planning.model.effect import Effect
+from unified_planning.model.effect import Effect, ProbabilisticEffect
 from unified_planning.model.expression import (
     BoolExpression,
     Expression,
@@ -84,6 +84,7 @@ __all__ = [
     "InstantaneousAction",
     "InstantaneousStartAction",
     "Effect",
+    "ProbabilisticEffect",
     "Precondition",
     "BoolExpression",
     "Expression",
