@@ -51,7 +51,7 @@ class MDP:
         legal_actions = []
         for action in self.problem.actions:
             if action.pos_precondition.issubset(state.predicates) and \
-                    action.pos_precondition.isdisjoint(state.predicates):
+                    action.neg_precondition.isdisjoint(state.predicates):
 
                 legal_actions.append(action)
 
