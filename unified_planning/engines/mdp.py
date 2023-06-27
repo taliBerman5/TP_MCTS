@@ -6,7 +6,6 @@ class MDP:
         self._problem = problem
         self._discount_factor = discount_factor
 
-
     @property
     def problem(self):
         return self._problem
@@ -25,18 +24,15 @@ class MDP:
         return up.engines.State(pos_predicates)
 
 
-    def is_terminal(self, state: "up.engines.state.State"): #TODO
+    def is_terminal(self, state: "up.engines.state.State"):
         """
         Checks if all the goal predicates hold in the `state`
-        and if all the timed goals achieved on time
 
         :param state: checked state
         :return: True is the `state` is a terminal state, False otherwise
         """
-        set(self.problem.goals).issubset(state.predicates)
-        # for self.problem.timed_goals.values:
 
-        return True
+        return set(self.problem.goals).issubset(state.predicates)
 
 
     def legal_actions(self, state: "up.engines.state.State"):
@@ -56,7 +52,6 @@ class MDP:
                 legal_actions.append(action)
 
         return legal_actions
-
 
     def step(self, state:"up.engines.State", action: "up.engines.action.Action"):
         """
