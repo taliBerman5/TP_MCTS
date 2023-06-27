@@ -78,13 +78,7 @@ class Problem(  # type: ignore[misc]
         ] = {}
         self._trajectory_constraints: List["up.model.fnode.FNode"] = list()
         self._goals: List["up.model.fnode.FNode"] = list()
-        self._fluents_assigned: Dict[
-            "up.model.timing.Timing",
-            Dict["up.model.fnode.FNode", "up.model.fnode.FNode"],
-        ] = {}
-        self._fluents_inc_dec: Dict[
-            "up.model.timing.Timing", Set["up.model.fnode.FNode"]
-        ] = {}
+        self._deadline: Union["up.model.timing.Timing", "up.model.timing.TimeInterval"] = None
 
     def __repr__(self) -> str:
         s = []
@@ -133,6 +127,8 @@ class Problem(  # type: ignore[misc]
         for g in self.goals:
             s.append(f"  {str(g)}\n")
         s.append("]\n\n")
+        if self.deadline:
+            s.append(f"deadline = {self.deadline}")
         if self.trajectory_constraints:
             s.append("trajectory constraints = [\n")
             for c in self.trajectory_constraints:
@@ -177,6 +173,8 @@ class Problem(  # type: ignore[misc]
                 return False
             elif set(tgl) != set(oth_tgl):
                 return False
+        if self._deadline != oth._deadline:
+            return False
         return True
 
     def __hash__(self) -> int:
@@ -201,6 +199,7 @@ class Problem(  # type: ignore[misc]
                 res += hash(g)
         for g in self._goals:
             res += hash(g)
+        res += hash(self._deadline)
         return res
 
     def clone(self):
@@ -217,9 +216,7 @@ class Problem(  # type: ignore[misc]
         new_p._timed_goals = {i: [g for g in gl] for i, gl in self._timed_goals.items()}
         new_p._goals = self._goals[:]
         new_p._trajectory_constraints = self._trajectory_constraints[:]
-        new_p._fluents_assigned = {
-            t: d.copy() for t, d in self._fluents_assigned.items()
-        }
+        new_p._deadline = self._deadline
 
         # last as it requires actions to be cloned already
         return new_p
@@ -304,6 +301,33 @@ class Problem(  # type: ignore[misc]
                     static_fluents.remove(e.fluent.fluent())
         return static_fluents
 
+    def set_deadline(
+        self,
+        interval: Union["up.model.timing.Timing", "up.model.timing.TimeInterval"],
+    ):
+        """
+        Adds a deadline to the `Problem`.
+
+        :param interval: The interval of time in which the goals of the problem must be `True`.
+
+        """
+        if isinstance(interval, up.model.Timing):
+            interval = up.model.TimePointInterval(interval)
+        if (interval.lower.is_from_end() and interval.lower.delay > 0) or (
+            interval.upper.is_from_end() and interval.upper.delay > 0
+        ):
+            raise UPProblemDefinitionError(
+                "Problem timing can not be `end - k` with k > 0."
+            )
+        self._deadline = interval
+
+    @property
+    def deadline(self):
+        """
+        A deadline to the time when all goals of the problem must be True
+        :return: The `deadline` of the problem
+        """
+        return self._deadline
     def add_timed_goal(
         self,
         interval: Union["up.model.timing.Timing", "up.model.timing.TimeInterval"],
@@ -384,14 +408,10 @@ class Problem(  # type: ignore[misc]
         assert (
             effect.environment == self._env
         ), "effect does not have the same environment of the problem"
-        fluents_inc_dec = self._fluents_inc_dec.setdefault(timing, set())
 
         up.model.effect.check_conflicting_effects(
             effect,
             timing,
-            None,
-            self._fluents_assigned.setdefault(timing, {}),
-            fluents_inc_dec,
             "problem",
         )
         self._timed_effects.setdefault(timing, []).append(effect)
@@ -406,7 +426,6 @@ class Problem(  # type: ignore[misc]
     def clear_timed_effects(self):
         """Removes all the `timed effects` from the `Problem`."""
         self._timed_effects = {}
-        self._fluents_assigned = {}
 
 
     def add_goal(
