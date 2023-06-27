@@ -108,16 +108,24 @@ class Convert_problem:
         This is for convenient purposes - there is a split to negative and positive preconditions and effects
 
         """
+        remove = []
+        add = []
         for action in self._converted_problem._actions:
-            if isinstance(action, up.model.InstantaneousAction):
+            if isinstance(action, up.model.InstantaneousAction): #TODO: problem!!!!! if one is deleted the next one is missed
                 engine_action = up.engines.InstantaneousAction(action._name)
                 engine_action._parameters = action._parameters
                 engine_action._set_preconditions(action.preconditions)
                 engine_action._set_effects(action.effects)
                 engine_action._set_probabilistic_effects(action.probabilistic_effects)
 
-                self._converted_problem._remove_action(action)
-                self._converted_problem.add_action(engine_action)
+                remove.append(action)
+                add.append(engine_action)
+
+        for i in range(len(remove)):
+            self._converted_problem._remove_action(remove[i])
+            self._converted_problem.add_action(add[i])
+
+
 
     def _mutex_actions(self):
         """
