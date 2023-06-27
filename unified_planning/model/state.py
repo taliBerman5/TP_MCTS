@@ -1,5 +1,5 @@
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 import unified_planning as up
 from unified_planning.exceptions import UPUsageError, UPValueError
 
@@ -16,4 +16,13 @@ class ROState:
         :param value: The value searched for in the state.
         :return: The set value.
         """
+        raise NotImplementedError
+
+    def predicates(self) -> Set["up.model.fnode.Fnode"]:
+        """
+         This method returns the predicates of the state
+
+        :return: The predicates
+        """
+
         raise NotImplementedError
