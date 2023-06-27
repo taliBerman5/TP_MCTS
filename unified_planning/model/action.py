@@ -317,6 +317,7 @@ class InstantaneousAction(Action):
             probability_func: Callable[
                 [
                     "up.model.state.ROState",
+                    Dict["up.model.parameter.Parameter", "up.model.fnode.FNode"],
                 ],
                 Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
             ]
@@ -346,7 +347,6 @@ class InstantaneousAction(Action):
         ), "effect does not have the same environment of the action"
         up.model.effect.check_conflicting_probabilistic_effects(
             probabilistic_effect,
-            None,
             self._probabilistic_effects,
             self._effects,
             "action",
@@ -645,6 +645,7 @@ class DurativeAction(Action):
             probability_func: Callable[
                 [
                     "up.model.state.ROState",
+                    Dict["up.model.parameter.Parameter", "up.model.fnode.FNode"],
                 ],
                 Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
             ]
@@ -674,7 +675,6 @@ class DurativeAction(Action):
         ), "effect does not have the same environment of the action"
         up.model.effect.check_conflicting_probabilistic_effects(
             probabilistic_effect,
-            None,
             self._probabilistic_effects,
             self._effects,
             "action",
@@ -684,6 +684,8 @@ class DurativeAction(Action):
     def _set_preconditions(self, preconditions: Dict["up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]]):
         self._preconditions = preconditions
 
+    def _set_duration(self, duration:"up.model.timing.DurationInterval"):
+        self._duration = duration
 
 class InstantaneousStartAction(InstantaneousAction):
     """Represents a start action with fix duration.

@@ -93,6 +93,7 @@ class ProbabilisticEffect:
         probability_func: Callable[
             [
                 "up.model.state.ROState",
+                Dict["up.model.parameter.Parameter", "up.model.fnode.FNode"],
             ],
             Dict[float, Dict["up.model.fnode.FNode", "up.model.fnode.FNode"]],
         ]
@@ -146,6 +147,7 @@ class ProbabilisticEffect:
     ) -> Callable[
         [
             "up.model.state.ROState",
+            Dict["up.model.parameter.Parameter", "up.model.fnode.FNode"],
         ],
         Dict[float, dict["up.model.fnode.FNode", "up.model.fnode.FNode"]]]:
         """
@@ -161,7 +163,7 @@ def check_conflicting_effects( #TODO: need to update
     name: str,
 ):
     """
-    This method checks if the effect that would be added is in conflict with the effects/simulated-effects
+    This method checks if the effect that would be added is in conflict with the effects/probabilistic-effects
     already in the action/problem.
 
 
@@ -179,19 +181,16 @@ def check_conflicting_effects( #TODO: need to update
 
 def check_conflicting_probabilistic_effects(  #TODO: need to update
     probabilistic_effect: ProbabilisticEffect,
-    timing: Optional["up.model.timing.Timing"],
     probabilistic_effects: List[ProbabilisticEffect],
     effects: List[Effect],
 
     name: str,
 ):
     """
-    This method checks if the simulated effect that would be added is in conflict with the effects
+    This method checks if the probabilistic effect that would be added is in conflict with the effects
     already in the action/problem.
 
-    :param probabilistic_effect: The target simulated_effect to add.
-    :param timing: Optionally, the timing at which the simulated_effect is performed; None if the timing
-        is not meaningful, like in InstantaneousActions.
+    :param probabilistic_effect: The target probabilistic_effect to add.
     :param probabilistic_effects: The list of probabilistic effects that happens in the same moment of the effect.
     :param effects: The list of effects that happens in the same moment of the effect.
     :param name: string used for better error indexing.
@@ -202,17 +201,11 @@ def check_conflicting_probabilistic_effects(  #TODO: need to update
         if effects:
             effects_fluents = [effect.fluent for effect in effects]
             if f in effects_fluents:
-                if timing is None:
-                    msg = f"The effect {probabilistic_effect} is in conflict with the effects already in the {name}."
-                else:
-                    msg = f"The effect {probabilistic_effect} at timing {timing} is in conflict with the effects already in the {name}."
+                msg = f"The effect {probabilistic_effect} is in conflict with the effects already in the {name}."
                 raise UPConflictingEffectsException(msg)
 
         elif probabilistic_effects:
             probabilistic__effects_fluents = list(np.concatenate([effect.fluents for effect in probabilistic_effects]).flat)
             if f in probabilistic__effects_fluents:
-                if timing is None:
-                    msg = f"The effect {probabilistic_effect} is in conflict with the probabilistic_ effects already in the {name}."
-                else:
-                    msg = f"The effect {probabilistic_effect} at timing {timing} is in conflict with the probabilistic_ effects already in the {name}."
+                msg = f"The effect {probabilistic_effect} is in conflict with the probabilistic_ effects already in the {name}."
                 raise UPConflictingEffectsException(msg)
