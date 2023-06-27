@@ -40,6 +40,7 @@ class Environment:
         import unified_planning.model.walkers
 
         self._type_manager = unified_planning.model.TypeManager()
+        # self._factory = unified_planning.engines.Factory(self)
         self._tc = unified_planning.model.walkers.TypeChecker(self)
         self._expression_manager = unified_planning.model.ExpressionManager(self)
         self._free_vars_oracle = unified_planning.model.FreeVarsOracle()
@@ -50,8 +51,8 @@ class Environment:
         self._credits_stream: Optional[IO[str]] = sys.stdout
         self._error_used_name: bool = True
 
-    # The getstate and setstate method are needed in the Parallel engine. The
-    #  Parallel engine creates a deep copy of the Environment instance in
+    # The getstate and setstate method are needed in the Parallel engines. The
+    #  Parallel engines creates a deep copy of the Environment instance in
     #  another process by pickling the environment fields.
     # Since the IO[str] class is not picklable, we need to remove it from the
     #  state and then add it as None in the new process
@@ -103,6 +104,11 @@ class Environment:
         """Returns the environment's `TypeChecker`."""
         """Get the Type Checker"""
         return self._tc
+
+    @property
+    def factory(self) -> "unified_planning.engines.Factory":
+        """Returns the environment's `Factory`."""
+        return self._factory
 
     @property
     def simplifier(self) -> "unified_planning.model.walkers.Simplifier":
