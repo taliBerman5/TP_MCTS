@@ -108,7 +108,7 @@ class ProbabilisticEffect:
         self._probability_func = probability_func
 
 
-    def __repr__(self) -> str:  #TODO: TB maybe needs to be changed
+    def __repr__(self) -> str:
         s = []
         s.append(f"{self._fluents}:= probabilistic")
         func = i.getsource(self._probability_func)
