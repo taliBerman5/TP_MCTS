@@ -285,15 +285,16 @@ class Problem(  # type: ignore[misc]
             if isinstance(a, up.model.action.InstantaneousAction):
                 for e in a.effects:
                     static_fluents.discard(e.fluent.fluent())
-                if a.simulated_effect is not None:
-                    for f in a.simulated_effect.fluents:
+                for pe in a.probabilistic_effects:
+                    for f in pe.fluents:
                         static_fluents.discard(f.fluent())
             elif isinstance(a, up.model.action.DurativeAction):
-                for el in a.effects.values():
-                    for e in el:
-                        static_fluents.discard(e.fluent.fluent())
-                for _, se in a.simulated_effects.items():
-                    for f in se.fluents:
+                for e in a.start_effects:
+                    static_fluents.discard(e.fluent.fluent())
+                for e in a.effects:
+                    static_fluents.discard(e.fluent.fluent())
+                for pe in a.probabilistic_effects:
+                    for f in pe.fluents:
                         static_fluents.discard(f.fluent())
             else:
                 raise NotImplementedError
