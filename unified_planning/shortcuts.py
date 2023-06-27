@@ -22,9 +22,13 @@ import unified_planning as up
 import unified_planning.model.types
 from unified_planning.environment import get_environment
 from unified_planning.model import *
-from unified_planning.engine import *
+from unified_planning.engines import *
 from typing import IO, Any, Iterable, List, Union, Dict, Tuple, Optional
 from fractions import Fraction
+from unified_planning.engines import (
+    Engine,
+    CompilationKind,
+)
 
 
 def And(*args: Union[BoolExpression, Iterable[BoolExpression]]) -> FNode:
@@ -467,3 +471,40 @@ def print_engines_info(stream: IO[str] = sys.stdout, full_credits: bool = False)
 
 def set_credits_stream(stream: Optional[IO[str]]):
     get_environment().credits_stream = stream
+
+
+def Compiler(
+    *,
+    name: Optional[str] = None,
+    names: Optional[List[str]] = None,
+    params: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
+    compilation_kind: Optional[Union["up.engines.CompilationKind", str]] = None,
+    compilation_kinds: Optional[List[Union["up.engines.CompilationKind", str]]] = None,
+) -> "up.engines.engines.Engine":
+    """
+    Returns a Compiler or a pipeline of Compilers.
+
+    To get a Compiler there are two ways to call this method:
+    - using 'name' (the name of a specific compiler) and 'params'
+      (compiler dependent options).
+      e.g. Compiler(name='tamer', params={'opt': 'val'})
+    - using 'problem_kind' and 'compilation_kind' parameters.
+      e.g. Compiler(problem_kind=problem.kind, compilation_kind=GROUNDING)
+
+    To get a pipeline of Compilers there are two ways to call this method:
+    - using 'names' (the names of the specific compilers), 'params'
+      (compilers dependent options) and 'compilation_kinds'.
+      e.g. Compiler(names=['up_quantifiers_remover', 'up_grounder'],
+                    params=[{'opt1': 'val1'}, {'opt2': 'val2'}],
+                    compilation_kinds=[QUANTIFIERS_REMOVING, GROUNDING])
+    - using 'problem_kind' and 'compilation_kinds' parameters.
+      e.g. Compiler(problem_kind=problem.kind,
+                    compilation_kinds=[QUANTIFIERS_REMOVING, GROUNDING])
+    """
+    return get_environment().factory.Compiler(
+        name=name,
+        names=names,
+        params=params,
+        compilation_kind=compilation_kind,
+        compilation_kinds=compilation_kinds,
+    )
