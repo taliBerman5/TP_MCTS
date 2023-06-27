@@ -111,7 +111,7 @@ class Convert_problem:
         remove = []
         add = []
         for action in self._converted_problem._actions:
-            if isinstance(action, up.model.InstantaneousAction): #TODO: problem!!!!! if one is deleted the next one is missed
+            if isinstance(action, up.model.InstantaneousAction):
                 engine_action = up.engines.InstantaneousAction(action._name)
                 engine_action._parameters = action._parameters
                 engine_action._set_preconditions(action.preconditions)
