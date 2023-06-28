@@ -137,12 +137,15 @@ class Convert_problem:
         - Effect
         -Probabilistic effect
 
-        If the conflicting action is also a durative action,
+        #TODO: delete the following until the todo when soft mutex is added
+         If the conflicting action is also a durative action,
          - A precondition inExecution(start_action) is added to the start conflicting action
          - A precondition inExecution(start_conflicting_action) is added to the start action
 
         Otherwise, the conflicting action is instantaneous action
         - A precondition inExecution(start_action) is added to the conflicting action
+
+         # TODO: when soft mutex : A precondition inExecution(start_action) is added to the conflicting action
         """
         for action in self._original_problem._actions:
             if isinstance(action, up.model.DurativeAction):
@@ -237,3 +240,24 @@ class Convert_problem:
             conflicting_action = self._converted_problem.action_by_name(conflicting_action.name)
             start_action_object = self._converted_problem.object_by_name('start-' + action.name)
             conflicting_action.add_precondition(self._inExecution(start_action_object), False)
+
+
+    # TODO: when i change to mutex and soft mutex replace to this action
+    # def _adding_precondition_mutex_actions(self, action, conflicting_action):
+    #     """
+    #     Adding to the `conflicting_action` a precondition that they would not be executed in parallel.
+    #
+    #      A precondition inExecution(start_action) is added to the conflicting action
+    #
+    #     :param action:
+    #     :param conflicting_action: The action is mutexed to `action`
+    #     """
+    #     start_action_object = self._converted_problem.object_by_name('start-' + action.name)
+    #
+    #     if isinstance(conflicting_action, up.model.DurativeAction):
+    #         start_conflicting_action = self._converted_problem.action_by_name("start_" + conflicting_action.name)
+    #         start_conflicting_action.add_precondition(self._inExecution(start_action_object), False)
+    #
+    #     else:
+    #         conflicting_action = self._converted_problem.action_by_name(conflicting_action.name)
+    #         conflicting_action.add_precondition(self._inExecution(start_action_object), False)
