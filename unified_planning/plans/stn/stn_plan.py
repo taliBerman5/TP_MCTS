@@ -228,6 +228,8 @@ class STNPlan(unified_planning.plans.plan.Plan):
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
 
+        self._potential_end_actions = []
+
     def __repr__(self) -> str:
         return str(self._stn)
 
@@ -264,6 +266,11 @@ class STNPlan(unified_planning.plans.plan.Plan):
             )
         else:
             return False
+
+    def clone(self):
+        new_stnPlan = STNPlan([], _stn=self._stn.copy_stn())
+        new_stnPlan._potential_end_actions = self._potential_end_actions
+        return new_stnPlan
 
     def get_constraints(
         self,
@@ -452,6 +459,11 @@ class STNPlan(unified_planning.plans.plan.Plan):
                 raise UPUsageError(
                     "Different environments given inside the same STNPlan!"
                 )
+            # The end action is chosen, removed from _potential_end_actions
+            if b_node in self._potential_end_actions:
+                self._potential_end_actions.remove(b_node)
+
+
             start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
             self._stn.insert_interval(start_plan, a_node, left_bound=f0)
@@ -462,7 +474,15 @@ class STNPlan(unified_planning.plans.plan.Plan):
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
 
+            for potential in self._potential_end_actions:
+                self._stn.insert_interval(b_node, potential, left_bound=f0)
+
     def add_action(self, action: STNPlanNode):
+
+        if isinstance(action.action_instance.action, up.engines.action.InstantaneousEndAction):
+            raise UPUsageError(
+                "End action can not be inserted in this action to the STNPlan!"
+            )
 
         f0 = Fraction(0)
         if (action.environment is not None
@@ -474,5 +494,49 @@ class STNPlan(unified_planning.plans.plan.Plan):
         end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
         self._stn.insert_interval(start_plan, action, left_bound=f0)
         self._stn.insert_interval(action, end_plan, left_bound=f0)
+
+    def add_potential_end_action(self, constraints: Union[
+            List[Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]],
+            Dict[STNPlanNode, List[Tuple[Optional[Real], Optional[Real], STNPlanNode]]],
+        ]):
+
+        """
+        The end action is not yet to be chosen, the goal might achived before the end action is chosen.
+        The plan is still consistent if the plan ends before the end action is preformed.
+
+        The constraint b_node - end_plan <= f0 is not added
+
+        a_node = start_action, b_node = end_action
+
+        :param constraints:
+        :return:
+        """
+        if isinstance(constraints, List):
+            gen: Iterator[
+                Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]
+            ] = iter(constraints)
+        else:
+            assert isinstance(constraints, Dict), "Typing not respected"
+            gen = flatten_dict_structure(constraints)
+        f0 = Fraction(0)
+        for a_node, lower_bound, upper_bound, b_node in gen:
+            if (
+                a_node.environment is not None
+                and a_node.environment != self._environment
+            ) or (
+                b_node.environment is not None
+                and b_node.environment != self._environment
+            ):
+                raise UPUsageError(
+                    "Different environments given inside the same STNPlan!"
+                )
+            start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+            self._stn.insert_interval(start_plan, a_node, left_bound=f0)
+            self._stn.insert_interval(start_plan, b_node, left_bound=f0)
+            lb = None if lower_bound is None else Fraction(float(lower_bound))
+            ub = None if upper_bound is None else Fraction(float(upper_bound))
+            self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
+
+            self._potential_end_actions.append(b_node)
 
 
