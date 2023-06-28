@@ -20,7 +20,7 @@ class MDP:
         :return: the initial state of the problem
         """
         predicates = self.problem.initial_values
-        pos_predicates = set([key for key, value in predicates.items() if value])
+        pos_predicates = set([key for key, value in predicates.items() if value.bool_constant_value()])
         return up.engines.State(pos_predicates)
 
 
@@ -46,8 +46,8 @@ class MDP:
         """
         legal_actions = []
         for action in self.problem.actions:
-            if action.pos_precondition.issubset(state.predicates) and \
-                    action.neg_precondition.isdisjoint(state.predicates):
+            if action.pos_preconditions.issubset(state.predicates) and \
+                    action.neg_preconditions.isdisjoint(state.predicates):
 
                 legal_actions.append(action)
 
