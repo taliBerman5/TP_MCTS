@@ -76,13 +76,14 @@ class Convert_problem:
                 start_action._set_effects(action.start_effects)
                 start_action.add_effect(self._inExecution(object_start), True)
 
-                end_action = up.engines.InstantaneousAction("end_" + action._name)
+                end_action = up.engines.InstantaneousEndAction("end_" + action._name)
                 end_action._parameters = action._parameters
                 end_action._set_effects(action.effects)
                 end_action.add_effect(self._inExecution(object_start), False)
                 end_action._set_probabilistic_effects(action.probabilistic_effects)
 
                 start_action._set_end_action(end_action)
+                end_action._set_start_action(start_action)
 
                 # Add preconditions to start and end action
                 for p_type in action.preconditions:

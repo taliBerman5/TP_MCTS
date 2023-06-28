@@ -359,7 +359,7 @@ class InstantaneousStartAction(InstantaneousAction):
         InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0)))
-        self._end_action: InstantaneousAction = None
+        self._end_action: Optional[InstantaneousEndAction] = None
 
     def __repr__(self) -> str:
         b = InstantaneousAction.__repr__(self)[0:-3]
@@ -390,6 +390,7 @@ class InstantaneousStartAction(InstantaneousAction):
 
         return new_instantaneous_start_action
 
+    @property
     def duration(self) -> "up.model.timing.DurationInterval":
         """Returns the `action` `duration interval`."""
         return self._duration
@@ -402,10 +403,62 @@ class InstantaneousStartAction(InstantaneousAction):
         """
         self._duration = duration
 
-    def _set_end_action(self, end_action: InstantaneousAction):
+    def _set_end_action(self, end_action: "up.engines.action.InstantaneousEndAction"):
         """Sets the `end_action`."""
         self._end_action = end_action
 
-    def end_action(self) -> InstantaneousAction:
-        """Returns the `end_action`ץ"""
+    @property
+    def end_action(self) -> "up.engines.action.InstantaneousEndAction":
+        """Returns the `end_action`"""
         return self._end_action
+
+
+class InstantaneousEndAction(InstantaneousAction):
+    """Represents a end action with fix duration.
+    This is the end action of the DurativeAction action class
+    _start_action - the start action of this end action """
+
+    def __init__(
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
+    ):
+        InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
+        self._start_action: Optional[InstantaneousStartAction] = None
+
+    def __repr__(self) -> str:
+        b = InstantaneousAction.__repr__(self)[0:-3]
+        s = ["Instantaneous end ", b]
+        s.append(f" start action = {self._start_action.name}")
+        s.append("  }")
+        return "".join(s)
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, InstantaneousStartAction):
+            super().__eq__(oth) and \
+            self._start_action == oth._start_action
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        return super().__hash__() + hash(self._duration) + self._start_action.__hash__()
+
+    def clone(self):
+        new_params = OrderedDict()
+        for param_name, param in self._parameters.items():
+            new_params[param_name] = param.type
+        new_instantaneous_end_action = InstantaneousEndAction(self._name, new_params, self._environment)
+        new_instantaneous_end_action._start_action = self._start_action.clone()
+
+        return new_instantaneous_end_action
+
+    def _set_start_action(self, start_action: InstantaneousStartAction):
+        """Sets the `end_action`."""
+        self._start_action = start_action
+
+    @property
+    def start_action(self) -> InstantaneousStartAction:
+        """Returns the `end_action`ץ"""
+        return self._start_action
