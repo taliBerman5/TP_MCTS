@@ -378,7 +378,7 @@ class InstantaneousStartAction(InstantaneousAction):
             return False
 
     def __hash__(self) -> int:
-        return super().__hash__() + hash(self._duration) + self._end_action.__hash__()
+        return super().__hash__() + hash(self._duration)
 
     def clone(self):
         new_params = OrderedDict()
@@ -443,7 +443,7 @@ class InstantaneousEndAction(InstantaneousAction):
             return False
 
     def __hash__(self) -> int:
-        return super().__hash__() + hash(self._duration) + self._start_action.__hash__()
+        return super().__hash__()
 
     def clone(self):
         new_params = OrderedDict()
