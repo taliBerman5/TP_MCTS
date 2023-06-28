@@ -35,7 +35,6 @@ from unified_planning.model.parameter import Parameter
 from unified_planning.model.abstract_problem import AbstractProblem
 from unified_planning.model.problem import Problem
 # from unified_planning.model.contingent_problem import ContingentProblem
-# from unified_planning.model.delta_stn import DeltaSimpleTemporalNetwork
 from unified_planning.model.state import ROState
 from unified_planning.model.timing import (
     Timepoint,
@@ -67,17 +66,7 @@ from unified_planning.model.timing import (
 )
 from unified_planning.model.types import Type, TypeManager
 from unified_planning.model.variable import Variable, FreeVarsOracle
-# from unified_planning.model.metrics import (
-#     PlanQualityMetric,
-#     MinimizeActionCosts,
-#     MinimizeSequentialPlanLength,
-#     MinimizeMakespan,
-#     MinimizeExpressionOnFinalState,
-#     MaximizeExpressionOnFinalState,
-#     Oversubscription,
-#     TemporalOversubscription,
-# )
-# import unified_planning.model.scheduling
+
 
 __all__ = [
     "Action",
