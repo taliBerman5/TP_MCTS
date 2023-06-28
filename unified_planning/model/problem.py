@@ -78,7 +78,7 @@ class Problem(  # type: ignore[misc]
         ] = {}
         self._trajectory_constraints: List["up.model.fnode.FNode"] = list()
         self._goals: List["up.model.fnode.FNode"] = list()
-        self._deadline: Union["up.model.timing.Timing", "up.model.timing.TimeInterval"] = None
+        self._deadline: Optional[Union["up.model.timing.Timing", "up.model.timing.TimeInterval"]] = None
 
     def __repr__(self) -> str:
         s = []
