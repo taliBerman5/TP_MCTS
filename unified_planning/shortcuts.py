@@ -29,6 +29,8 @@ from unified_planning.engines import (
     Engine,
     CompilationKind,
 )
+from unified_planning.plans import *
+from unified_planning.plans.stn import *
 
 
 def And(*args: Union[BoolExpression, Iterable[BoolExpression]]) -> FNode:

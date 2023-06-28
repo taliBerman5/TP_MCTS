@@ -4,6 +4,7 @@ from unified_planning.engines.action import (
     Action,
     InstantaneousAction,
     InstantaneousStartAction,
+    InstantaneousEndAction,
 )
 from unified_planning.engines.node import (
     ANode,
@@ -21,6 +22,7 @@ __all__ = [
     "Action",
     "InstantaneousAction",
     "InstantaneousStartAction",
+    "InstantaneousEndAction",
     "ANode",
     "SNode",
     "State",
