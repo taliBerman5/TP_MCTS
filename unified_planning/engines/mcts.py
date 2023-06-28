@@ -3,21 +3,30 @@ import math
 import time
 import random
 from collections import defaultdict
+from typing import List
+from unified_planning.engines.utils import (
+    create_init_stn,
+    update_stn,
+)
 
 
 class MCTS:
-    def __init__(self, mdp, root_state: "up.engines.state.State", search_depth: int, exploration_constant: float):
+    def __init__(self, mdp, root_state: "up.engines.state.State", search_depth: int, exploration_constant: float,
+                 stn: "up.plans.stn.STNPlan"):
         self._mdp = mdp
         self._root_state = root_state
         self._search_depth = search_depth
         self._exploration_constant = exploration_constant
+        self._stn = stn
 
     @property
     def mdp(self):
         return self._mdp
+
     @property
     def root_state(self):
         return self._root_state
+
     @property
     def search_depth(self):
         return self._search_depth
@@ -31,29 +40,66 @@ class MCTS:
         Execute the MCTS algorithm from the initial state given, with timeout in seconds
         """
 
-        root_node = self.create_Snode(self.root_state)
+        root_node = self.create_Snode(self.root_state, 0, self._stn)
 
         start_time = time.time()
         current_time = time.time()
         while current_time < start_time + timeout:
-
             self.selection(root_node)
             current_time = time.time()
 
         return self.best_action(root_node)
 
-    def create_Snode(self, state: "up.engines.State", depth:int, parent: "up.engines.ANode" =None):
+    def create_Snode(self, state: "up.engines.State", depth: int, stn:"up.plans.stn.STNPlan", parent: "up.engines.ANode"=None):
         """ Create a new Snode for the state `state` with parent `parent`"""
-        return up.engines.SNode(self.root_state, depth, self.mdp.legal_actions(state), parent)
+        return up.engines.SNode(self.root_state, depth, self.mdp.legal_actions(state), stn, parent)
+
+    def selection_while(self, snode: "up.engines.Snode"):
+
+        terminal = False
+
+        # Stop if the search depth is reached or
+        # the there are no possible actions to take so the plan remains consistent
+        while snode.depth < self.search_depth and len(snode.possible_actions) > 0:
+
+            explore_constant = self.exploration_constant
+            action = self.uct(snode, explore_constant)
+
+            terminal, next_state, reward = self.mdp.step(snode.state, action)
+
+            anode = snode.children[action]
+
+
+            if not terminal:
+                snodes = anode.children
+                if next_state in snodes:
+                    reward += self.mdp.discount_factor * self.selection(snodes[next_state])
+
+                else:
+                    reward += self.mdp.discount_factor * self.simulate(snodes[next_state])
+                    next_snode = self.create_Snode(next_state, snode.depth + 1, snode.parent.stn)
+
+                    anode.add_child(next_snode)
+
+            snode.update(reward)
+            anode.update(reward)
+
+        return reward
+
 
     def selection(self, snode: "up.engines.Snode"):
 
-        if snode.depth > self.search_depth:
+        if snode.depth > self.search_depth or len(snode.possible_actions) == 0:
+            # Stop if the search depth is reached or
+            # the there are no possible actions to take so the plan remains consistent
             return 0
 
         explore_constant = self.exploration_constant
         action = self.uct(snode, explore_constant)
-        terminal, next_state, reward = self.mdp.step(action, snode.state)
+
+
+
+        terminal, next_state, reward = self.mdp.step(snode.state, action)
 
         anode = snode.children[action]
         if not terminal:
@@ -62,8 +108,8 @@ class MCTS:
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
             else:
-                reward += self.mdp.discount_factor * self.simulate(snodes[next_state])
-                next_snode = self.create_Snode(next_state, snode.depth + 1)
+                reward += self.mdp.discount_factor * self.simulate(next_state)
+                next_snode = self.create_Snode(next_state, snode.depth + 1, snode.parent.stn)
                 anode.add_child(next_snode)
 
         snode.update(reward)
@@ -71,20 +117,17 @@ class MCTS:
 
         return reward
 
-
     def default_policy(self, state: "up.engines.State"):
         """ Choose a random action. Heustics can be used here to improve simulations. """
         return random.choice(self.mdp.legal_actions(state))
 
-
-    def simulate(self, node):
+    def simulate(self, state):
         """ Simulate until a terminal state """
-        state = node.state
         cumulative_reward = 0.0
         depth = 0
         terminal = False
 
-        while not terminal or depth < self.search_depth:
+        while not terminal or depth < self.search_depth or self.mdp.legal_actions(state) > 0:
             # Choose an action to execute
             action = self.default_policy(state)
 
@@ -99,9 +142,9 @@ class MCTS:
 
         return cumulative_reward
 
-    def uct(self, snode: "up.engines.Snode", explore_constant: float): #TODO: need to check to the uct logic
+    def uct(self, snode: "up.engines.Snode", explore_constant: float):  # TODO: need to check to the uct logic
         anodes = snode.children
-        best_ub = float('inf')
+        best_ub = -float('inf')
         best_action = -1
         possible_actions = snode.possible_actions
         for action in possible_actions:
@@ -115,7 +158,6 @@ class MCTS:
 
         assert best_action != -1
         return best_action
-
 
     def best_action(self, root_node: "up.engines.SNode"):
         """
@@ -139,3 +181,32 @@ class MCTS:
 
 
 
+
+
+
+
+
+
+
+
+
+
+def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float):
+    stn = create_init_stn(mdp)
+    root_state = mdp.initial_state()
+
+    history = []
+
+    for i in range(steps):
+        mcts = MCTS(mdp, root_state, search_depth, exploration_constant, stn)
+        action = mcts.mcts()
+
+        terminal, root_state, reward = mcts.mdp.step(root_state, action)
+
+        previous_action = history[-1] if history else None
+        action_node = update_stn(stn, action, previous_action)  # TODO: check if the stn and history gets updated
+        history.append(action_node)
+        assert stn.is_consistent
+
+        if terminal:
+            break
