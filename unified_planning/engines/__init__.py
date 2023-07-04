@@ -16,6 +16,7 @@ from unified_planning.engines.mixins.compiler import CompilationKind
 from unified_planning.engines.engine import Engine
 from unified_planning.engines.compilers.grounder import Grounder, GrounderHelper
 from unified_planning.engines.mcts import (plan, MCTS)
+from unified_planning.engines.utils import create_init_stn, update_stn
 
 
 __all__ = [
@@ -34,5 +35,7 @@ __all__ = [
     "GrounderHelper",
     "MCTS",
     "plan",
+    "create_init_stn",
+    "update_stn",
 
 ]
