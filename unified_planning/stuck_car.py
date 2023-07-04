@@ -28,10 +28,12 @@ bodyParts = [unified_planning.model.Object(b, BodyPart) for b in bodyParts_names
 problem.add_objects(bodyParts)
 
 car_out = unified_planning.model.Fluent('car_out', BoolType())
+problem.add_fluent(car_out)
 problem.set_initial_value(car_out, False)
 
 tired = unified_planning.model.Fluent('tired', BoolType())
-problem.set_initial_value(tired, True)
+problem.add_fluent(tired)
+problem.set_initial_value(tired, False)
 
 got_rock = unified_planning.model.Fluent('got_rock', BoolType(), r=Rock)
 problem.add_fluent(got_rock, default_initial_value=False)
@@ -68,7 +70,7 @@ place_rock.add_effect(free(bodyParts[0]), True)
 place_rock.add_effect(free(bodyParts[1]), True)
 
 tired_exp = problem.get_fluent_exp(tired)
-def tired_probability(state):
+def tired_probability(state, actual_params):
     p = 0.4
     return {p: {tired_exp: True}, 1-p: {tired_exp: False}}
 
@@ -95,7 +97,7 @@ search.add_effect(free(bodyParts[1]), True)
 # import inspect as i
 got_rock_0_exp = problem.get_fluent_exp(got_rock(rocks[0]))
 got_rock_1_exp = problem.get_fluent_exp(got_rock(rocks[1]))
-def rock_probability(state):
+def rock_probability(state, actual_params):
     # The probability of finding a good rock when searching
     p = 0.8
     return {p: {got_rock_0_exp: True, got_rock_1_exp: False}, 1-p: {got_rock_0_exp: False, got_rock_1_exp: True}}
@@ -118,7 +120,7 @@ push_gas.add_effect(free(bodyParts[1]), True)
 rock_0_under_exp = problem.get_fluent_exp(rock_under_car(rocks[0]))
 rock_1_under_exp = problem.get_fluent_exp(rock_under_car(rocks[1]))
 car_out_exp = problem.get_fluent_exp(car_out)
-def push_gas_probability(state):
+def push_gas_probability(state, actual_params):
     # The probability of getting the car out when pushing the gas padel
     p = 1
     predicates = state.predicates
@@ -150,7 +152,7 @@ push_car.add_precondition(StartPreconditionTiming(), free(bodyParts[0]), True)
 push_car.add_start_effect(free(bodyParts[0]), False)
 push_car.add_effect(free(bodyParts[0]), True)
 
-def push_car_probability(state):
+def push_car_probability(state, actual_params):
     # The probability of getting the car out when pushing the car
     p = 1
     predicates = state.predicates
@@ -175,10 +177,24 @@ push_car.add_probabilistic_effect([tired], tired_probability)
 
 problem.add_action(push_car)
 
+
+problem.add_goal(car_out)
 deadline = Timing(delay=6, timepoint=Timepoint(TimepointKind.START))
-problem.add_timed_goal(deadline, car_out)
+problem.set_deadline(deadline)
 
 # print(problem)
 
-converted_problem = unified_planning.engine.Convert_problem(problem)
-print(converted_problem)
+
+grounder = unified_planning.engines.compilers.Grounder()
+grounding_result = grounder._compile(problem)
+ground_problem = grounding_result.problem
+
+
+convert_problem = unified_planning.engines.Convert_problem(ground_problem)
+print(convert_problem)
+converted_problem = convert_problem.converted_problem
+mdp = unified_planning.engines.MDP(converted_problem, discount_factor=10)
+state = mdp.initial_state()
+mdp.step(state, converted_problem.actions[0])
+
+up.engines.mcts.plan(mdp, steps=10, search_depth=10, exploration_constant=10)
