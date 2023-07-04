@@ -371,9 +371,8 @@ class InstantaneousStartAction(InstantaneousAction):
 
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, InstantaneousStartAction):
-            super().__eq__(oth) and \
-            self._duration == oth._duration and \
-            self._end_action == oth._end_action
+            return super().__eq__(oth) and \
+            self._duration == oth._duration
         else:
             return False
 
@@ -436,9 +435,8 @@ class InstantaneousEndAction(InstantaneousAction):
         return "".join(s)
 
     def __eq__(self, oth: object) -> bool:
-        if isinstance(oth, InstantaneousStartAction):
-            super().__eq__(oth) and \
-            self._start_action == oth._start_action
+        if isinstance(oth, InstantaneousEndAction):
+            return super().__eq__(oth)
         else:
             return False
 
