@@ -15,7 +15,7 @@ def create_init_stn(mdp: "up.engines.MDP"):
 
 
 
-def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previous_action: "up.plans.stn.STNPlanNode"=None):
+def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previous_action_node: "up.plans.stn.STNPlanNode"=None):
     """
     Add constrains to the `stn` according to the `action` and the `previous_action`
 
@@ -33,14 +33,14 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
 
 
     :param stn: The STN containing the constraints so far
-    :param previous_action: the previous chosen action chosen
+    :param previous_action_node: the previous chosen action chosen
     :param action: according to the `action` constraints are added
     :return: The STNPlanNode of the `action`
     """
     if isinstance(action, up.engines.action.InstantaneousStartAction):
         start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(action, ()))
-        if previous_action:
-            stn.add_constrains([(previous_action, 0, None, start_node)])
+        if previous_action_node:
+            stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, start_node)])
         else:
             stn.add_action(start_node)
 
@@ -59,19 +59,17 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START,
                                               up.plans.plan.ActionInstance(action.start_action, ()))
 
-        assert previous_action  # The start action should already be in the history
-
         stn.add_end_action_constrains([end_node])
 
-        if start_node != previous_action:
-            stn.add_constrains([(previous_action, 0, None, end_node)])
+        if start_node != previous_action_node:
+            stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, end_node)])
 
         return end_node
 
 
     # InstantaneousAction
     start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(action, ()))
-    if previous_action:
-        stn.add_constrains([(previous_action, 0, None, start_node)])
+    if previous_action_node:
+        stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, start_node)])
     else:
         stn.add_action(start_node)
