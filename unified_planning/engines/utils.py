@@ -6,13 +6,11 @@ def create_init_stn(mdp: "up.engines.MDP"):
     :param mdp:
     :return:
     """
-    deadline = None
-    start_plan = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.GLOBAL_START)
-    end_plan = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.GLOBAL_END)
+    stn = up.plans.stn.STNPlan([])
 
-    if mdp.problem.deadline:
+    if mdp.problem.deadline:  # Add the deadline to the STN
         deadline = mdp.problem.deadline.lower.delay
-    stn = up.plans.stn.STNPlan([(start_plan, None, deadline, end_plan)])  # Add the deadline to the STN
+        stn.add_deadline(deadline)
     return stn
 
 
@@ -63,10 +61,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
 
         assert previous_action  # The start action should already be in the history
 
-        # Add constrains between the start and end action
-        lower_bound = action.start_action.duration.lower.type.lower_bound
-        upper_bound = action.start_action.duration.upper.type.upper_bound
-        stn.add_constrains([(start_node, lower_bound, upper_bound, end_node)])
+        stn.add_end_action_constrains([end_node])
 
         if start_node != previous_action:
             stn.add_constrains([(previous_action, 0, None, end_node)])
