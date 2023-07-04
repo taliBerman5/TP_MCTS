@@ -19,11 +19,12 @@ from unified_planning.environment import Environment, get_environment
 from unified_planning.model import AbstractProblem
 from typing import Callable, Optional, Tuple
 from enum import Enum, auto
-
+from dataclasses import dataclass
 
 """This module defines the general `Plan` interface and the `ActionInstance` class."""
 
 
+@dataclass(unsafe_hash=True, frozen=True)
 class ActionInstance:
     """
     Represents an action instance with the actual parameters.
@@ -31,15 +32,17 @@ class ActionInstance:
     NOTE: two action instances of the same action with the same parameters are
     considered different as it is possible to have the same action twice in a `Plan`.
     """
+    _action: "up.model.Action"
+    _params: tuple
 
-    def __init__(
-        self,
-        action: "up.engines.Action",
-        params: Tuple["up.model.FNode", ...] = tuple(),
-    ):
-        assert len(action.parameters) == len(params)
-        self._action = action
-        self._params = tuple(params)
+    # def __init__(
+    #     self,
+    #     action: "up.engines.Action",
+    #     params: Tuple["up.model.FNode", ...] = tuple(),
+    # ):
+    #     assert len(action.parameters) == len(params)
+    #     self._action = action
+    #     self._params = tuple(params)
 
     def __repr__(self) -> str:
         s = []
@@ -75,8 +78,8 @@ class ActionInstance:
         :return: `True` if the given `ActionInstance` is semantically equivalent to self, `False` otherwise.
         """
         return (
-            self.action == oth.action
-            and self._params == oth._params
+                self.action == oth.action
+                and self._params == oth._params
         )
 
 
@@ -92,7 +95,7 @@ class Plan:
     """Represents a generic plan."""
 
     def __init__(
-        self, kind: PlanKind, environment: Optional["Environment"] = None
+            self, kind: PlanKind, environment: Optional["Environment"] = None
     ) -> None:
         self._kind = kind
         self._environment = get_environment(environment)
@@ -108,7 +111,7 @@ class Plan:
         return self._kind
 
     def replace_action_instances(
-        self, replace_function: Callable[[ActionInstance], Optional[ActionInstance]]
+            self, replace_function: Callable[[ActionInstance], Optional[ActionInstance]]
     ) -> "Plan":
         """
         This function takes a function from `ActionInstance` to `ActionInstance` and returns a new `Plan`
