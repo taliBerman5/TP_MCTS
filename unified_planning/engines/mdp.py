@@ -88,7 +88,7 @@ class MDP:
         del_predicates = set()
 
         for pe in action.probabilistic_effects:
-            prob_outcomes = pe.probability_function(self, None)
+            prob_outcomes = pe.probability_function(state, None)
             index = np.random.choice(len(prob_outcomes), p=list(prob_outcomes.keys()))
             values = list(prob_outcomes.values())[index]
             for v in values:
