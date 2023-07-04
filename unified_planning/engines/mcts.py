@@ -35,6 +35,10 @@ class MCTS:
     def exploration_constant(self):
         return self._exploration_constant
 
+    @property
+    def stn(self):
+        return self._stn
+
     def mcts(self, timeout=1):
         """
         Execute the MCTS algorithm from the initial state given, with timeout in seconds
@@ -50,25 +54,33 @@ class MCTS:
 
         return self.best_action(root_node)
 
-    def create_Snode(self, state: "up.engines.State", depth: int, stn:"up.plans.stn.STNPlan", parent: "up.engines.ANode"=None):
+    def create_Snode(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
+                     parent: "up.engines.ANode" = None):
         """ Create a new Snode for the state `state` with parent `parent`"""
-        return up.engines.SNode(self.root_state, depth, self.mdp.legal_actions(state), stn, parent)
+        return up.engines.SNode(state, depth, self.mdp.legal_actions(state), stn, parent)
 
     def selection_while(self, snode: "up.engines.Snode"):
 
         terminal = False
+        consistent = False
+        action = -1
 
         # Stop if the search depth is reached or
         # the there are no possible actions to take so the plan remains consistent
         while snode.depth < self.search_depth and len(snode.possible_actions) > 0:
 
             explore_constant = self.exploration_constant
-            action = self.uct(snode, explore_constant)
+
+            while not consistent:
+                action = self.uct(snode, explore_constant)
+                consistent = snode.children[action].is_consistent()
+
+                if len(snode.possible_actions) > 0:
+                    return
 
             terminal, next_state, reward = self.mdp.step(snode.state, action)
 
             anode = snode.children[action]
-
 
             if not terminal:
                 snodes = anode.children
@@ -86,7 +98,6 @@ class MCTS:
 
         return reward
 
-
     def selection(self, snode: "up.engines.Snode"):
 
         if snode.depth > self.search_depth or len(snode.possible_actions) == 0:
@@ -95,9 +106,9 @@ class MCTS:
             return 0
 
         explore_constant = self.exploration_constant
+
+        # Choose a consistent action
         action = self.uct(snode, explore_constant)
-
-
 
         terminal, next_state, reward = self.mdp.step(snode.state, action)
 
@@ -109,7 +120,7 @@ class MCTS:
 
             else:
                 reward += self.mdp.discount_factor * self.simulate(next_state)
-                next_snode = self.create_Snode(next_state, snode.depth + 1, snode.parent.stn)
+                next_snode = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
                 anode.add_child(next_snode)
 
         snode.update(reward)
@@ -127,7 +138,7 @@ class MCTS:
         depth = 0
         terminal = False
 
-        while not terminal or depth < self.search_depth or self.mdp.legal_actions(state) > 0:
+        while not terminal and depth < self.search_depth and len(self.mdp.legal_actions(state)) > 0:
             # Choose an action to execute
             action = self.default_policy(state)
 
@@ -175,20 +186,6 @@ class MCTS:
                 aStar = action
 
         return aStar
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float):
