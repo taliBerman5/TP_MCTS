@@ -64,9 +64,17 @@ class SNode(Node):
             self._possible_actions.remove(action)
 
     def _add_children(self, stn: "up.plans.stn.STNPlan"):
+        not_consistent = []
         for action in self.possible_actions:
             child = ANode(action, stn.clone(), self)
-            self.children[action] = child
+
+            if child.is_consistent():
+                self.children[action] = child
+            else:
+                not_consistent.append(action)
+
+        for a in not_consistent:
+            self.possible_actions.remove(a)
 
 
 
@@ -78,7 +86,7 @@ class ANode(Node):
         self._children: Dict["up.engines.State","up.engines.node.SNode"] = {}
         self._stn = stn
 
-        self._add_constraints()
+        self._add_constraints()  # Adds the action constraints to the STN
 
     def __repr__(self):
         s = "action Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
@@ -106,15 +114,19 @@ class ANode(Node):
     def stn(self):
         return self._stn
 
+    def is_consistent(self):
+        return self._stn.is_consistent()
+
     def _add_constraints(self):
         previous_action = self.parent.parent
         previous_node = None
 
         if previous_action:
+            previous_action = previous_action.action
             if isinstance(previous_action, up.engines.action.InstantaneousEndAction):
-                previous_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.stn.STNPlanNode(previous_action))
+                previous_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.plan.ActionInstance(previous_action, set()))
             else:
-                previous_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.stn.STNPlanNode(previous_action))
+                previous_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(previous_action, set()))
 
         update_stn(self.stn, self.action, previous_node)
 
