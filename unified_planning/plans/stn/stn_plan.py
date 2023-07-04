@@ -37,6 +37,8 @@ from typing import (
     Union,
 )
 
+pool: Dict[Tuple[TimepointKind, Optional[str]], 'STNPlanNode'] = {}
+#TODO: maybe change the pool key from str to the action instance
 
 @dataclass(unsafe_hash=True, frozen=True)
 class STNPlanNode:
@@ -52,6 +54,16 @@ class STNPlanNode:
 
     kind: TimepointKind
     action_instance: Optional[ActionInstance] = None
+
+    def __new__(self, kind: TimepointKind, action_instance: Optional[ActionInstance] = None):
+        name = action_instance.action.name if action_instance is not None else action_instance
+        key = (kind, name)
+        if key in pool:
+            return pool[key]
+        else:
+            instance = super().__new__(self)
+            pool[key] = instance
+            return instance
 
     def __post_init___(self):
         if (
@@ -70,6 +82,16 @@ class STNPlanNode:
                 f"kind represents Start/End of an ActionInstance",
                 "but the ActionInstance is not given.",
             )
+
+    def __eq__(self, other):
+        if isinstance(other, STNPlanNode):
+            if self.action_instance is None and other.action_instance is None:
+                return self.kind == other.kind
+            if self.action_instance is None or other.action_instance is None:
+                return False
+            return (self.action_instance.is_semantically_equivalent(other.action_instance) and \
+                   self.kind == other.kind)
+        return False
 
     def __repr__(self) -> str:
         mappings: Dict[TimepointKind, str] = {
@@ -269,7 +291,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
 
     def clone(self):
         new_stnPlan = STNPlan([], _stn=self._stn.copy_stn())
-        new_stnPlan._potential_end_actions = self._potential_end_actions
+        new_stnPlan._potential_end_actions = self._potential_end_actions.copy()
         return new_stnPlan
 
     def get_constraints(
@@ -436,7 +458,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
         return self._stn.check_stn()
 
 
-    def add_constrains(self, constraints: Union[
+    def add_constrains_to_previous_chosen_action(self, constraints: Union[
             List[Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]],
             Dict[STNPlanNode, List[Tuple[Optional[Real], Optional[Real], STNPlanNode]]],
         ]):
@@ -463,16 +485,37 @@ class STNPlan(unified_planning.plans.plan.Plan):
             if b_node in self._potential_end_actions:
                 self._potential_end_actions.remove(b_node)
 
-
             start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
-            self._stn.insert_interval(start_plan, a_node, left_bound=f0)
-            self._stn.insert_interval(a_node, end_plan, left_bound=f0)
             self._stn.insert_interval(start_plan, b_node, left_bound=f0)
             self._stn.insert_interval(b_node, end_plan, left_bound=f0)
             lb = None if lower_bound is None else Fraction(float(lower_bound))
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
+
+            for potential in self._potential_end_actions:
+                self._stn.insert_interval(b_node, potential, left_bound=f0)
+
+
+    def add_end_action_constrains(self, constraints: List[STNPlanNode]):
+        """ Adds the end action as a chosen action
+         - The end action must be before the end plan
+         - and before all potential end action not yet chosen"""
+        f0 = Fraction(0)
+        for b_node in constraints:
+            if  (
+                b_node.environment is not None
+                and b_node.environment != self._environment
+            ):
+                raise UPUsageError(
+                    "Different environments given inside the same STNPlan!"
+                )
+            # The end action is chosen, removed from _potential_end_actions
+            if b_node in self._potential_end_actions:
+                self._potential_end_actions.remove(b_node)
+
+            end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
+            self._stn.insert_interval(b_node, end_plan, left_bound=f0)
 
             for potential in self._potential_end_actions:
                 self._stn.insert_interval(b_node, potential, left_bound=f0)
@@ -494,6 +537,17 @@ class STNPlan(unified_planning.plans.plan.Plan):
         end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
         self._stn.insert_interval(start_plan, action, left_bound=f0)
         self._stn.insert_interval(action, end_plan, left_bound=f0)
+
+    def add_deadline(self, deadline: int):
+        """
+        add a deadline to the STN: end plan - start plan <= deadline
+        :param deadline:
+        :return:
+        """
+        start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+        end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
+        f_deadline = Fraction(deadline)
+        self._stn.insert_interval(start_plan, end_plan, right_bound=f_deadline)
 
     def add_potential_end_action(self, constraints: Union[
             List[Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]],
@@ -531,7 +585,6 @@ class STNPlan(unified_planning.plans.plan.Plan):
                     "Different environments given inside the same STNPlan!"
                 )
             start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
-            self._stn.insert_interval(start_plan, a_node, left_bound=f0)
             self._stn.insert_interval(start_plan, b_node, left_bound=f0)
             lb = None if lower_bound is None else Fraction(float(lower_bound))
             ub = None if upper_bound is None else Fraction(float(upper_bound))
