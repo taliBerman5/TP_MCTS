@@ -37,8 +37,6 @@ from typing import (
     Union,
 )
 
-pool: Dict[Tuple[TimepointKind, Optional[str]], 'STNPlanNode'] = {}
-#TODO: maybe change the pool key from str to the action instance
 
 @dataclass(unsafe_hash=True, frozen=True)
 class STNPlanNode:
@@ -54,16 +52,6 @@ class STNPlanNode:
 
     kind: TimepointKind
     action_instance: Optional[ActionInstance] = None
-
-    def __new__(self, kind: TimepointKind, action_instance: Optional[ActionInstance] = None):
-        name = action_instance.action.name if action_instance is not None else action_instance
-        key = (kind, name)
-        if key in pool:
-            return pool[key]
-        else:
-            instance = super().__new__(self)
-            pool[key] = instance
-            return instance
 
     def __post_init___(self):
         if (
@@ -250,7 +238,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
 
-        self._potential_end_actions = []
+        self._potential_end_actions = {}
 
     def __repr__(self) -> str:
         return str(self._stn)
@@ -483,7 +471,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
                 )
             # The end action is chosen, removed from _potential_end_actions
             if b_node in self._potential_end_actions:
-                self._potential_end_actions.remove(b_node)
+                self._potential_end_actions.pop(b_node)
 
             start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
@@ -493,7 +481,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
 
-            for potential in self._potential_end_actions:
+            for potential in self._potential_end_actions.keys():
                 self._stn.insert_interval(b_node, potential, left_bound=f0)
 
 
@@ -512,7 +500,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
                 )
             # The end action is chosen, removed from _potential_end_actions
             if b_node in self._potential_end_actions:
-                self._potential_end_actions.remove(b_node)
+                self._potential_end_actions.pop(b_node)
 
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
             self._stn.insert_interval(b_node, end_plan, left_bound=f0)
@@ -590,6 +578,6 @@ class STNPlan(unified_planning.plans.plan.Plan):
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
 
-            self._potential_end_actions.append(b_node)
+            self._potential_end_actions[b_node] = a_node
 
 
