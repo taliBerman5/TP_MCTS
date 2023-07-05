@@ -9,7 +9,7 @@ def create_init_stn(mdp: "up.engines.MDP"):
     stn = up.plans.stn.STNPlan([])
 
     if mdp.problem.deadline:  # Add the deadline to the STN
-        deadline = mdp.problem.deadline.lower.delay
+        deadline = mdp.problem.deadline
         stn.add_deadline(deadline)
     return stn
 
@@ -55,9 +55,11 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         return start_node
 
     if isinstance(action, up.engines.action.InstantaneousEndAction):
-        end_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.plan.ActionInstance(action, ()))
-        start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START,
-                                              up.plans.plan.ActionInstance(action.start_action, ()))
+        temp_end_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.plan.ActionInstance(action, ()))
+        end_potential = list(stn._potential_end_actions.keys())
+        end_node = end_potential[end_potential.index(temp_end_node)]
+        start_node = stn._potential_end_actions[end_node]
+
 
         stn.add_end_action_constrains([end_node])
 
@@ -68,8 +70,10 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
 
 
     # InstantaneousAction
-    start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(action, ()))
+    Instant_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(action, ()))
     if previous_action_node:
-        stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, start_node)])
+        stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, Instant_node)])
     else:
-        stn.add_action(start_node)
+        stn.add_action(Instant_node)
+
+    return Instant_node
