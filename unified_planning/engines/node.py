@@ -94,8 +94,9 @@ class ANode(Node):
         self._parent = parent
         self._children: Dict["up.engines.State","up.engines.node.SNode"] = {}
         self._stn = stn
+        self._STNNode = self._add_constraints(previous_chosen_action_node)  # Adds the action constraints to the STN
 
-        self._add_constraints(previous_chosen_action_node)  # Adds the action constraints to the STN
+
 
     def __repr__(self):
         s = "action Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
@@ -123,6 +124,10 @@ class ANode(Node):
     def stn(self):
         return self._stn
 
+    @property
+    def STNNode(self):
+        return self._STNNode
+
     def is_consistent(self):
         return self._stn.is_consistent()
 
@@ -142,13 +147,9 @@ class ANode(Node):
         previous_node = previous_chosen_action_node
 
         if previous_action:
-            previous_action = previous_action.action
-            if isinstance(previous_action, up.engines.action.InstantaneousEndAction):
-                previous_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.plan.ActionInstance(previous_action, ()))
-            else:
-                previous_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(previous_action, ()))
+            previous_node = previous_action.STNNode
 
-        update_stn(self.stn, self.action, previous_node)
+        return update_stn(self.stn, self.action, previous_node)
 
 
 
