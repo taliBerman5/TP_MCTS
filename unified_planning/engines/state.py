@@ -19,6 +19,14 @@ class State(up.model.state.ROState):
             res += hash(p)
         return res
 
+    def __repr__(self):
+        s = []
+        s.append("state: ")
+        for p in self.predicates:
+            s.append(repr(p))
+            s.append(" ; ")
+        return "".join(s)
+
     @property
     def predicates(self):
         return self._predicates
