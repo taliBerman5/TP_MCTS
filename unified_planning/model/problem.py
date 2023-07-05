@@ -77,7 +77,7 @@ class Problem(  # type: ignore[misc]
             "up.model.timing.TimeInterval", List["up.model.fnode.FNode"]
         ] = {}
         self._trajectory_constraints: List["up.model.fnode.FNode"] = list()
-        self._goals: List["up.model.fnode.FNode"] = list()
+        self._goals: Set["up.model.fnode.FNode"] = set()
         self._deadline: Optional[Union["up.model.timing.Timing", "up.model.timing.TimeInterval"]] = None
 
     def __repr__(self) -> str:
@@ -214,7 +214,7 @@ class Problem(  # type: ignore[misc]
             t: [e.clone() for e in el] for t, el in self._timed_effects.items()
         }
         new_p._timed_goals = {i: [g for g in gl] for i, gl in self._timed_goals.items()}
-        new_p._goals = self._goals[:]
+        new_p._goals = self._goals.copy()
         new_p._trajectory_constraints = self._trajectory_constraints[:]
         new_p._deadline = self._deadline
 
@@ -319,7 +319,7 @@ class Problem(  # type: ignore[misc]
             raise UPProblemDefinitionError(
                 "Problem timing can not be `end - k` with k > 0."
             )
-        self._deadline = interval
+        self._deadline = interval.lower.delay
 
     @property
     def deadline(self):
@@ -443,7 +443,7 @@ class Problem(  # type: ignore[misc]
         (goal_exp,) = self._env.expression_manager.auto_promote(goal)
         assert self._env.type_checker.get_type(goal_exp).is_bool_type()
         if goal_exp != self._env.expression_manager.TRUE():
-            self._goals.append(goal_exp)
+            self._goals.add(goal_exp)
 
     def add_trajectory_constraint(self, constraint: "up.model.fnode.FNode"):
         """
