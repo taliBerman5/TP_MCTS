@@ -24,7 +24,6 @@ from dataclasses import dataclass
 """This module defines the general `Plan` interface and the `ActionInstance` class."""
 
 
-@dataclass(unsafe_hash=True, frozen=True)
 class ActionInstance:
     """
     Represents an action instance with the actual parameters.
@@ -32,17 +31,16 @@ class ActionInstance:
     NOTE: two action instances of the same action with the same parameters are
     considered different as it is possible to have the same action twice in a `Plan`.
     """
-    _action: "up.model.Action"
-    _params: tuple
 
-    # def __init__(
-    #     self,
-    #     action: "up.engines.Action",
-    #     params: Tuple["up.model.FNode", ...] = tuple(),
-    # ):
-    #     assert len(action.parameters) == len(params)
-    #     self._action = action
-    #     self._params = tuple(params)
+
+    def __init__(
+        self,
+        action: "up.engines.Action",
+        params: Tuple["up.model.FNode", ...] = tuple(),
+    ):
+        assert len(action.parameters) == len(params)
+        self._action = action
+        self._params = tuple(params)
 
     def __repr__(self) -> str:
         s = []
