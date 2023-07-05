@@ -1,6 +1,8 @@
 import unified_planning as up
 import numpy as np
 from unified_planning.exceptions import UPPreconditionDonHoldException
+
+
 class MDP:
     def __init__(self, problem: "up.model.problem.Preoblem", discount_factor: float):
         self._problem = problem
@@ -14,6 +16,9 @@ class MDP:
     def discount_factor(self):
         return self._discount_factor
 
+    def deadline(self):
+        return self.problem.deadline
+
     def initial_state(self):
         """
 
@@ -23,7 +28,6 @@ class MDP:
         pos_predicates = set([key for key, value in predicates.items() if value.bool_constant_value()])
         return up.engines.State(pos_predicates)
 
-
     def is_terminal(self, state: "up.engines.state.State"):
         """
         Checks if all the goal predicates hold in the `state`
@@ -32,8 +36,7 @@ class MDP:
         :return: True is the `state` is a terminal state, False otherwise
         """
 
-        return set(self.problem.goals).issubset(state.predicates)
-
+        return self.problem.goals.issubset(state.predicates)
 
     def legal_actions(self, state: "up.engines.state.State"):
         """
@@ -44,41 +47,43 @@ class MDP:
         :param state: the current state of the system
         :return: the legal actions that can be preformed in the state `state`
         """
+
         legal_actions = []
         for action in self.problem.actions:
             if action.pos_preconditions.issubset(state.predicates) and \
                     action.neg_preconditions.isdisjoint(state.predicates):
-
                 legal_actions.append(action)
 
         return legal_actions
 
-    def step(self, state:"up.engines.State", action: "up.engines.action.Action"):
+    def step(self, state: "up.engines.State", action: "up.engines.action.Action"):
         """
                Apply the action to this state to produce the next state.
         """
-        # Make sure it is legal to run the action in the state
-        if not action.pos_preconditions.issubset(state.predicates):
-            msg = f"Some of the positive preconditions of action {action.name} dont hold is the current state."
-            raise UPPreconditionDonHoldException(msg)
-
-        if not action.neg_preconditions.isdisjoint(state.predicates):
-            msg = f"Some of the negative preconditions of action {action.name} dont hold is the current state."
-            raise UPPreconditionDonHoldException(msg)
-
-        reward = 0
+        # # Make sure it is legal to run the action in the state
+        # if not action.pos_preconditions.issubset(state.predicates):
+        #     msg = f"Some of the positive preconditions of action {action.name} dont hold is the current state."
+        #     raise UPPreconditionDonHoldException(msg)
+        #
+        # if not action.neg_preconditions.isdisjoint(state.predicates):
+        #     msg = f"Some of the negative preconditions of action {action.name} dont hold is the current state."
+        #     raise UPPreconditionDonHoldException(msg)
 
         new_preds = set(state.predicates)
-        new_preds |= set(action.add_effects)
-        new_preds -= set(action.del_effects)
+        new_preds |= action.add_effects
+        new_preds -= action.del_effects
 
         add_predicates, del_predicates = self._apply_probabilistic_effects(state, action)
         new_preds |= add_predicates
         new_preds -= del_predicates
         next_state = up.engines.State(new_preds)
-        return self.is_terminal(next_state), next_state, reward
 
-    def _apply_probabilistic_effects(self, state:"up.engines.State", action: "up.engines.Action"):
+        terminal = self.is_terminal(next_state)
+        reward = 1 if terminal else 0
+
+        return terminal, next_state, reward
+
+    def _apply_probabilistic_effects(self, state: "up.engines.State", action: "up.engines.Action"):
         """
 
         :param action: draw the outcome of the probabilistic effects
