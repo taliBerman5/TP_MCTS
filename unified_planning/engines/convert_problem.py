@@ -75,6 +75,7 @@ class Convert_problem:
                 start_action._set_fixed_duration(action.duration)
                 start_action._set_effects(action.start_effects)
                 start_action.add_effect(self._inExecution(object_start), True)
+                start_action.add_precondition(self._inExecution(object_start), False)
 
                 end_action = up.engines.InstantaneousEndAction("end_" + action._name)
                 end_action._parameters = action._parameters
