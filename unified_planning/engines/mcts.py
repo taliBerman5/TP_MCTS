@@ -42,7 +42,7 @@ class MCTS:
     def previous_chosen_action_node(self):
         return self._previous_chosen_action_node
 
-    def mcts(self, timeout=1):
+    def search(self, timeout=1):
         """
         Execute the MCTS algorithm from the initial state given, with timeout in seconds
         """
@@ -51,10 +51,13 @@ class MCTS:
 
         start_time = time.time()
         current_time = time.time()
+        i = 0
         while current_time < start_time + timeout:
+
             self.selection(root_node)
             current_time = time.time()
-
+            i+=1
+        print(f'i = {i}')
         return self.best_action(root_node)
 
     def create_Snode(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
@@ -65,7 +68,8 @@ class MCTS:
 
     def selection(self, snode: "up.engines.Snode"):
 
-        if snode.depth > self.search_depth or len(snode.possible_actions) == 0:
+        # if snode.depth > self.search_depth or len(snode.possible_actions) == 0: #TODO: decide what is the stopping condition
+        if len(snode.possible_actions) == 0:
             # Stop if the search depth is reached or
             # the there are no possible actions to take so the plan remains consistent
             return 0
@@ -84,7 +88,7 @@ class MCTS:
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
             else:
-                reward += self.mdp.discount_factor * self.simulate(next_state)
+                reward += self.mdp.discount_factor * self.simulate(next_state, snode.depth)
                 next_snode = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
                 anode.add_child(next_snode)
 
@@ -97,16 +101,25 @@ class MCTS:
         """ Choose a random action. Heustics can be used here to improve simulations. """
         return random.choice(self.mdp.legal_actions(state))
 
-    def simulate(self, state):
+    def simulate(self, state, depth):
         """ Simulate until a terminal state """
         cumulative_reward = 0.0
-        depth = 0
         terminal = False
-
+        deadline = self.mdp.deadline()
+        time = self.stn.get_current_end_time()
+        end = -1
         while not terminal and depth < self.search_depth and len(self.mdp.legal_actions(state)) > 0:
+            if deadline:
+                if time > deadline:
+                    break
             # Choose an action to execute
             action = self.default_policy(state)
+            if isinstance(action, up.engines.action.InstantaneousStartAction) and end == -1:
+                time += action.duration.lower.constant_value()
+                end = action.end_action
 
+            if action == end:
+                end = -1
             # Execute the action
             (terminal, next_state, reward) = self.mdp.step(state, action)
 
@@ -127,7 +140,7 @@ class MCTS:
             if anodes[action].count == 0:
                 return action
 
-            ub = anodes[action].value + explore_constant * math.sqrt(math.log(snode.count + 1) / anodes[action].count)
+            ub = (anodes[action].value / anodes[action].count) + (explore_constant * math.sqrt(math.log(snode.count) / anodes[action].count))
             if ub > best_ub:
                 best_ub = ub
                 best_action = action
@@ -159,21 +172,30 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
 
     history = []
     previous_action_node = None
-
-    for i in range(steps):
-        print(f"started step {i}")
+    step = 0
+    # for i in range(steps):
+    while True:
+        print(f"started step {step}")
         mcts = MCTS(mdp, root_state, search_depth, exploration_constant, stn, previous_action_node)
-        action = mcts.mcts()
+        action = mcts.search()
 
         if action == -1:
             print("A valid plan is not found")
             break
+
+        print(f"Current state is {root_state}")
+        print(f"The chosen action is {action.name}")
+
+
         terminal, root_state, reward = mcts.mdp.step(root_state, action)
 
         # previous_STNNode = history[-1] if history else None
-        previous_action_node = update_stn(stn, action, previous_action_node)  # TODO: check if the stn and history gets updated
+        previous_action_node = update_stn(stn, action, previous_action_node)
         history.append(previous_action_node)
         assert stn.is_consistent
 
         if terminal:
+            print(f"Current state is {root_state}")
             break
+
+        step +=1
