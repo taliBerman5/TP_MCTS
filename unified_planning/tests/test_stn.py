@@ -36,7 +36,7 @@ class TestSTN(unittest.TestCase):
 
         grounder = unified_planning.engines.compilers.Grounder()
         grounding_result = grounder._compile(problem)
-        ground_problem = grounding_result.mutex_problem
+        ground_problem = grounding_result.problem
 
         convert_problem = unified_planning.engines.Convert_problem(ground_problem)
 
