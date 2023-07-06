@@ -209,6 +209,27 @@ class InstantaneousAction(Action):
             res += hash(pe)
         return res
 
+    # def __hash__(self) -> int:
+    #     if hasattr(self, "_cached_hash"):
+    #         return self._cached_hash
+    #
+    #     res = hash(self._name)
+    #     for ap in self._parameters.items():
+    #         res += hash(ap)
+    #     for p in self._neg_preconditions:
+    #         res += hash(p)
+    #     for p in self._pos_preconditions:
+    #         res += hash(p)
+    #     for e in self._del_effects:
+    #         res += hash(e)
+    #     for e in self._add_effects:
+    #         res += hash(e)
+    #     for pe in self._probabilistic_effects:
+    #         res += hash(pe)
+    #
+    #     self._cached_hash = res
+    #     return res
+
     def clone(self):
         new_params = OrderedDict(
             (param_name, param.type) for param_name, param in self._parameters.items()
@@ -304,7 +325,6 @@ class InstantaneousAction(Action):
         for p in preconditions:
             self.add_precondition(p.fluent, p.value)
 
-
     def add_effect(
             self,
             fluent: Union["up.model.fnode.FNode", "up.model.fluent.Fluent"],
@@ -342,8 +362,6 @@ class InstantaneousAction(Action):
             self._del_effects.add(fluent_exp)
 
 
-
-
 class InstantaneousStartAction(InstantaneousAction):
     """Represents a start action with fix duration.
     This is the start action of the DurativeAction action class
@@ -372,7 +390,7 @@ class InstantaneousStartAction(InstantaneousAction):
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, InstantaneousStartAction):
             return super().__eq__(oth) and \
-            self._duration == oth._duration
+                self._duration == oth._duration
         else:
             return False
 
@@ -460,3 +478,4 @@ class InstantaneousEndAction(InstantaneousAction):
     def start_action(self) -> InstantaneousStartAction:
         """Returns the `end_action`ץ"""
         return self._start_action
+

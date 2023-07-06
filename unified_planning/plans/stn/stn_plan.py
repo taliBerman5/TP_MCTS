@@ -445,6 +445,9 @@ class STNPlan(unified_planning.plans.plan.Plan):
         """
         return self._stn.check_stn()
 
+    def get_current_end_time(self):
+        return self._stn.get_stn_model(up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.GLOBAL_END)).numerator
+
 
     def add_constrains_to_previous_chosen_action(self, constraints: Union[
             List[Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]],

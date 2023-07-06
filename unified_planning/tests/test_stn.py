@@ -36,7 +36,7 @@ class TestSTN(unittest.TestCase):
 
         grounder = unified_planning.engines.compilers.Grounder()
         grounding_result = grounder._compile(problem)
-        ground_problem = grounding_result.problem
+        ground_problem = grounding_result.mutex_problem
 
         convert_problem = unified_planning.engines.Convert_problem(ground_problem)
 
@@ -112,6 +112,7 @@ class TestSTN(unittest.TestCase):
 
         self.assertTrue(terminal,
                         'if the goal is achieved and the plan is consistent this is a terminal state')
+
 
 if __name__ == '__main__':
     unittest.main()

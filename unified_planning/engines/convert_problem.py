@@ -132,21 +132,16 @@ class Convert_problem:
     def _mutex_actions(self):
         """
         Finding mutex actions and adding a precondition that they can't be executed in parallel
+        Finding soft mutex actions and adding to the end action those actions
 
         Two actions are mutex if an OVERALL precondition of an durative action is in conflict with other action
         - During effect (only in durative actions)
+
+        Action a is soft mutex with action b if and OVERALL precondition of action a is in conflict with action's b
         - Effect
         -Probabilistic effect
 
-        #TODO: delete the following until the todo when soft mutex is added
-         If the conflicting action is also a durative action,
-         - A precondition inExecution(start_action) is added to the start conflicting action
-         - A precondition inExecution(start_conflicting_action) is added to the start action
-
-        Otherwise, the conflicting action is instantaneous action
-        - A precondition inExecution(start_action) is added to the conflicting action
-
-         # TODO: when soft mutex : A precondition inExecution(start_action) is added to the conflicting action
+        A precondition inExecution(start_action) is added to the conflicting mutex action
         """
         for action in self._original_problem._actions:
             if isinstance(action, up.model.DurativeAction):
@@ -159,6 +154,8 @@ class Convert_problem:
                             continue
                         if self._check_mutex(action, potential_action):
                             self._adding_precondition_mutex_actions(action, potential_action)
+                        if self._check_soft_mutex(action, potential_action):
+                            self._adding_soft_mutex_actions(action, potential_action)
 
     def _check_mutex(self, action, potential_action):
         """
@@ -169,8 +166,8 @@ class Convert_problem:
 
         :return: `True` if the actions are mutex else `False`
         """
-        neg = self._negative_assignment(potential_action)
-        pos = self._positive_assignment(potential_action)
+        neg = self._negative_start_assignment(potential_action)
+        pos = self._positive_start_assignment(potential_action)
 
         neg_mutex = any(x.fluent in neg and x.value.constant_value() for x in action.preconditions['OVERALL'])
         pos_mutex = any(x.fluent in pos and not x.value.constant_value() for x in action.preconditions['OVERALL'])
@@ -181,84 +178,122 @@ class Convert_problem:
         return False
 
 
-    def _negative_assignment(self, action):
+    def _check_soft_mutex(self, action, potential_action):
         """
-        returns all the negative assignment of `action` to fluents in
-        effects, during effect (if durative action) and probabilistic effects
+        Check if two actions are soft mutex
+
+        :param action: The checked action
+        :param potential_action: The action is potentially in conflict with the preconditions of `action`
+
+        :return: `True` if the actions are soft mutex else `False`
+        """
+        neg = self._negative_end_assignment(potential_action)
+        pos = self._positive_end_assignment(potential_action)
+
+        neg_mutex = any(x.fluent in neg and x.value.constant_value() for x in action.preconditions['OVERALL'])
+        pos_mutex = any(x.fluent in pos and not x.value.constant_value() for x in action.preconditions['OVERALL'])
+
+        if neg_mutex or pos_mutex:
+            return True
+
+        return False
+
+
+    def _negative_end_assignment(self, action):
+        """
+        returns all the negative end assignments of durative `action` to fluents in
+        effects, and probabilistic effects
 
         :param action: an action instance
-        :return: The negative assignment of the actions in all kind of effects
+        :return: The negative end assignments of the actions
+        """
+        neg = []
+        if isinstance(action, up.model.DurativeAction):
+            neg += [e.fluent for e in action.effects if not e.value.constant_value()]
+            neg += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
+        return neg
+
+
+    def _negative_start_assignment(self, action):
+        """
+        returns all the negative start assignments of `action` to fluents in
+        if durative action - during effect
+        else effects and probabilistic effects
+
+        :param action: an action instance
+        :return: The negative start assignments of the actions
         """
         neg = []
         if isinstance(action, up.model.DurativeAction):
             neg += [de.fluent for de in action.start_effects if not de.value.constant_value()]
-        neg += [e.fluent for e in action.effects if not e.value.constant_value()]
-        neg += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
+        else:
+            neg += [e.fluent for e in action.effects if not e.value.constant_value()]
+            neg += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
         return neg
 
-    def _positive_assignment(self, action):
+    def _positive_start_assignment(self, action):
         """
-        returns all the positive assignment of `action` to fluents in
-        effects, and during effect (if `action` is a durative action)
+        returns all the positive start assignments of `action` to fluents
+        if durative action - during effect
+        else effects and probabilistic effects
 
         :param action: an action instance
-        :return: The negative assignment of the actions in effects and during effects
+        :return: The positive start assignments of the actions
         """
         pos = []
         if isinstance(action, up.model.DurativeAction):
             pos += [de.fluent for de in action.start_effects if de.value.constant_value()]
-        pos += [e.fluent for e in action.effects if e.value.constant_value()]
+        else:
+            pos += [e.fluent for e in action.effects if e.value.constant_value()]
+            pos += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
+        return pos
 
+    def _positive_end_assignment(self, action):
+        """
+        returns all the positive end assignments of durative `action` to fluents in
+        effects, and probabilistic effects
+
+        :param action: an action instance
+        :return: The positive assignment of the actions in effects and during effects
+        """
+        pos = []
+        if isinstance(action, up.model.DurativeAction):
+            pos += [e.fluent for e in action.effects if e.value.constant_value()]
+            pos += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
         return pos
 
     def _adding_precondition_mutex_actions(self, action, conflicting_action):
         """
-        Adding to the actions a precondition that they would not be executed in parallel.
+        Adding to the `conflicting_action` a precondition that they would not be executed in parallel.
 
-         If the conflicting action is also a durative action,
-         - A precondition inExecution(start_action) is added to the start conflicting action
-         - A precondition inExecution(start_conflicting_action) is added to the start action
-
-        Otherwise, the conflicting action is instantaneous action
-        - A precondition inExecution(start_action) is added to the conflicting action
+         A precondition inExecution(start_action) is added to the conflicting action
 
         :param action:
         :param conflicting_action: The action is mutexed to `action`
         """
-        start_action = self._converted_problem.action_by_name("start_" + action.name)
-
+        start_action_object = self._converted_problem.object_by_name('start-' + action.name)
 
         if isinstance(conflicting_action, up.model.DurativeAction):
             start_conflicting_action = self._converted_problem.action_by_name("start_" + conflicting_action.name)
-
-            start_action_object = self._converted_problem.object_by_name('start-'+action.name)
             start_conflicting_action.add_precondition(self._inExecution(start_action_object), False)
-
-            start_conflicting_action_object = self._converted_problem.object_by_name('start-'+conflicting_action.name)
-            start_action.add_precondition(self._inExecution(start_conflicting_action_object), False)
 
         else:
             conflicting_action = self._converted_problem.action_by_name(conflicting_action.name)
-            start_action_object = self._converted_problem.object_by_name('start-' + action.name)
             conflicting_action.add_precondition(self._inExecution(start_action_object), False)
 
+    def _adding_soft_mutex_actions(self, action, conflicting_action):
+        """
+        Adding to the `conflicting_action` a precondition that they would not be executed in parallel.
 
-    # TODO: when i change to mutex and soft mutex replace to this action
-    # def _adding_precondition_mutex_actions(self, action, conflicting_action):
-    #     """
-    #     Adding to the `conflicting_action` a precondition that they would not be executed in parallel.
-    #
-    #      A precondition inExecution(start_action) is added to the conflicting action
-    #
-    #     :param action:
-    #     :param conflicting_action: The action is mutexed to `action`
-    #     """
-    #     start_action_object = self._converted_problem.object_by_name('start-' + action.name)
-    #
-    #     if isinstance(conflicting_action, up.model.DurativeAction):
-    #         start_conflicting_action = self._converted_problem.action_by_name("start_" + conflicting_action.name)
-    #         start_conflicting_action.add_precondition(self._inExecution(start_action_object), False)
-    #
-    #     else:
-    #         conflicting_action = self._converted_problem.action_by_name(conflicting_action.name)
-    #         conflicting_action.add_precondition(self._inExecution(start_action_object), False)
+         A precondition inExecution(start_action) is added to the conflicting action
+
+        :param action:
+        :param conflicting_action: The action is mutexed to `action`
+        """
+
+        start_action_object = self._converted_problem.object_by_name('start-' + action.name)
+
+        end_conflicting_action = self._converted_problem.action_by_name("end_" + conflicting_action.name)
+        end_conflicting_action.add_precondition(self._inExecution(start_action_object), False)
+
+
