@@ -49,6 +49,7 @@ class PreconditionTimepointKind(Enum):
     START = auto()
     OVERALL = auto()
     END = auto()
+    PARAM = auto()
 
 
 class PreconditionTimepoint:
@@ -71,7 +72,7 @@ class PreconditionTimepoint:
 
     def __repr__(self):
         if (
-            self._kind == PreconditionTimepointKind.START
+                self._kind == PreconditionTimepointKind.START
         ):
             qualifier = "start"
         elif (
@@ -82,7 +83,6 @@ class PreconditionTimepoint:
             qualifier = "end"
 
         return qualifier
-
 
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, Timepoint):
@@ -130,8 +130,8 @@ class Timepoint:
 
     def __repr__(self):
         if (
-            self._kind == TimepointKind.GLOBAL_START
-            or self._kind == TimepointKind.START
+                self._kind == TimepointKind.GLOBAL_START
+                or self._kind == TimepointKind.START
         ):
             qualifier = "start"
         else:
@@ -165,7 +165,6 @@ class Timepoint:
     def container(self):
         """Returns the `container` in which this `Timepoint` is defined or `None` if it refers to the enclosing `action/method`."""
         return self._container
-
 
 
 class Timing:
@@ -217,20 +216,24 @@ class Timing:
         `False` otherwise.
         """
         return (
-            self._timepoint.kind == TimepointKind.GLOBAL_START
-            or self._timepoint.kind == TimepointKind.GLOBAL_END
+                self._timepoint.kind == TimepointKind.GLOBAL_START
+                or self._timepoint.kind == TimepointKind.GLOBAL_END
         )
 
     def is_from_start(self) -> bool:
         """Returns `True` if this `Timing` is from the start, `False` if it is from the end."""
         return (
-            self._timepoint.kind == TimepointKind.START
-            or self._timepoint.kind == TimepointKind.GLOBAL_START
+                self._timepoint.kind == TimepointKind.START
+                or self._timepoint.kind == TimepointKind.GLOBAL_START
         )
 
     def is_from_end(self) -> bool:
         """Returns `True` if this `Timing` is from the end, `False` if it is from the start."""
         return not self.is_from_start()
+
+
+def ParamPrecondition() -> PreconditionTimepoint:
+    return PreconditionTimepoint(PreconditionTimepointKind.PARAM)
 
 
 def StartPreconditionTiming() -> PreconditionTimepoint:
@@ -248,6 +251,7 @@ def StartPreconditionTiming() -> PreconditionTimepoint:
 
     return PreconditionTimepoint(PreconditionTimepointKind.START)
 
+
 def OverallPreconditionTiming() -> PreconditionTimepoint:
     """
     Returns the overall timing of an :class:`~unified_planning.model.Action`.
@@ -258,6 +262,8 @@ def OverallPreconditionTiming() -> PreconditionTimepoint:
     """
 
     return PreconditionTimepoint(PreconditionTimepointKind.OVERALL)
+
+
 def EndPreconditionTiming() -> PreconditionTimepoint:
     """
     Returns the end timing of an :class:`~unified_planning.model.Action`.
@@ -275,7 +281,7 @@ def EndPreconditionTiming() -> PreconditionTimepoint:
 
 
 def StartTiming(
-    delay: Union[int, Fraction] = 0, container: Optional[str] = None
+        delay: Union[int, Fraction] = 0, container: Optional[str] = None
 ) -> Timing:
     """
     Returns the start timing of an :class:`~unified_planning.model.Action`.
@@ -341,18 +347,18 @@ class Interval:
     """Class that defines an `interval` with 2 :class:`expressions <unified_planning.model.FNode>` as bounds."""
 
     def __init__(
-        self,
-        lower: FNode,
-        upper: FNode,
-        is_left_open: bool = False,
-        is_right_open: bool = False,
+            self,
+            lower: FNode,
+            upper: FNode,
+            is_left_open: bool = False,
+            is_right_open: bool = False,
     ):
         self._lower = lower
         self._upper = upper
         self._is_left_open = is_left_open
         self._is_right_open = is_right_open
         assert (
-            lower.environment == upper.environment
+                lower.environment == upper.environment
         ), "Interval s boundaries expression can not have different environments"
 
     def __repr__(self) -> str:
@@ -369,10 +375,10 @@ class Interval:
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, Interval):
             return (
-                self._lower == oth._lower
-                and self._upper == oth._upper
-                and self._is_left_open == oth._is_left_open
-                and self._is_right_open == oth._is_right_open
+                    self._lower == oth._lower
+                    and self._upper == oth._upper
+                    and self._is_left_open == oth._is_left_open
+                    and self._is_right_open == oth._is_right_open
             )
         else:
             return False
@@ -417,11 +423,11 @@ class DurationInterval(Duration, Interval):
     """Class used to indicate that an `Interval` is also a `Duration`."""
 
     def __init__(
-        self,
-        lower: FNode,
-        upper: FNode,
-        is_left_open: bool = False,
-        is_right_open: bool = False,
+            self,
+            lower: FNode,
+            upper: FNode,
+            is_left_open: bool = False,
+            is_right_open: bool = False,
     ):
         Duration.__init__(self)
         Interval.__init__(self, lower, upper, is_left_open, is_right_open)
@@ -429,10 +435,10 @@ class DurationInterval(Duration, Interval):
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, DurationInterval):
             return (
-                self._lower == oth._lower
-                and self._upper == oth._upper
-                and self._is_left_open == oth._is_left_open
-                and self._is_right_open == oth._is_right_open
+                    self._lower == oth._lower
+                    and self._upper == oth._upper
+                    and self._is_left_open == oth._is_left_open
+                    and self._is_right_open == oth._is_right_open
             )
         else:
             return False
@@ -501,11 +507,11 @@ class TimeInterval:
     """Represents an `Interval` where the 2 bounds are :class:`~unified_planning.model.Timing`."""
 
     def __init__(
-        self,
-        lower: Timing,
-        upper: Timing,
-        is_left_open: bool = False,
-        is_right_open: bool = False,
+            self,
+            lower: Timing,
+            upper: Timing,
+            is_left_open: bool = False,
+            is_right_open: bool = False,
     ):
         self._lower = lower
         self._upper = upper
@@ -529,10 +535,10 @@ class TimeInterval:
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, TimeInterval):
             return (
-                self._lower == oth._lower
-                and self._upper == oth._upper
-                and self._is_left_open == oth._is_left_open
-                and self._is_right_open == oth._is_right_open
+                    self._lower == oth._lower
+                    and self._upper == oth._upper
+                    and self._is_left_open == oth._is_left_open
+                    and self._is_right_open == oth._is_right_open
             )
         else:
             return False

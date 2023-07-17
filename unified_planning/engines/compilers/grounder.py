@@ -200,6 +200,23 @@ class GrounderHelper:
                         [domain_item(self._problem, type, j) for j in range(size)]
                     )
                 res = product(*items_list)
+
+                # Added PARAM precondition
+                if 'PARAM' in action.preconditions:
+                    new_res = []
+                    for p in action.preconditions['PARAM']:
+                        param1 = p.fluent.args[0].parameter()
+                        index1 = action.parameters.index(param1)
+                        param2 = p.fluent.args[1].parameter()
+                        index2 = action.parameters.index(param2)
+                        for item in res:
+                            if p.value.constant_value():
+                                if item[index1] == item[index2]:
+                                    new_res.append(item)
+                            elif item[index1] != item[index2]:
+                                new_res.append(item)
+                    res = iter(new_res)
+
             else:
                 # The grounding_actions_map is not None, therefore it must be used to ground
                 res = iter(self._grounding_actions_map.get(action, []))
