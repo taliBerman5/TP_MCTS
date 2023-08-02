@@ -47,6 +47,8 @@ class SNode(Node):
     def depth(self):
         return self._depth
 
+    def set_depth(self, depth):
+        self._depth = depth
     @property
     def parent(self):
         return self._parent
