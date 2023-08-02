@@ -40,7 +40,7 @@ class TestSTN(unittest.TestCase):
 
         convert_problem = unified_planning.engines.Convert_problem(ground_problem)
 
-        cls.converted_problem = convert_problem.converted_problem
+        cls.converted_problem = convert_problem._converted_problem
         cls.mdp = unified_planning.engines.MDP(cls.converted_problem, discount_factor=10)
 
         cls.a_start_short = cls.converted_problem.action_by_name("start_short_action")

@@ -21,6 +21,26 @@ class TestMDP(unittest.TestCase):
 
         self.assertFalse(end_soft_mutex in self.mdp.legal_actions(next_state), "soft mutex can end before action a")
 
+    def test_pool_of_state(self):
+        print("Running test_pool_of_state...")
+        legal = {}
+
+        delete_init = self.converted_problem.action_by_name("delete_init")
+        add_effect = self.converted_problem.action_by_name("add_effect")
+        add_init = self.converted_problem.action_by_name("add_init")
+
+        _, next_state, _ = self.mdp.step(self.mdp.initial_state(), delete_init)
+        _, next_state, _ = self.mdp.step(next_state, add_effect)
+        _, next_state, _ = self.mdp.step(next_state, add_init)
+
+
+        legal[next_state] = self.mdp.legal_actions(next_state)
+
+        _, next_state2, _ = self.mdp.step(self.mdp.initial_state(), add_effect)
+
+        self.assertTrue(next_state2 in legal)
+
+
 
 if __name__ == '__main__':
     unittest.main()
