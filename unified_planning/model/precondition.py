@@ -47,6 +47,14 @@ class Precondition:
             + hash(self._value)
         )
 
+
+    def same_effect(self, effect: "up.model.Effect") -> bool:
+        """ check if the effect and the precondition are the same"""
+        return (
+                self._fluent == effect._fluent
+                and self._value == effect._value
+            )
+
     def clone(self):
         new_precondition = Precondition(self._fluent, self._value)
         return new_precondition
