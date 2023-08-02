@@ -88,9 +88,15 @@ class Convert_problem:
 
                 # Add preconditions to start and end action
                 for p_type in action.preconditions:
-                    if p_type in {'START', 'OVERALL'}:
+                    if p_type == 'START':
                         start_action.add_preconditions(action.preconditions[p_type])
-                    if p_type in {'END'}:
+                    if p_type == 'OVERALL':
+                        # If the there is a start effect that satisfies an over all precondition it shouldn't be added
+                        # to the preconditions
+                        oa_p = [p for p in action.preconditions[p_type] if all(not p.same_effect(e) for e in action.start_effects)]
+                        start_action.add_preconditions(oa_p)
+
+                    if p_type == 'END':
                         end_action.add_preconditions(action.preconditions[p_type])
 
                 end_action.add_precondition(self._inExecution(object_start), True)
