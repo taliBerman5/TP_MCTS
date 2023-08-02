@@ -43,6 +43,10 @@ problem.add_fluent(hasimmersion, default_initial_value=False)
 free = unified_planning.model.Fluent('free', BoolType(), m=Machine)
 problem.add_fluent(free, default_initial_value=False)
 
+hands = unified_planning.model.Fluent('hands', BoolType(), m=Machine)
+problem.add_fluent(hands, default_initial_value=True)
+
+
 at = unified_planning.model.Fluent('at', BoolType(), p=Piece, m=Machine)
 problem.add_fluent(at, default_initial_value=False)
 
@@ -74,6 +78,7 @@ machine = polish.parameter('machine')
 piece = polish.parameter('piece')
 polish.add_precondition(StartPreconditionTiming(), canpolpaint(machine), True)
 polish.add_precondition(OverallPreconditionTiming(), on(piece, machine), True)
+polish.add_precondition(OverallPreconditionTiming(), hands(machine), True)
 
 def polish_probability(state, actual_params):
     piece_param = actual_params.get(piece)
@@ -91,6 +96,7 @@ machine = spraypaint.parameter('machine')
 piece = spraypaint.parameter('piece')
 spraypaint.add_precondition(StartPreconditionTiming(), canpolpaint(machine), True)
 spraypaint.add_precondition(OverallPreconditionTiming(), on(piece, machine), True)
+spraypaint.add_precondition(OverallPreconditionTiming(), hands(machine), True)
 
 def spraypaint_probability(state, actual_params):
     piece_param = actual_params.get(piece)
@@ -110,6 +116,7 @@ piece = immersionpaint.parameter('piece')
 immersionpaint.add_precondition(StartPreconditionTiming(), canpolpaint(machine), True)
 immersionpaint.add_precondition(OverallPreconditionTiming(), on(piece, machine), True)
 immersionpaint.add_precondition(OverallPreconditionTiming(), hasimmersion(machine), True)
+immersionpaint.add_precondition(OverallPreconditionTiming(), hands(machine), True)
 
 
 def immersionpaint_probability(state, actual_params):
@@ -130,6 +137,7 @@ machine = lathe.parameter('machine')
 piece = lathe.parameter('piece')
 lathe.add_precondition(StartPreconditionTiming(), canlatroll(machine), True)
 lathe.add_precondition(OverallPreconditionTiming(), on(piece, machine), True)
+lathe.add_precondition(OverallPreconditionTiming(), hands(machine), True)
 
 
 def lathe_probability(state, actual_params):
@@ -150,6 +158,7 @@ machine = grind.parameter('machine')
 piece = grind.parameter('piece')
 grind.add_precondition(StartPreconditionTiming(), cangrind(machine), True)
 grind.add_precondition(OverallPreconditionTiming(), on(piece, machine), True)
+grind.add_precondition(OverallPreconditionTiming(), hands(machine), True)
 
 
 def grind_probability(state, actual_params):
@@ -179,6 +188,7 @@ place.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
 place.add_precondition(StartPreconditionTiming(), free(machine), True)
 place.add_effect(on(piece, machine), True)
 place.add_start_effect(free(machine), False)
+place.add_precondition(OverallPreconditionTiming(), hands(machine), True)
 problem.add_action(place)
 
 """ Move Action """
@@ -189,7 +199,9 @@ machine2 = move.parameter('machine2')
 piece = move.parameter('piece')
 move.add_precondition(ParamPrecondition(), Equals(machine1, machine2),  False)
 move.add_precondition(OverallPreconditionTiming(), at(piece, machine1), True)
-
+move.add_precondition(StartPreconditionTiming(), hands(machine1), True)
+move.add_start_effect(hands(machine1), False)
+move.add_effect(hands(machine1), True)
 
 def move_probability(state, actual_params):
     p = 0
@@ -213,7 +225,7 @@ problem.add_action(move)
 
 
 
-deadline = Timing(delay=40, timepoint=Timepoint(TimepointKind.START))
+deadline = Timing(delay=25, timepoint=Timepoint(TimepointKind.START))
 problem.set_deadline(deadline)
 
 # print(problem)
@@ -225,7 +237,7 @@ ground_problem = grounding_result.problem
 
 convert_problem = unified_planning.engines.Convert_problem(ground_problem)
 # print(convert_problem)
-converted_problem = convert_problem.converted_problem
+converted_problem = convert_problem.mutex_converted_problem
 mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
 
-up.engines.mcts.plan(mdp, steps=90, search_depth=30, exploration_constant=10)
+up.engines.mcts.plan(mdp, steps=90, search_depth=40, exploration_constant=10)
