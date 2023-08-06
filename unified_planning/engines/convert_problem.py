@@ -120,11 +120,7 @@ class Convert_problem:
         add = []
         for action in self._converted_problem._actions:
             if isinstance(action, up.model.InstantaneousAction):
-                engine_action = up.engines.InstantaneousAction(action._name)
-                engine_action._parameters = action._parameters
-                engine_action._set_preconditions(action.preconditions)
-                engine_action._set_effects(action.effects)
-                engine_action._set_probabilistic_effects(action.probabilistic_effects)
+                engine_action = up.engines.InstantaneousAction.init_from_action(action)
 
                 remove.append(action)
                 add.append(engine_action)
