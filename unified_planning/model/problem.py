@@ -269,6 +269,10 @@ class Problem(  # type: ignore[misc]
         if action in self.actions:
             self.actions.remove(action)
 
+    def clear_actions(self):
+        """Removes all the `actions` from the `Problem`."""
+        self._actions = []
+
     def get_static_fluents(self) -> Set["up.model.fluent.Fluent"]:
         """
         Returns the set of the `static fluents`.
