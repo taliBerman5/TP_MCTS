@@ -18,7 +18,6 @@ from unified_planning.model.action import (
     Action,
     InstantaneousAction,
     DurativeAction,
-    InstantaneousStartAction,
 )
 from unified_planning.model.effect import Effect, ProbabilisticEffect
 from unified_planning.model.expression import (
@@ -34,7 +33,6 @@ from unified_planning.model.operators import OperatorKind
 from unified_planning.model.parameter import Parameter
 from unified_planning.model.abstract_problem import AbstractProblem
 from unified_planning.model.problem import Problem
-# from unified_planning.model.contingent_problem import ContingentProblem
 from unified_planning.model.state import ROState
 from unified_planning.model.timing import (
     Timepoint,
@@ -72,7 +70,6 @@ from unified_planning.model.variable import Variable, FreeVarsOracle
 __all__ = [
     "Action",
     "InstantaneousAction",
-    "InstantaneousStartAction",
     "Effect",
     "ProbabilisticEffect",
     "Precondition",
