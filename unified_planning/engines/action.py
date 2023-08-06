@@ -13,6 +13,8 @@ from fractions import Fraction
 from typing import Dict, List, Set, Tuple, Union, Optional, cast, Callable
 from collections import OrderedDict
 
+""" The engine action interface splits positive and negative preconditions and effect for convenient"""
+
 
 class Action:
     """This is the `Action` interface."""
@@ -137,6 +139,15 @@ class InstantaneousAction(Action):
             "up.model.fnode.FNode", "up.model.fnode.FNode"
         ] = {}
 
+    @classmethod
+    def init_from_action(cls, action: "up.model.InstantaneousAction"):
+        engine_action = up.engines.InstantaneousAction(action._name)
+        engine_action._parameters = action._parameters
+        engine_action._set_preconditions(action.preconditions)
+        engine_action._set_effects(action.effects)
+        engine_action._set_probabilistic_effects(action.probabilistic_effects)
+        return engine_action
+
     def __repr__(self) -> str:
         s = []
         s.append(f"action {self.name}")
@@ -208,27 +219,6 @@ class InstantaneousAction(Action):
         for pe in self._probabilistic_effects:
             res += hash(pe)
         return res
-
-    # def __hash__(self) -> int:
-    #     if hasattr(self, "_cached_hash"):
-    #         return self._cached_hash
-    #
-    #     res = hash(self._name)
-    #     for ap in self._parameters.items():
-    #         res += hash(ap)
-    #     for p in self._neg_preconditions:
-    #         res += hash(p)
-    #     for p in self._pos_preconditions:
-    #         res += hash(p)
-    #     for e in self._del_effects:
-    #         res += hash(e)
-    #     for e in self._add_effects:
-    #         res += hash(e)
-    #     for pe in self._probabilistic_effects:
-    #         res += hash(pe)
-    #
-    #     self._cached_hash = res
-    #     return res
 
     def clone(self):
         new_params = OrderedDict(
@@ -478,4 +468,151 @@ class InstantaneousEndAction(InstantaneousAction):
     def start_action(self) -> InstantaneousStartAction:
         """Returns the `end_action`ץ"""
         return self._start_action
+
+
+class DurativeAction(InstantaneousAction):
+    """Represents a durative action with fix duration.
+    This durative action has no intermediate effects and
+    the preconditions (no matter if start/overall/end) are treated the same
+   """
+
+    def __init__(
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
+    ):
+        InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
+        self._duration: "up.model.timing.DurationInterval" = (
+            up.model.timing.FixedDuration(self._environment.expression_manager.Int(0)))
+
+    @classmethod
+    def init_from_action(cls, action: "up.model.DurativeAction"):
+        engine_action = up.engines.DurativeAction(action._name)
+        engine_action._parameters = action._parameters
+        engine_action._set_preconditions(action.preconditions)
+        engine_action._set_effects(action.effects)
+        engine_action._set_probabilistic_effects(action.probabilistic_effects)
+        engine_action._set_fixed_duration(action.duration)
+        return engine_action
+
+    def __repr__(self) -> str:
+        b = InstantaneousAction.__repr__(self)[0:-3]
+        s = ["Duration ", b]
+        s.append(f"    duration = {str(self._duration)}\n")
+        s.append("  }")
+        return "".join(s)
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, DurativeAction):
+            return super().__eq__(oth) and \
+                self._duration == oth._duration
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        return super().__hash__() + hash(self._duration)
+
+    def clone(self):
+        new_params = OrderedDict()
+        for param_name, param in self._parameters.items():
+            new_params[param_name] = param.type
+        new_durative_action = DurativeAction(self._name, new_params, self._environment)
+        new_durative_action._duration = self._duration
+
+        return new_durative_action
+
+    def _set_preconditions(self, preconditions: Dict[
+        "up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]]):
+        for p_type in preconditions:
+            self._neg_preconditions.update(
+                set([p.fluent for p in preconditions[p_type] if not p.value.constant_value()]))
+            self._pos_preconditions.update(set([p.fluent for p in preconditions[p_type] if p.value.constant_value()]))
+
+    @property
+    def duration(self) -> "up.model.timing.DurationInterval":
+        """Returns the `action` `duration interval`."""
+        return self._duration
+
+    def _set_fixed_duration(self, duration: "up.model.timing.DurationInterval"):
+        """
+        Sets the `duration interval` for this `action` as the interval `[value, value]`.
+
+        :param duration: The `duration` of this `action's`.
+        """
+        self._duration = duration
+
+
+class CombinationAction(Action):
+    def __init__(
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
+    ):
+        Action.__init__(self, _name, _parameters, _env, **kwargs)
+        self._neg_preconditions: Set["up.model.fnode.FNode"] = set()
+        self._pos_preconditions: Set["up.model.fnode.FNode"] = set()
+        self._actions: List[up.engines.Action] = []
+        self._inExecution: Set["up.model.fnode.FNod"] = set()
+
+    def __repr__(self) -> str:
+        s = []
+        s.append(f"action combination {self.name}")
+        first = True
+        for p in self.parameters:
+            if first:
+                s.append("(")
+                first = False
+            else:
+                s.append(", ")
+            s.append(str(p))
+        if not first:
+            s.append(")")
+        s.append(" {\n")
+        s.append("  negative preconditions = [\n")
+        for c in self.neg_preconditions:
+            s.append(f"      {str(c)}\n")
+        s.append("    ]\n")
+        s.append("  positive preconditions = [\n")
+        for c in self.pos_preconditions:
+            s.append(f"      {str(c)}\n")
+        s.append("    ]\n")
+        s.append("  actions = [\n")
+        for a in self.actions:
+            s.append(f"      {str(a.name)}\n")
+        s.append("    ]\n")
+        s.append("  }")
+        return "".join(s)
+
+    @property
+    def neg_preconditions(self):
+        return self._neg_preconditions
+
+    @property
+    def pos_preconditions(self):
+        return self._pos_preconditions
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @property
+    def inExecution(self):
+        return self._inExecution
+
+    def set_actions(self, actions: List["up.engines.Action"]):
+        self._actions = actions
+
+    def set_neg_preconditions(self, neg_preconditions: Set["up.model.fnode.FNode"]):
+        self._neg_preconditions = neg_preconditions
+
+    def set_pos_preconditions(self, pos_preconditions: Set["up.model.fnode.FNode"]):
+        self._pos_preconditions = pos_preconditions
+
+    def set_inExecution(self, inExecution: Set["up.model.fnode.FNode"]):
+        self._inExecution = inExecution
+
 
