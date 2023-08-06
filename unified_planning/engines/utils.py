@@ -55,6 +55,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         return start_node
 
     if isinstance(action, up.engines.action.InstantaneousEndAction):
+        # Find the end node already created
         temp_end_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.plan.ActionInstance(action, ()))
         end_potential = list(stn._potential_end_actions.keys())
         end_node = end_potential[end_potential.index(temp_end_node)]
