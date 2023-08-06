@@ -190,19 +190,18 @@ turn_on_good_hand = unified_planning.model.action.DurativeAction('turn_on_good_h
 turn_on_good_hand.set_fixed_duration(1)
 hand = turn_on_good_hand.parameter('hand')
 rock = turn_on_good_hand.parameter('rock')
-turn_on_good_hand.add_precondition(OverallPreconditionTiming(), free_h(hand), True)
+turn_on_good_hand.add_precondition(StartPreconditionTiming(), free_h(hand), True)
 turn_on_good_hand.add_precondition(OverallPreconditionTiming(), good(hand), True)
+turn_on_good_hand.add_start_effect(free_h(hand), False)
 turn_on_good_hand.add_effect(ready(hand, rock), True)
-turn_on_good_hand.add_effect(free_h(hand), False)
 problem.add_action(turn_on_good_hand)
 
 """ turn_on_hand Action """
-turn_on_hand = unified_planning.model.action.DurativeAction('turn_on_hand', hand=Hand, rock=Rock)
-turn_on_hand.set_fixed_duration(1)
+turn_on_hand = unified_planning.model.action.InstantaneousAction('turn_on_hand', hand=Hand, rock=Rock)
 hand = turn_on_hand.parameter('hand')
 rock = turn_on_hand.parameter('rock')
-turn_on_hand.add_precondition(OverallPreconditionTiming(), free_h(hand), True)
-turn_on_hand.add_precondition(OverallPreconditionTiming(), good(hand), False)
+turn_on_hand.add_precondition(free_h(hand), True)
+turn_on_hand.add_precondition(good(hand), False)
 
 def turn_on_hand_probability(state, actual_params):
     hand_param = actual_params.get(hand)
@@ -285,7 +284,7 @@ ground_problem = grounding_result.problem
 
 convert_problem = unified_planning.engines.Convert_problem(ground_problem)
 # print(convert_problem)
-converted_problem = convert_problem.mutex_converted_problem
+converted_problem = convert_problem._converted_problem
 mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
 
-up.engines.mcts.plan(mdp, steps=90, search_depth=30, exploration_constant=10)
+up.engines.solvers.mcts.plan(mdp, steps=90, search_depth=40, exploration_constant=10)
