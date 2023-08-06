@@ -502,8 +502,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
                     "Different environments given inside the same STNPlan!"
                 )
             # The end action is chosen, removed from _potential_end_actions
-            if b_node in self._potential_end_actions:
-                self._potential_end_actions.pop(b_node)
+            self._potential_end_actions.pop(b_node)
 
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
             self._stn.insert_interval(b_node, end_plan, left_bound=f0)
