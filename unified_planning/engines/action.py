@@ -486,6 +486,7 @@ class DurativeAction(InstantaneousAction):
         InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0)))
+        self._inExecution: Set["up.model.fnode.FNod"] = set()
 
     @classmethod
     def init_from_action(cls, action: "up.model.DurativeAction"):
@@ -523,6 +524,10 @@ class DurativeAction(InstantaneousAction):
 
         return new_durative_action
 
+    @property
+    def inExecution(self):
+        return self._inExecution
+
     def _set_preconditions(self, preconditions: Dict[
         "up.model.timing.PreconditionTimepoint", List["up.model.precondition.Precondition"]]):
         for p_type in preconditions:
@@ -542,6 +547,9 @@ class DurativeAction(InstantaneousAction):
         :param duration: The `duration` of this `action's`.
         """
         self._duration = duration
+
+    def set_inExecution(self, inExecution: Set["up.model.fnode.FNode"]):
+        self._inExecution = inExecution
 
 
 class CombinationAction(Action):
