@@ -64,42 +64,61 @@ class Convert_problem_combination:
         4. the effect of one action possibly modifies a feature upon which another action’s transition function is conditioned upon.
 
         """
+        
         durative_actions = [action for action in self._converted_problem._actions if
                             isinstance(action, up.engines.DurativeAction)]
-        combs = []
-        for i in range(2, len(durative_actions) + 1):
-            els = [list(x) for x in itertools.combinations(durative_actions, i)]
-            combs.extend(els)
+        # Go over each of the actions
+        for i, action in enumerate(durative_actions):
 
-        for combination in combs:
-            neg_precondition = set()
-            pos_precondition = set()
-            action_execution = set()
-            for action in combination:
-                start_action_object = self._converted_problem.object_by_name('start-' + action.name)
-                action_execution.add(self._inExecution(start_action_object))
+            # step determines the action to start the look a head for the combination
+            for step in range(1, len(durative_actions) - i):
+                combination_actions = [action]
+                neg_precondition = set(action.neg_preconditions)
+                pos_precondition = set(action.pos_preconditions)
+                action_execution = action.inExecution.copy()
 
-                # remove the precondition of the execution of the current action
-                # This precondition will be added to the combination precondition after the mutex check
-                # An action is not mutex with itself
-                temp_neg_pre = action.neg_preconditions.copy()
-                temp_neg_pre.remove(self._inExecution(start_action_object))
+                # Adds from the i+step action each of the actions that is not mutex
+                for j in range(i+step, len(durative_actions)):
+                    candidate = durative_actions[j]
+                    if not self.is_mutex(action_execution, candidate):
+                        combination_actions.append(candidate)
+                        pos_precondition.update(candidate.pos_preconditions)
+                        neg_precondition.update(candidate.neg_preconditions)
+                        action_execution.update(candidate.inExecution)
+                        self.add_combination(combination_actions, action_execution, neg_precondition, pos_precondition)
+                    # If the first action is mutex with `action` then the next loop will be identical, we can skip
+                    elif j == i+step:
+                        break
 
-                neg_precondition.update(temp_neg_pre.remove(self._inExecution(start_action_object)))
-                pos_precondition.update(action.pos_preconditions)
+    def is_mutex(self, action_execution, candidate):
+        """ checks if one of the actions already in the combination is in mutex with the candidate action
+        if the candidate action has as a negative precondition one of the combination inExecution then the actions are mutex
 
-            # check if all actions in the combination are not mutex
-            if len(action_execution.intersection(neg_precondition)) == 0:
-                comb_name = ",".join([action.name for action in combination])
-                action_combination = up.engines.CombinationAction(comb_name)
-                # adds execution actions to the precondition -
-                # if one of the actions already in execution the combination can't be chosen
-                neg_precondition.update(action_execution)
-                action_combination.set_neg_preconditions(neg_precondition)
-                action_combination.set_pos_preconditions(pos_precondition)
-                action_combination.set_actions(combination)
-                action_combination.set_inExecution(action_execution)
-                self.converted_problem.add_action(action_combination)
+        :param action_execution - inExecution predication of each of the actions in the combination
+        :param candidate - the candidate action to be added to the combination
+
+        """
+        if len(action_execution.intersection(candidate.neg_preconditions)) == 0:
+            return False
+        return True
+
+    def add_combination(self, combination, action_execution, neg_precondition, pos_precondition):
+        """
+        adds as a combination action to the problem the `combination`
+
+        :param combination: combination actions
+        :param action_execution: the predicates inExecution of all actions in the combination
+        :param neg_precondition: the negative preconditions of the action combination
+        :param pos_precondition: the positive preconditions of the action combination
+        """
+        comb_name = ",".join([action.name for action in combination])
+        action_combination = up.engines.CombinationAction(comb_name)
+        action_combination.set_neg_preconditions(neg_precondition)
+        action_combination.set_pos_preconditions(pos_precondition)
+        action_combination.set_actions(combination)
+        action_combination.set_inExecution(action_execution)
+        self.converted_problem.add_action(action_combination)
+
 
     def _convert_model_engine_actions(self):
         """
@@ -119,11 +138,12 @@ class Convert_problem_combination:
                 # creating an object start_action for inExecution predicate
                 object_start = up.model.Object("start-" + action.name, self._action_type)
                 self._converted_problem.add_object(object_start)
-                engine_action.set_inExecution(set(self._inExecution(object_start)))
+                engine_action.set_inExecution(set([self._inExecution(object_start)]))
                 engine_action.add_precondition(self._inExecution(object_start), False)
                 engine_action.add_effect(self._inExecution(object_start), False)
 
             self._converted_problem.add_action(engine_action)
+
 
     def _mutex_actions(self):
         """
