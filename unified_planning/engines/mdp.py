@@ -79,7 +79,10 @@ class MDP:
         next_state = up.engines.State(new_preds)
 
         terminal = self.is_terminal(next_state)
-        reward = 1 if terminal else 0
+
+        # common = len(self.problem.goals.intersection(state.predicates))
+        # reward = 100 if terminal else 2 ** (common - len(self.problem.goals))
+        reward = 10 if terminal else 0
 
         return terminal, next_state, reward
 
@@ -94,12 +97,13 @@ class MDP:
 
         for pe in action.probabilistic_effects:
             prob_outcomes = pe.probability_function(state, None)
-            index = np.random.choice(len(prob_outcomes), p=list(prob_outcomes.keys()))
-            values = list(prob_outcomes.values())[index]
-            for v in values:
-                if values[v]:
-                    add_predicates.add(v)
-                else:
-                    del_predicates.add(v)
+            if prob_outcomes:
+                index = np.random.choice(len(prob_outcomes), p=list(prob_outcomes.keys()))
+                values = list(prob_outcomes.values())[index]
+                for v in values:
+                    if values[v]:
+                        add_predicates.add(v)
+                    else:
+                        del_predicates.add(v)
 
         return add_predicates, del_predicates
