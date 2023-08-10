@@ -486,7 +486,7 @@ class DurativeAction(InstantaneousAction):
         InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0)))
-        self._inExecution: Set["up.model.fnode.FNod"] = set()
+        self._inExecution: Set["up.model.fnode.FNode"] = set()
 
     @classmethod
     def init_from_action(cls, action: "up.model.DurativeAction"):
@@ -549,7 +549,7 @@ class DurativeAction(InstantaneousAction):
         self._duration = duration
 
     def set_inExecution(self, inExecution: Set["up.model.fnode.FNode"]):
-        self._inExecution = inExecution
+        self._inExecution = inExecution.copy()
 
 
 class CombinationAction(Action):
@@ -564,7 +564,7 @@ class CombinationAction(Action):
         self._neg_preconditions: Set["up.model.fnode.FNode"] = set()
         self._pos_preconditions: Set["up.model.fnode.FNode"] = set()
         self._actions: List[up.engines.Action] = []
-        self._inExecution: Set["up.model.fnode.FNod"] = set()
+        self._inExecution: Set["up.model.fnode.FNode"] = set()
 
     def __repr__(self) -> str:
         s = []
@@ -612,15 +612,53 @@ class CombinationAction(Action):
         return self._inExecution
 
     def set_actions(self, actions: List["up.engines.Action"]):
-        self._actions = actions
+        self._actions = actions.copy()
 
     def set_neg_preconditions(self, neg_preconditions: Set["up.model.fnode.FNode"]):
-        self._neg_preconditions = neg_preconditions
+        self._neg_preconditions = neg_preconditions.copy()
 
     def set_pos_preconditions(self, pos_preconditions: Set["up.model.fnode.FNode"]):
-        self._pos_preconditions = pos_preconditions
+        self._pos_preconditions = pos_preconditions.copy()
 
     def set_inExecution(self, inExecution: Set["up.model.fnode.FNode"]):
-        self._inExecution = inExecution
+        self._inExecution = inExecution.copy()
 
 
+class NoOpAction(Action):
+    """ No Op action to allow the planner to choose do not act
+    This action is relevant in the combination modulation """
+    def __init__(
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
+    ):
+        Action.__init__(self, _name, _parameters, _env, **kwargs)
+
+    def __repr__(self) -> str:
+        s = []
+        s.append(f"action {self.name}")
+        first = True
+        for p in self.parameters:
+            if first:
+                s.append("(")
+                first = False
+            else:
+                s.append(", ")
+            s.append(str(p))
+        if not first:
+            s.append(")")
+        return "".join(s)
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, NoOpAction):
+            return self._environment == oth._environment \
+                    and self._name == oth._name \
+                    and self._parameters == oth._parameters
+
+    def __hash__(self) -> int:
+        res = hash(self._name)
+        for ap in self._parameters.items():
+            res += hash(ap)
+        return res

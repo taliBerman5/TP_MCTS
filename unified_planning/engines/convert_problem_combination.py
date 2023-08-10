@@ -19,6 +19,7 @@ class Convert_problem_combination:
         self._add_inExecution_fluent()
         self._mutex_actions()
         self._combination_durative_actions()
+        self._add_no_op_action()
 
     def __repr__(self) -> str:
         return self._converted_problem.__repr__()
@@ -230,3 +231,8 @@ class Convert_problem_combination:
         # so there is no need of adding inExecution as a precondition to the conflicting action
         if isinstance(action, up.engines.DurativeAction):
             conflicting_action.add_precondition(self._inExecution(start_action_object), False)
+
+    def _add_no_op_action(self):
+        noop = up.engines.NoOpAction('noop')
+        self._converted_problem.add_action(noop)
+

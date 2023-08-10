@@ -7,7 +7,8 @@ from unified_planning.engines.action import (
     InstantaneousStartAction,
     InstantaneousEndAction,
     DurativeAction,
-    CombinationAction
+    CombinationAction,
+    NoOpAction
 )
 from unified_planning.engines.node import (
     ANode,
@@ -31,6 +32,7 @@ __all__ = [
     "InstantaneousEndAction",
     "DurativeAction",
     "CombinationAction",
+    "NoOpAction",
     "ANode",
     "SNode",
     "State",
