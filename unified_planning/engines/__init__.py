@@ -14,8 +14,8 @@ from unified_planning.engines.node import (
     ANode,
     SNode,
 )
-from unified_planning.engines.state import State
-from unified_planning.engines.mdp import MDP
+from unified_planning.engines.state import State, CombinationState, ActionQueue, QueueNode
+from unified_planning.engines.mdp import MDP, combinationMDP
 from unified_planning.engines.mixins.compiler import CompilationKind
 from unified_planning.engines.engine import Engine
 from unified_planning.engines.compilers.grounder import Grounder, GrounderHelper
@@ -36,7 +36,11 @@ __all__ = [
     "ANode",
     "SNode",
     "State",
+    "CombinationState",
+    "ActionQueue",
+    "QueueNode",
     "MDP",
+    "combinationMDP",
     "CompilationKind",
     "Engine",
     "Grounder",
