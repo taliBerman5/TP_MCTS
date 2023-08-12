@@ -45,7 +45,6 @@ class Test_Combination_MDP(unittest.TestCase):
         print("Running test_combination_two_actions_ends...")
 
         second_1 = combination_converted_problem.action_by_name('second_1')
-        # second_7 = combination_converted_problem.action_by_name('second_7')
 
         _, next_state, _ = self.combinationMDP.step(self.init_state, self.biggest_combination)
         _, next_state, _ = self.combinationMDP.step(next_state, second_1)
@@ -83,6 +82,27 @@ class Test_Combination_MDP(unittest.TestCase):
             # check the delta is extracted
             for node in next_state.active_actions.data:
                 self.assertTrue(node.duration_left == node.action.duration.lower.int_constant_value() -3, 'the duration left should decrease by 3')
+
+    def test_combination_shortest_action_added_not_shortest_duration_left(self):
+            print("Running test_combination_shortest_action_added_not_shortest_duration_left...")
+
+            second_3 = combination_converted_problem.action_by_name('second_3')
+            second_35 = combination_converted_problem.action_by_name('second_3,second_5')
+
+
+            _, next_state, _ = self.combinationMDP.step(self.init_state, second_35)
+            _, next_state, _ = self.combinationMDP.step(next_state, second_3)
+
+            # check the predicates after the step
+            self.assertFalse(self.in_execution(self.start_second_5) in next_state.predicates,
+                             'second_5 action is not supposed to be active')
+            self.assertTrue(self.in_execution(self.start_second_3) in next_state.predicates, 'second_3 need to appear')
+
+            # check the delta is extracted
+            for node in next_state.active_actions.data:
+                self.assertTrue(node.duration_left == node.action.duration.lower.int_constant_value() -2, 'the duration left should decrease by 2')
+
+
 
 if __name__ == '__main__':
     unittest.main()
