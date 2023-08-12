@@ -101,8 +101,44 @@ OAP_convert_problem = unified_planning.engines.Convert_problem(OAP_ground_proble
 OAP_converted_problem = OAP_convert_problem._converted_problem
 
 
+combination_problem = unified_planning.model.Problem('combination')
+effect1 = unified_planning.model.Fluent('effect1', BoolType())
+effect3 = unified_planning.model.Fluent('effect3', BoolType())
+effect5 = unified_planning.model.Fluent('effect5', BoolType())
+effect_instant = unified_planning.model.Fluent('effect_instant', BoolType())
+combination_problem.add_fluent(effect1, default_initial_value=False)
+combination_problem.add_fluent(effect3, default_initial_value=False)
+combination_problem.add_fluent(effect5, default_initial_value=False)
+combination_problem.add_fluent(effect_instant, default_initial_value=False)
 
 
+second_3 = unified_planning.model.DurativeAction('second_3')
+second_3.add_effect(effect3, True)
+second_3.set_fixed_duration(3)
+combination_problem.add_action(second_3)
+second_1 = unified_planning.model.DurativeAction('second_1')
+second_1.add_effect(effect1, True)
+second_1.set_fixed_duration(1)
+combination_problem.add_action(second_1)
+second_5 = unified_planning.model.DurativeAction('second_5')
+second_5.add_effect(effect5, True)
+second_5.set_fixed_duration(5)
+combination_problem.add_action(second_5)
+# second_7 = unified_planning.model.DurativeAction('second_7')
+# second_7.set_fixed_duration(7)
+# combination_problem.add_action(second_7)
+instant = unified_planning.model.InstantaneousAction('instant')
+instant.add_effect(effect_instant, True)
+combination_problem.add_action(instant)
+
+
+grounder = unified_planning.engines.compilers.Grounder()
+combination_grounding_result = grounder._compile(combination_problem)
+combination_ground_problem = combination_grounding_result.problem
+
+combination_convert_problem = unified_planning.engines.Convert_problem_combination(combination_ground_problem)
+
+combination_converted_problem = combination_convert_problem._converted_problem
 
 
 
