@@ -4,6 +4,7 @@ from unified_planning.engines.utils import (
     update_stn,
 )
 
+
 class Node:
     def __init__(self):
         self._count = 0
@@ -25,18 +26,23 @@ class Node:
         self._value += reward
         self._count += 1
 
+
 class SNode(Node):
-    def __init__(self, state: "up.engines.State", depth: int, possible_actions: List["up.engines.Action"], stn: "up.plans.stn.STNPlan", parent: "up.engines.ANode"=None, previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+    """ State node """
+
+    def __init__(self, state: "up.engines.State", depth: int, possible_actions: List["up.engines.Action"],
+                 parent: "up.engines.ANode" = None):
         super().__init__()
         self._state = state
         self._depth = depth
         self._parent = parent
-        self._children: Dict["up.engines.Action", "up.engines.ANode"] = {}
         self._possible_actions = possible_actions
-        self._add_children(stn, previous_chosen_action_node)
+        self._children: Dict["up.engines.Action", "up.engines.ANode"] = {}
+        self._add_children()
 
     def __repr__(self):
-        s = "state Node; depth: %d; children: %d; visits: %d; reward: %f" % (self.depth, len(self.children), self.count, self.value)
+        s = "state Node; depth: %d; children: %d; visits: %d; reward: %f" % (
+            self.depth, len(self.children), self.count, self.value)
         return s
 
     @property
@@ -49,6 +55,59 @@ class SNode(Node):
 
     def set_depth(self, depth):
         self._depth = depth
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def possible_actions(self):
+        return self._possible_actions
+
+    @property
+    def children(self):
+        return self._children
+
+    def _add_children(self):
+        """
+        Adds to the SNode the possible actions as children.
+
+        :param previous_chosen_action_node: the action chosen in the last search step
+        """
+        for action in self.possible_actions:
+            self.children[action] = ANode(action, self)
+
+
+class C_SNode(Node):
+    """ State node with consistency STN check """
+
+    def __init__(self, state: "up.engines.State", depth: int, possible_actions: List["up.engines.Action"],
+                 stn: "up.plans.stn.STNPlan", parent: "up.engines.ANode" = None,
+                 previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+        super().__init__()
+        self._state = state
+        self._depth = depth
+        self._parent = parent
+        self._children: Dict["up.engines.Action", "up.engines.C_ANode"] = {}
+        self._possible_actions = possible_actions
+        self._add_children(stn, previous_chosen_action_node)
+
+    def __repr__(self):
+        s = "state Node; depth: %d; children: %d; visits: %d; reward: %f" % (
+            self.depth, len(self.children), self.count, self.value)
+        return s
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def depth(self):
+        return self._depth
+
+    def set_depth(self, depth):
+        self._depth = depth
+
     @property
     def parent(self):
         return self._parent
@@ -65,7 +124,8 @@ class SNode(Node):
         if action in self._possible_actions:
             self._possible_actions.remove(action)
 
-    def _add_children(self, stn: "up.plans.stn.STNPlan", previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+    def _add_children(self, stn: "up.plans.stn.STNPlan",
+                      previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
         """
         Adds to the SNode the possible actions as children.
         If a specific children is not consistent (adding the constaints of the action to the `stn`)
@@ -77,7 +137,7 @@ class SNode(Node):
         """
         not_consistent = []
         for action in self.possible_actions:
-            child = ANode(action, stn.clone(), self, previous_chosen_action_node)
+            child = C_ANode(action, stn.clone(), self, previous_chosen_action_node)
 
             if child.is_consistent():
                 self.children[action] = child
@@ -88,17 +148,51 @@ class SNode(Node):
             self.possible_actions.remove(a)
 
 
-
 class ANode(Node):
-    def __init__(self, action: "up.engines.action.Action", stn: "up.plans.stn.STNPlan", parent: "up.engines.node.SNode"=None, previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+    """ Action node """
+
+    def __init__(self, action: "up.engines.action.Action",
+                 parent: "up.engines.node.SNode" = None):
         super().__init__()
         self._action = action
         self._parent = parent
-        self._children: Dict["up.engines.State","up.engines.node.SNode"] = {}
+        self._children: Dict["up.engines.State", "up.engines.node.SNode"] = {}
+
+    def __repr__(self):
+        s = "action Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
+        return s
+
+    @property
+    def action(self):
+        return self._action
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def children(self):
+        return self._children
+
+    def add_child(self, child_node: "up.engines.SNode"):
+        self._children[child_node.state] = child_node
+
+    def isLeaf(self):
+        return self.children
+
+
+class C_ANode(Node):
+    """ Action node with consistency STN check """
+
+    def __init__(self, action: "up.engines.action.Action", stn: "up.plans.stn.STNPlan",
+                 parent: "up.engines.node.C_SNode" = None,
+                 previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+        super().__init__()
+        self._action = action
+        self._parent = parent
+        self._children: Dict["up.engines.State", "up.engines.node.SNode"] = {}
         self._stn = stn
-        self._STNNode = self._add_constraints(previous_chosen_action_node)  # Adds the action constraints to the STN
-
-
+        self._STNNode = self._add_constraints(previous_chosen_action_node)
 
     def __repr__(self):
         s = "action Node; children: %d; visits: %d; reward: %f" % (len(self.children), self.count, self.value)
@@ -143,7 +237,7 @@ class ANode(Node):
         Otherwise, the previous node is the last chosen action (from the previous search step) if exists (not the first round)
 
         :param previous_chosen_action_node: The action node chosen in the previous step
-        :return:
+        :return: The added STN node to the STN
         """
         previous_action = self.parent.parent
         previous_node = previous_chosen_action_node
@@ -152,14 +246,3 @@ class ANode(Node):
             previous_node = previous_action.STNNode
 
         return update_stn(self.stn, self.action, previous_node)
-
-
-
-
-
-
-
-
-
-
-
