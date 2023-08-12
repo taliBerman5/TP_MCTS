@@ -2,7 +2,7 @@ import unified_planning as up
 from unified_planning.shortcuts import *
 import unittest
 
-from unified_planning.tests import mutex_converted_problem, OAP_converted_problem
+from unified_planning.tests import mutex_converted_problem, OAP_converted_problem, combination_converted_problem
 
 
 class Test_Converted_Problem(unittest.TestCase):
@@ -10,12 +10,14 @@ class Test_Converted_Problem(unittest.TestCase):
     def setUpClass(cls):
         cls.mutex_converted_problem = mutex_converted_problem
         cls.OAP_converted_problem = OAP_converted_problem
+        cls.combination_converted_problem = combination_converted_problem
 
 
     # def setUp(self) -> None:
 
     def test_amount_actions(self):
         print("Running test_amount_actions...")
+        self.assertTrue(len(self.combination_converted_problem.actions) == 9, 'all combination of durative actions and one instantaneuons action')
         self.assertTrue(len(self.mutex_converted_problem.actions) == 10, 'each durative action needs to be splitted to start and end actions')
     def test_soft_mutex(self):
         print("Running test_soft_mutex...")
