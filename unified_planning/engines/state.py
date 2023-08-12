@@ -94,11 +94,28 @@ import heapq
 
 
 class QueueNode:
+    """ holds action and it's duration left """
     def __init__(self, action: "up.engines.Action", duration_left: int):
         self.action = action
         self.duration_left = duration_left
 
+    def __hash__(self):
+        res = hash("")
+        res += hash(self.action)
+        res += hash(self.duration_left)
+        return res
+
+    def __repr__(self):
+        s = []
+        s.append(f'({self.action.name},{str(self.duration_left)})')
+        return "".join(s)
+
+    def clone(self):
+        new_node = QueueNode(self.action, self.duration_left)
+        return new_node
+
     def __lt__(self, other):
+        """ Compares two nodes based on the duration left"""
         return self.duration_left < other.duration_left
 
 
@@ -111,18 +128,17 @@ class ActionQueue:
             return self.data == other.data
         return False
 
-    # def __hash__(self):
-    #     res = hash("")
-    #     for d, a in self.data:
-    #         res += hash(d)
-    #         res += hash(a)
-    #     return res
+    def __hash__(self):
+        res = hash("")
+        for node in self.data:
+            res += hash(node)
+        return res
 
     def __repr__(self):
         s = []
         s.append("action queue: ")
-        for d, a in self.data:
-            s.append(f'({a.name},{str(d)})')
+        for node in self.data:
+            s.append(str(node))
             s.append(" ; ")
         return "".join(s)
 
@@ -131,7 +147,7 @@ class ActionQueue:
 
     def clone(self):
         new_action_queue = ActionQueue()
-        new_action_queue.data = self.data.copy()
+        new_action_queue.data = [node.clone() for node in self.data]
         return new_action_queue
 
     def add_action(self, node):
@@ -147,8 +163,6 @@ class ActionQueue:
             return min_duration, next_actions
         else:
             return -1, []
-
-        # TODO:check it works
 
     def update_delta(self, delta: int):
         """ Extract delta from each of the actions in data: duration_left = duration_left - delta """
