@@ -194,3 +194,16 @@ class FluentsSetMixin:
         other._fluents = self._fluents.copy()
         other._initial_defaults = self._initial_defaults.copy()
         other._fluents_defaults = self._fluents_defaults.copy()
+
+    def fluent_by_name(self, name: str) -> "up.model.Fluent":
+        """
+        Returns the fluent instance if the `problem` has the `fluent` with the given `name`,
+        `None` otherwise.
+
+        :param name: The `name` of the target `fluent`.
+        :return: fluent instance if the `problem` has an `fluent` with the given `name`, `None` otherwise.
+        """
+        for a in self._fluents:
+            if a.name == name:
+                return a
+        return None
