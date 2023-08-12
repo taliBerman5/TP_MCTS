@@ -117,10 +117,7 @@ class Action:
             )
         return self._parameters[parameter_name]
 
-
-class InstantaneousAction(Action):
-    """Represents an instantaneous action."""
-
+class implAction(Action):
     def __init__(
             self,
             _name: str,
@@ -134,19 +131,6 @@ class InstantaneousAction(Action):
         self._del_effects: Set["up.model.fnode.FNode"] = set()
         self._add_effects: Set["up.model.fnode.FNode"] = set()
         self._probabilistic_effects: List[up.model.effect.ProbabilisticEffect] = []
-        # fluent assigned is the mapping of the fluent to it's value
-        self._fluents_assigned: Dict[
-            "up.model.fnode.FNode", "up.model.fnode.FNode"
-        ] = {}
-
-    @classmethod
-    def init_from_action(cls, action: "up.model.InstantaneousAction"):
-        engine_action = up.engines.InstantaneousAction(action._name)
-        engine_action._parameters = action._parameters
-        engine_action._set_preconditions(action.preconditions)
-        engine_action._set_effects(action.effects)
-        engine_action._set_probabilistic_effects(action.probabilistic_effects)
-        return engine_action
 
     def __repr__(self) -> str:
         s = []
@@ -186,7 +170,7 @@ class InstantaneousAction(Action):
         return "".join(s)
 
     def __eq__(self, oth: object) -> bool:
-        if isinstance(oth, InstantaneousAction):
+        if isinstance(oth, implAction):
             cond = (
                     self._environment == oth._environment
                     and self._name == oth._name
@@ -221,19 +205,7 @@ class InstantaneousAction(Action):
         return res
 
     def clone(self):
-        new_params = OrderedDict(
-            (param_name, param.type) for param_name, param in self._parameters.items()
-        )
-        new_instantaneous_action = InstantaneousAction(
-            self._name, new_params, self._environment
-        )
-        new_instantaneous_action._neg_preconditions = set(self._neg_preconditions)
-        new_instantaneous_action._pos_preconditions = set(self._pos_preconditions)
-        new_instantaneous_action._del_effects = set(self._del_effects)
-        new_instantaneous_action._add_effects = set(self._add_effects)
-        new_instantaneous_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
-        new_instantaneous_action._fluents_assigned = self._fluents_assigned.copy()
-        return new_instantaneous_action
+        raise NotImplementedError
 
     @property
     def neg_preconditions(self) -> Set["up.model.fnode.Fnode"]:
@@ -259,10 +231,6 @@ class InstantaneousAction(Action):
     def probabilistic_effects(self) -> List["up.model.effect.ProbabilisticEffect"]:
         """Returns the `list` of the `Action effects`."""
         return self._probabilistic_effects
-
-    def _set_preconditions(self, preconditions: List["up.model.precondition.Precondition"]):
-        self._neg_preconditions = set([p.fluent for p in preconditions if not p.value.constant_value()])
-        self._pos_preconditions = set([p.fluent for p in preconditions if p.value.constant_value()])
 
     def _set_effects(self, effects: List["up.model.effect.Effect"]):
         self._del_effects = set([e.fluent for e in effects if not e.value.constant_value()])
@@ -350,6 +318,58 @@ class InstantaneousAction(Action):
                 msg = f"The effect {fluent_exp} is in conflict with an effect already in the {self.name}."
                 raise UPConflictingEffectsException(msg)
             self._del_effects.add(fluent_exp)
+
+
+class InstantaneousAction(implAction):
+    """Represents an instantaneous action."""
+
+    def __init__(
+            self,
+            _name: str,
+            _parameters: Optional["OrderedDict[str, up.model.types.Type]"] = None,
+            _env: Optional[Environment] = None,
+            **kwargs: "up.model.types.Type",
+    ):
+        implAction.__init__(self, _name, _parameters, _env, **kwargs)
+
+    @classmethod
+    def init_from_action(cls, action: "up.model.InstantaneousAction"):
+        engine_action = up.engines.InstantaneousAction(action._name)
+        engine_action._parameters = action._parameters
+        engine_action._set_preconditions(action.preconditions)
+        engine_action._set_effects(action.effects)
+        engine_action._set_probabilistic_effects(action.probabilistic_effects)
+        return engine_action
+
+    def __repr__(self) -> str:
+        return implAction.__repr__(self)
+
+
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, InstantaneousAction):
+            return super().__eq__(oth)
+
+    def __hash__(self) -> int:
+        return super().__hash__()
+
+    def clone(self):
+        new_params = OrderedDict(
+            (param_name, param.type) for param_name, param in self._parameters.items()
+        )
+        new_instantaneous_action = InstantaneousAction(
+            self._name, new_params, self._environment
+        )
+        new_instantaneous_action._neg_preconditions = set(self._neg_preconditions)
+        new_instantaneous_action._pos_preconditions = set(self._pos_preconditions)
+        new_instantaneous_action._del_effects = set(self._del_effects)
+        new_instantaneous_action._add_effects = set(self._add_effects)
+        new_instantaneous_action._probabilistic_effects = [pe.clone() for pe in self._probabilistic_effects]
+        new_instantaneous_action._fluents_assigned = self._fluents_assigned.copy()
+        return new_instantaneous_action
+
+    def _set_preconditions(self, preconditions: List["up.model.precondition.Precondition"]):
+        self._neg_preconditions = set([p.fluent for p in preconditions if not p.value.constant_value()])
+        self._pos_preconditions = set([p.fluent for p in preconditions if p.value.constant_value()])
 
 
 class InstantaneousStartAction(InstantaneousAction):
@@ -470,7 +490,7 @@ class InstantaneousEndAction(InstantaneousAction):
         return self._start_action
 
 
-class DurativeAction(InstantaneousAction):
+class DurativeAction(implAction):
     """Represents a durative action with fix duration.
     This durative action has no intermediate effects and
     the preconditions (no matter if start/overall/end) are treated the same
@@ -483,7 +503,7 @@ class DurativeAction(InstantaneousAction):
             _env: Optional[Environment] = None,
             **kwargs: "up.model.types.Type",
     ):
-        InstantaneousAction.__init__(self, _name, _parameters, _env, **kwargs)
+        implAction.__init__(self, _name, _parameters, _env, **kwargs)
         self._duration: "up.model.timing.DurationInterval" = (
             up.model.timing.FixedDuration(self._environment.expression_manager.Int(0)))
         self._inExecution: Set["up.model.fnode.FNode"] = set()
@@ -499,7 +519,7 @@ class DurativeAction(InstantaneousAction):
         return engine_action
 
     def __repr__(self) -> str:
-        b = InstantaneousAction.__repr__(self)[0:-3]
+        b = implAction.__repr__(self)[0:-3]
         s = ["Duration ", b]
         s.append(f"    duration = {str(self._duration)}\n")
         s.append("  }")
