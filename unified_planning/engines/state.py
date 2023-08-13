@@ -53,9 +53,7 @@ class CombinationState(State):
         res = hash("")
         for p in self._predicates:
             res += hash(p)
-        for d, a in self.data:
-            res += hash(d)
-            res += hash(a)
+        res += hash(self._active_actions)
         return res
 
     def __repr__(self):
@@ -81,7 +79,7 @@ class CombinationState(State):
         return True
 
     def add_action(self, action: "up.engines.DurativeAction"):
-        self.active_actions.add_action(action, action.duration.lower.int_constant_value())
+        self.active_actions.add_action(QueueNode(action, action.duration.lower.int_constant_value()))
 
     def get_next_actions(self):
         return self.active_actions.get_next_actions()
