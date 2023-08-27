@@ -21,9 +21,10 @@ from unified_planning.engines.mdp import MDP, combinationMDP
 from unified_planning.engines.mixins.compiler import CompilationKind
 from unified_planning.engines.engine import Engine
 from unified_planning.engines.compilers.grounder import Grounder, GrounderHelper
-from unified_planning.engines.solvers.mcts import (plan, C_MCTS)
+from unified_planning.engines.solvers.mcts import (plan, MCTS, C_MCTS)
+from unified_planning.engines.solvers.rtdp import (plan, RTDP)
 from unified_planning.engines.utils import create_init_stn, update_stn
-
+from unified_planning.engines.heuristics import TRPG
 
 __all__ = [
     "Convert_problem",
@@ -49,9 +50,13 @@ __all__ = [
     "Engine",
     "Grounder",
     "GrounderHelper",
+    "MCTS",
     "C_MCTS",
     "plan",
+    "plan",
+    "RTDP",
     "create_init_stn",
     "update_stn",
+    "TRPG",
 
 ]
