@@ -64,9 +64,8 @@ class CombinationState(State):
             s.append(repr(p))
             s.append(" ; ")
         s.append("action queue: ")
-        for d, a in self.data:
-            s.append(f'({a.name},{str(d)})')
-            s.append(" ; ")
+        s.append(str(self.active_actions))
+        s.append(" ; ")
         return "".join(s)
 
     @property
