@@ -8,10 +8,11 @@ import itertools
 class Convert_problem_combination:
     def __init__(
             self,
-            _original_problem: "up.model.Problem",
+           original_problem: "up.model.Problem",
     ):
-        self._original_problem: "up.model.Problem" = _original_problem
+        self._original_problem: "up.model.Problem" = original_problem
         self._converted_problem: "up.model.Problem" = self._original_problem.clone()
+        self._split_problem: "up.model.Problem" = unified_planning.engines.Convert_problem(original_problem)._converted_problem
         self._action_type: "up.model.UserType" = up.shortcuts.UserType('DurativeAction')
         self._inExecution: "up.model.Fluent" = up.model.Fluent('inExecution', up.shortcuts.BoolType(),
                                                                a=self._action_type)
@@ -20,6 +21,7 @@ class Convert_problem_combination:
         self._mutex_actions()
         self._combination_durative_actions()
         self._add_no_op_action()
+
 
     def __repr__(self) -> str:
         return self._converted_problem.__repr__()
@@ -139,7 +141,7 @@ class Convert_problem_combination:
                 # creating an object start_action for inExecution predicate
                 object_start = up.model.Object("start-" + action.name, self._action_type)
                 self._converted_problem.add_object(object_start)
-                engine_action.set_inExecution(set([self._inExecution(object_start)]))
+                engine_action.set_inExecution({self._inExecution(object_start)})
                 engine_action.add_precondition(self._inExecution(object_start), False)
                 engine_action.add_effect(self._inExecution(object_start), False)
 
