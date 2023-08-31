@@ -39,9 +39,10 @@ class State(up.model.state.ROState):
 
 
 class CombinationState(State):
-    def __init__(self, predicates: Set["up.model.fnode.Fnode"] = None, active_actions: "up.engines.ActionQueue" = None):
+    def __init__(self, predicates: Set["up.model.fnode.Fnode"] = None, active_actions: "up.engines.ActionQueue" = None, current_time: int = None):
         super().__init__(predicates)
         self._active_actions = active_actions if active_actions else ActionQueue()
+        self._current_time = current_time if current_time else 0
 
     def __eq__(self, other):
         if isinstance(other, State):
@@ -72,6 +73,10 @@ class CombinationState(State):
     def active_actions(self):
         return self._active_actions
 
+    @property
+    def current_time(self):
+        return self._current_time
+
     def is_active_actions(self):
         if len(self.active_actions) == 0:
             return False
@@ -85,6 +90,9 @@ class CombinationState(State):
 
     def update_actions_delta(self, delta: int):
         self.active_actions.update_delta(delta)
+
+    def add_to_time(self, delta):
+        self._current_time += delta
 
 
 import heapq
