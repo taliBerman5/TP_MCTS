@@ -422,6 +422,10 @@ class InstantaneousStartAction(InstantaneousAction):
         """Returns the `action` `duration interval`."""
         return self._duration
 
+    def duration_int(self) -> "int":
+        """Returns the `action` `duration interval`."""
+        return self._duration.lower.int_constant_value()
+
     def _set_fixed_duration(self, duration: "up.model.timing.DurationInterval"):
         """
         Sets the `duration interval` for this `action` as the interval `[value, value]`.
