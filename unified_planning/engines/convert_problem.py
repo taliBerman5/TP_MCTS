@@ -32,7 +32,7 @@ class Convert_problem:
 
     def __eq__(self, oth: object) -> bool:
         if isinstance(oth, Convert_problem):
-            return  (
+            return (
                     self._original_problem == oth._original_problem
                     and self._converted_problem == oth._converted_problem
                     and self._action_type == oth._action_type
@@ -93,7 +93,8 @@ class Convert_problem:
                     if p_type == 'OVERALL':
                         # If the there is a start effect that satisfies an over all precondition it shouldn't be added
                         # to the preconditions
-                        oa_p = [p for p in action.preconditions[p_type] if all(not p.same_effect(e) for e in action.start_effects)]
+                        oa_p = [p for p in action.preconditions[p_type] if
+                                all(not p.same_effect(e) for e in action.start_effects)]
                         start_action.add_preconditions(oa_p)
 
                     if p_type == 'END':
@@ -108,7 +109,7 @@ class Convert_problem:
 
         # remove the durative actions and model.InstantaneousAction
         self._converted_problem._actions = [a for a in self._converted_problem._actions if
-                                          not isinstance(a, up.model.DurativeAction)]
+                                            not isinstance(a, up.model.DurativeAction)]
 
     def _convert_model_engine_actions(self):
         """
@@ -129,14 +130,13 @@ class Convert_problem:
             self._converted_problem._remove_action(remove[i])
             self._converted_problem.add_action(add[i])
 
-
-
     def _mutex_actions(self):
         """
         Finding mutex actions and adding a precondition that they can't be executed in parallel
         Finding soft mutex actions and adding to the end action those actions
 
-        Two actions are mutex if an OVERALL precondition of an durative action is in conflict with other action
+        Two actions are mutex if an OVERALL precondition of a durative action is in conflict with other action
+        or when the effects are in contradiction
         - During effect (only in durative actions)
 
         Action a is soft mutex with action b if and OVERALL precondition of action a is in conflict with action's b
@@ -146,18 +146,35 @@ class Convert_problem:
         A precondition inExecution(start_action) is added to the conflicting mutex action
         """
         for action in self._original_problem._actions:
-            if isinstance(action, up.model.DurativeAction):
-                for p_type in action.preconditions:
-                    if p_type != 'OVERALL':
-                        continue
+            soft = []
+            mutex = []
 
-                    for potential_action in self._original_problem._actions:
-                        if potential_action == action:
-                            continue
-                        if self._check_mutex(action, potential_action):
-                            self._adding_precondition_mutex_actions(action, potential_action)
-                        if self._check_soft_mutex(action, potential_action):
-                            self._adding_soft_mutex_actions(action, potential_action)
+            if isinstance(action, up.model.DurativeAction):
+                for potential_action in self._original_problem._actions:
+                    if potential_action == action:
+                        continue
+                    if self._check_mutex(action, potential_action):
+                        self._adding_precondition_mutex_actions(action, potential_action)
+                        mutex.append(potential_action.name)
+                    if self._check_soft_mutex(action, potential_action):
+                        self._adding_soft_mutex_actions(action, potential_action)
+                        soft.append(potential_action.name)
+
+                print(f'action {action.name} is mutex with: {mutex}')
+                print(f'action {action.name} is soft mutex with: {soft}')
+
+
+    def all_effects(self, action):
+        neg_start = self._negative_start_assignment(action)
+        pos_start = self._positive_start_assignment(action)
+
+        neg_end = self._negative_end_assignment(action)
+        pos_end = self._positive_end_assignment(action)
+
+        neg_effect = set(neg_start + neg_end)
+        pos_effect = set(pos_start + pos_end)
+
+        return neg_effect, pos_effect
 
     def _check_mutex(self, action, potential_action):
         """
@@ -168,6 +185,22 @@ class Convert_problem:
 
         :return: `True` if the actions are mutex else `False`
         """
+
+        # if action.name == 'take_image_r1_o1_c1':
+        # # if action.name == 'calibrate_c1_o1' and potential_action.name == 'calibrate_c1_o1':
+        #     print(5)
+
+        neg_effect, pos_effect = self.all_effects(action)
+        neg_potential_effect, pos_potential_effect = self.all_effects(potential_action)
+
+        # Check conflicting outcomes
+        if len(neg_potential_effect.intersection(pos_effect)) > 0 or len(
+                pos_potential_effect.intersection(neg_effect)) > 0:
+            return True
+
+        if 'OVERALL' not in action.preconditions:
+            return False
+
         neg = self._negative_start_assignment(potential_action)
         pos = self._positive_start_assignment(potential_action)
 
@@ -179,7 +212,6 @@ class Convert_problem:
 
         return False
 
-
     def _check_soft_mutex(self, action, potential_action):
         """
         Check if two actions are soft mutex
@@ -189,6 +221,9 @@ class Convert_problem:
 
         :return: `True` if the actions are soft mutex else `False`
         """
+        if 'OVERALL' not in action.preconditions:
+            return False
+
         neg = self._negative_end_assignment(potential_action)
         pos = self._positive_end_assignment(potential_action)
 
@@ -199,7 +234,6 @@ class Convert_problem:
             return True
 
         return False
-
 
     def _negative_end_assignment(self, action):
         """
@@ -214,7 +248,6 @@ class Convert_problem:
             neg += [e.fluent for e in action.effects if not e.value.constant_value()]
             neg += functools.reduce(operator.iconcat, [pe.fluents for pe in action.probabilistic_effects], [])
         return neg
-
 
     def _negative_start_assignment(self, action):
         """
@@ -297,5 +330,3 @@ class Convert_problem:
 
         end_conflicting_action = self._converted_problem.action_by_name("end_" + conflicting_action.name)
         end_conflicting_action.add_precondition(self._inExecution(start_action_object), False)
-
-
