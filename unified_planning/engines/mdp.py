@@ -1,6 +1,9 @@
+from typing import List
+
 import unified_planning as up
 import numpy as np
 from unified_planning.exceptions import UPPreconditionDonHoldException
+from itertools import product
 
 
 class MDP:
@@ -50,6 +53,8 @@ class MDP:
 
         legal_actions = []
         for action in self.problem.actions:
+            if isinstance(action, up.engines.NoOpAction):
+               continue
             if action.pos_preconditions.issubset(state.predicates) and \
                     action.neg_preconditions.isdisjoint(state.predicates):
                 legal_actions.append(action)
@@ -60,7 +65,7 @@ class MDP:
         new_preds |= action.add_effects
         new_preds -= action.del_effects
 
-        add_predicates, del_predicates = self._apply_probabilistic_effects(state, action)
+        add_predicates, del_predicates = self.apply_probabilistic_effects(state, action)
         new_preds |= add_predicates
         new_preds -= del_predicates
 
@@ -78,11 +83,26 @@ class MDP:
 
         # common = len(self.problem.goals.intersection(state.predicates))
         # reward = 100 if terminal else 2 ** (common - len(self.problem.goals))
-        reward = 10 if terminal else 0
+        reward = 10 if terminal else -0.1
 
         return terminal, next_state, reward
 
-    def _apply_probabilistic_effects(self, state: "up.engines.State", action: "up.engines.Action"):
+    def probabilistic_effects(self, prob_outcomes, index):
+        """ Gets the add and delete effect of the prob_outcome index effect"""
+        add_predicates = set()
+        del_predicates = set()
+
+        probability = list(prob_outcomes.keys())[index]
+        values = list(prob_outcomes.values())[index]
+        for v in values:
+            if values[v]:
+                add_predicates.add(v)
+            else:
+                del_predicates.add(v)
+
+        return probability, add_predicates, del_predicates
+
+    def apply_probabilistic_effects(self, state: "up.engines.State", action: "up.engines.Action"):
         """
 
         :param action: draw the outcome of the probabilistic effects
@@ -95,18 +115,17 @@ class MDP:
             prob_outcomes = pe.probability_function(state, None)
             if prob_outcomes:
                 index = np.random.choice(len(prob_outcomes), p=list(prob_outcomes.keys()))
-                values = list(prob_outcomes.values())[index]
-                for v in values:
-                    if values[v]:
-                        add_predicates.add(v)
-                    else:
-                        del_predicates.add(v)
+
+                _, add, delete = self.probabilistic_effects(prob_outcomes, index)
+
+                add_predicates.update(add)
+                del_predicates.update(delete)
 
         return add_predicates, del_predicates
 
 
 class combinationMDP(MDP):
-    def __init__(self, problem: "up.model.problem.Preoblem", discount_factor: float):
+    def __init__(self, problem: "up.model.problem.Problem", discount_factor: float):
         super().__init__(problem, discount_factor)
 
     def initial_state(self):
@@ -149,10 +168,10 @@ class combinationMDP(MDP):
 
         new_preds = set(state.predicates)
         new_active_actions = state.active_actions.clone()
+        current_time = state.current_time
 
         if isinstance(action, up.engines.InstantaneousAction):
-            new_preds = super().update_predicate(state, new_preds, action)
-            next_state = up.engines.CombinationState(new_preds, new_active_actions)
+            actions_to_perform = [action]
 
         # Deals with no-op, durative actions and combination actions
         else:
@@ -168,18 +187,106 @@ class combinationMDP(MDP):
 
             delta, actions_to_perform = new_active_actions.get_next_actions()
 
-            for a in actions_to_perform:
-                new_preds = super().update_predicate(state, new_preds, a)
-
             if delta != -1:
                 new_active_actions.update_delta(delta)
+                current_time += delta
 
-            next_state = up.engines.CombinationState(new_preds, new_active_actions)
+        # update the predicates according to the actions needs to be preformed
+        for a in actions_to_perform:
+            new_preds = super().update_predicate(state, new_preds, a)
+
+        next_state = up.engines.CombinationState(new_preds, new_active_actions, current_time)
 
         terminal = self.is_terminal(next_state)
 
         # common = len(self.problem.goals.intersection(state.predicates))
         # reward = 100 if terminal else 2 ** (common - len(self.problem.goals))
-        reward = 10 if terminal else 0
+        reward = 1 if terminal else 0
 
         return terminal, next_state, reward
+
+    def transition_function(self, state: "up.engines.State", action: "up.engines.Action"):
+
+        new_preds_init = set(state.predicates)
+        new_active_actions = state.active_actions.clone()
+
+        if isinstance(action, up.engines.InstantaneousAction):
+            new_preds_init |= action.add_effects
+            new_preds_init -= action.del_effects
+            actions_to_perform = [action]
+
+        # Deals with no-op, durative actions and combination actions
+        else:
+            if isinstance(action, up.engines.DurativeAction):
+                new_active_actions.add_action(up.engines.QueueNode(action, action.duration.lower.int_constant_value()))
+                new_preds_init |= action.inExecution
+
+            elif isinstance(action, up.engines.CombinationAction):
+                for a in action.actions:
+                    new_active_actions.add_action(up.engines.QueueNode(a, a.duration.lower.int_constant_value()))
+
+                new_preds_init |= action.inExecution
+
+            delta, actions_to_perform = new_active_actions.get_next_actions()
+
+            for a in actions_to_perform:
+                new_preds_init |= a.add_effects
+                new_preds_init -= a.del_effects
+
+            if delta != -1:
+                new_active_actions.update_delta(delta)
+
+        probs = self.all_probabilistic_effects(state, actions_to_perform)
+        transition = []
+        for prob in probs:
+            new_preds = new_preds_init.copy()
+            new_preds |= prob['add']
+            new_preds -= prob['delete']
+            next_state = up.engines.CombinationState(new_preds, new_active_actions)
+            transition.append((next_state, prob['probability']))
+
+        return transition
+
+    def all_probabilistic_effects(self, state: "up.engines.State", actions: List["up.engines.Action"]):
+        pe_length = []
+        pe_outcomes = []
+
+        # Get the length of each probabilistic effect greater then 0
+        for action in actions:
+            for pe in action.probabilistic_effects:
+                prob_outcomes = pe.probability_function(state, None)
+                if prob_outcomes:
+                    pe_outcomes.append(prob_outcomes)
+                    pe_length.append(len(prob_outcomes))
+
+        # holds all combination of indexes
+        series = list(product(*(range(x) for x in pe_length)))
+
+        effects = []
+        for s in series:
+            add_predicates = set()
+            del_predicates = set()
+            probability = 1
+            for i, p in enumerate(pe_outcomes):
+                prob, add, delete = self.probabilistic_effects(p, s[i])
+
+                add_predicates.update(add)
+                del_predicates.update(delete)
+                probability *= prob
+            effects.append({"probability": probability, "add": add_predicates, 'delete': del_predicates})
+
+        return effects
+
+    def legal_actions(self, state: "up.engines.state.CombinationState"):
+        """
+        If the positive preconditions of an action are true in the state
+        and the negative preconditions of the action are false in the state
+        The action is considered legal for the state
+
+        :param state: the current state of the system
+        :return: the legal actions that can be preformed in the state `state`
+        """
+        legal_actions = super().legal_actions(state)
+        if state.active_actions.data:
+            legal_actions.append(self.problem.action_by_name('noop'))
+        return legal_actions
