@@ -18,7 +18,6 @@ class Base_MCTS:
         self._exploration_constant = exploration_constant
         self._previous_chosen_action_node = previous_chosen_action_node
 
-
     @property
     def mdp(self):
         return self._mdp
@@ -34,7 +33,6 @@ class Base_MCTS:
     @property
     def previous_chosen_action_node(self):
         return self._previous_chosen_action_node
-
 
     def default_policy(self, state: "up.engines.State"):
         """ Choose a random action. Heustics can be used here to improve simulations. """
@@ -195,7 +193,8 @@ class C_MCTS(Base_MCTS):
         current_time = time.time()
         i = 0
         while current_time < start_time + timeout:
-            self.selection(self.root_node)
+            # self.selection(self.root_node)
+            self.selection_max(self.root_node)
             current_time = time.time()
             i += 1
         print(f'i = {i}')
@@ -203,11 +202,11 @@ class C_MCTS(Base_MCTS):
 
     def selection(self, snode: "up.engines.C_Snode"):
         if snode.depth > self.search_depth or len(
-                snode.possible_actions) == 0:  # TODO: decide what is the stopping condition
-            # if len(snode.possible_actions) == 0:
+                snode.possible_actions) == 0:
             # Stop if the search depth is reached or
             # the there are no possible actions to take so the plan remains consistent
-            return 0
+            # return 0
+            return self.heuristic(snode)
 
         explore_constant = self.exploration_constant
 
@@ -221,14 +220,50 @@ class C_MCTS(Base_MCTS):
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
             else:
-                reward += self.mdp.discount_factor * self.simulate(next_state, snode.depth)
                 next_snode = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
+                reward += self.mdp.discount_factor * self.heuristic(next_snode)
                 anode.add_child(next_snode)
 
         snode.update(reward)
         anode.update(reward)
 
         return reward
+
+    def selection_max(self, snode: "up.engines.C_Snode"):
+        if snode.depth > self.search_depth or len(
+                snode.possible_actions) == 0:
+            # Stop if the search depth is reached or
+            # the there are no possible actions to take so the plan remains consistent
+            return self.heuristic(snode)
+
+        explore_constant = self.exploration_constant
+
+        # Choose a consistent action
+        action = self.uct(snode, explore_constant)
+        terminal, next_state, reward = self.mdp.step(snode.state, action)
+        anode = snode.children[action]
+        if not terminal:
+            snodes = anode.children
+            if next_state in snodes:
+                reward += self.mdp.discount_factor * self.selection_max(snodes[next_state])
+
+            else:
+                next_snode = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
+                reward += self.mdp.discount_factor * self.heuristic(next_snode)
+                anode.add_child(next_snode)
+                next_snode.update(reward)
+
+        anode.update(reward)
+        max_v = snode.max_update()
+
+        return max_v
+
+    def heuristic(self, snode: "up.engines.C_SNode"):
+        current_time = 0
+        if snode.parent:
+            current_time = snode.parent.stn.get_current_end_time()
+        h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time)
+        return h.get_heuristic()
 
     def simulate(self, state, depth):
         """ Simulate until a terminal state """
@@ -275,7 +310,7 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
     while True:
         print(f"started step {step}")
         mcts = C_MCTS(mdp, root_node, root_state, search_depth, exploration_constant, stn, previous_action_node)
-        action = mcts.search(1)
+        action = mcts.search(60)
 
         if action == -1:
             print("A valid plan is not found")

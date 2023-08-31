@@ -1,3 +1,5 @@
+import math
+
 import unified_planning as up
 from typing import List, Dict
 from unified_planning.engines.utils import (
@@ -7,7 +9,7 @@ from unified_planning.engines.utils import (
 
 class Node:
     def __init__(self):
-        self._count = 0
+        self._count = 0.0
         self._value = 0.0
 
     def __repr__(self):
@@ -23,7 +25,7 @@ class Node:
         return self._value
 
     def update(self, reward):
-        self._value += reward
+        self._value = (self._value * self._count + reward) / (self._count + 1)
         self._count += 1
 
 
@@ -146,6 +148,15 @@ class C_SNode(Node):
 
         for a in not_consistent:
             self.possible_actions.remove(a)
+
+    def max_update(self):
+        max_v = -math.inf
+        for child in self.children.values():
+           if child.count > 0 and child.value > max_v:
+                max_v = child.value
+        self._value = max_v
+        self._count += 1
+        return max_v
 
 
 class ANode(Node):
