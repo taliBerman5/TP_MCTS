@@ -181,7 +181,8 @@ class C_MCTS(Base_MCTS):
         return self._stn
 
     def create_Snode(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
-                     parent: "up.engines.C_ANode" = None, previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+                     parent: "up.engines.C_ANode" = None,
+                     previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
         """ Create a new Snode for the state `state` with parent `parent`"""
         return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent, previous_chosen_action_node)
 
@@ -193,18 +194,20 @@ class C_MCTS(Base_MCTS):
         current_time = time.time()
         i = 0
         while current_time < start_time + timeout:
-            # self.selection(self.root_node)
-            self.selection_max(self.root_node)
+            self.selection(self.root_node)
+            # self.selection_max(self.root_node)
             current_time = time.time()
             i += 1
         print(f'i = {i}')
         return self.best_action(self.root_node)
 
     def selection(self, snode: "up.engines.C_Snode"):
-        if snode.depth > self.search_depth or len(
-                snode.possible_actions) == 0:
-            # Stop if the search depth is reached or
-            # the there are no possible actions to take so the plan remains consistent
+        if len(snode.possible_actions) == 0:
+            # Stop when there are no possible actions to take so the plan remains consistent
+            return -100
+
+        if snode.depth > self.search_depth:
+            # Stop if the search depth is reached
             # return 0
             return self.heuristic(snode)
 
@@ -230,12 +233,13 @@ class C_MCTS(Base_MCTS):
         return reward
 
     def selection_max(self, snode: "up.engines.C_Snode"):
-        if snode.depth > self.search_depth or len(
-                snode.possible_actions) == 0:
-            # Stop if the search depth is reached or
-            # the there are no possible actions to take so the plan remains consistent
-            return self.heuristic(snode)
+        if len(snode.possible_actions) == 0:
+            # Stop when there are no possible actions to take so the plan remains consistent
+            return -math.inf
 
+        if snode.depth > self.search_depth:
+            # Stop if the search depth is reached
+            return self.heuristic(snode)
         explore_constant = self.exploration_constant
 
         # Choose a consistent action
@@ -260,9 +264,12 @@ class C_MCTS(Base_MCTS):
 
     def heuristic(self, snode: "up.engines.C_SNode"):
         current_time = 0
+        end_times = {}
         if snode.parent:
             current_time = snode.parent.stn.get_current_end_time()
-        h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time)
+            # end_actions = list(snode.parent.stn._potential_end_actions.keys())
+            # end_times = {node.action_instance.action: snode.parent.stn.get_current_time(node) for node in end_actions}
+        h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time, end_times)
         return h.get_heuristic()
 
     def simulate(self, state, depth):
