@@ -498,6 +498,12 @@ class DurativeAction(Action):
         """Returns the `action` `duration interval`."""
         return self._duration
 
+
+    def duration_int(self) -> "int":
+        """Returns the `action` `duration interval`."""
+        return self._duration.lower.int_constant_value()
+
+
     def set_fixed_duration(self, value: Union["up.model.fnode.FNode", int, Fraction]):
         """
         Sets the `duration interval` for this `action` as the interval `[value, value]`.
