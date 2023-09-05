@@ -72,7 +72,7 @@ class Machine_Shop:
     def set_initial_state(self):
         at, canpolpaint, canlatroll, cangrind, free = self.get_fluents(
             ['at', 'canpolpaint', 'canlatroll', 'cangrind', 'free'])
-        x1, x2, m1, m2 = self.get_fluents(['x1', 'x2', 'm1', 'm2'])
+        x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
 
         self.problem.set_initial_value(at(x1, m2), True)
         self.problem.set_initial_value(at(x2, m2), True)
@@ -84,7 +84,7 @@ class Machine_Shop:
 
     def add_goal(self):
         shaped, painted, smooth, polished, free = self.get_fluents(['shaped', 'painted', 'smooth', 'polished', 'free'])
-        x1, x2, m1, m2 = self.get_fluents(['x1', 'x2', 'm1', 'm2'])
+        x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
 
         self.problem.add_goal(shaped(x1))
         self.problem.add_goal(painted(x2))
@@ -154,7 +154,8 @@ class Machine_Shop:
                                 at(piece_param, machine1_param): True}}
             else:
                 p = 0.9
-                return {p: {at(piece_param, machine2_param): True, at(piece_param, machine1_param): False}, 1 - p: {at(piece_param, machine1_param): True}}
+                return {p: {at(piece_param, machine2_param): True, at(piece_param, machine1_param): False},
+                        1 - p: {at(piece_param, machine1_param): True}}
 
         return move_probability
 
@@ -206,10 +207,14 @@ class Machine_Shop:
         piece = immersionpaint.parameter('piece')
         immersionpaint.add_precondition(StartPreconditionTiming(), canpolpaint(machine), True)
         immersionpaint.add_precondition(OverallPreconditionTiming(), on(piece, machine), True)
-        immersionpaint.add_precondition(OverallPreconditionTiming(), hasimmersion(machine), True)
+
         if self.kind == 'regular':
+            immersionpaint.add_precondition(StartPreconditionTiming(), hasimmersion(machine), True)
             immersionpaint.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
             immersionpaint.add_start_effect(hasimmersion(machine), False)
+
+        if self.kind == 'combination':
+            immersionpaint.add_precondition(OverallPreconditionTiming(), hasimmersion(machine), True)
 
         immersionpaint.add_probabilistic_effect([painted(piece), hasimmersion(machine)],
                                                 self.immersionpaint_prob(piece, machine))
@@ -236,7 +241,7 @@ class Machine_Shop:
 
     def grind_action(self):
         """ Grind Action """
-        cangrind, on, at, smooth = self.get_fluents(['canpolpaint', 'on', 'at', 'smooth'])
+        cangrind, on, at, smooth = self.get_fluents(['cangrind', 'on', 'at', 'smooth'])
 
         grind = unified_planning.model.action.DurativeAction('grind', piece=self.userTypes['Piece'],
                                                              machine=self.userTypes['Machine'])
@@ -307,9 +312,6 @@ class Machine_Shop:
         self.problem.add_action(move)
 
 
-
-
-
 def run_regular():
     machine_shop = Machine_Shop(kind='regular')
     grounder = unified_planning.engines.compilers.Grounder()
@@ -319,8 +321,7 @@ def run_regular():
     convert_problem = unified_planning.engines.Convert_problem(ground_problem)
     converted_problem = convert_problem._converted_problem
     mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
-    up.engines.solvers.mcts.plan(mdp, steps=90, search_depth=20, exploration_constant=50)
-
+    up.engines.solvers.mcts.plan(mdp, steps=90, search_depth=20, exploration_constant=50, search_time=15)
 
 
 def remove_actions(machine_shop, converted_problem):
@@ -335,7 +336,8 @@ def remove_actions(machine_shop, converted_problem):
                 converted_problem._remove_action(a)
                 break
 
-def run_conbination():
+
+def run_combination():
     machine_shop = Machine_Shop(kind='combination')
     grounder = unified_planning.engines.compilers.Grounder()
     grounding_result = grounder._compile(machine_shop.problem)
@@ -348,11 +350,8 @@ def run_conbination():
     mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
     split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
 
-
     up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40)
 
 
-
-
 # run_regular()
-run_conbination()
+run_combination()
