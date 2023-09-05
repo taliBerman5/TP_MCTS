@@ -7,7 +7,7 @@ import numpy as np
 
 class TRPG:
 
-    def __init__(self, mdp: "up.engines.MDP", state: "up.engines.State", current_time: int):
+    def __init__(self, mdp: "up.engines.MDP", state: "up.engines.State", current_time: int, end_times: "Dict"):
         self.mdp = mdp
         self.negative = set(mdp.problem.initial_values.keys()).difference(state.predicates)
         self.positive = set(state.predicates)
@@ -15,6 +15,7 @@ class TRPG:
         self.legal_probabilistic_actions = []
         self.deadline = self.mdp.deadline() if self.mdp.deadline() else math.inf
         self.current_time = current_time
+        self.end_times = end_times
 
     def get_heuristic(self):
 
@@ -27,11 +28,15 @@ class TRPG:
             positive_eps = set(self.positive)
 
             for action in self.legal_probabilistic_actions:
+                perform = True
                 if isinstance(action, up.engines.InstantaneousEndAction):
                     if earliest[action] <= t:
                         earliest[action] = t + action.start_action.duration.lower.int_constant_value()
-                r += -0.1
-                self.add_probabilistic_effects(action, negative_eps, positive_eps)
+                    else:
+                        perform = False
+                if perform:
+                    r += -0.1
+                    self.add_probabilistic_effects(action, negative_eps, positive_eps)
 
 
             for action in self.new_actions[:]:
@@ -108,6 +113,10 @@ class TRPG:
             if isinstance(action, up.engines.InstantaneousEndAction):
                 action_object = self.mdp.problem.object_by_name(f'start-{action.name[4:]}')
                 earliest[action] = self.current_time if inExecution(action_object) in self.positive else math.inf
+                # if inExecution(action_object) in self.positive:
+                #     earliest[action] = self.end_times[action]
+                # else:
+                #     earliest[action] = math.inf
                 # earliest[action] = max(self.current_time, action.start_action.duration_int() - self.current_time) if inExecution(action_object) in self.positive else math.inf
                 # earliest[action] = math.inf
 
