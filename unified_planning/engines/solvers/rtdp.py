@@ -34,7 +34,6 @@ class RTDP:
     def search(self, timeout):
         start_time = time.time()
         current_time = time.time()
-        i = 0
         while current_time < start_time + timeout:
             self.trial(timeout, start_time)
             current_time = time.time()
@@ -48,7 +47,7 @@ class RTDP:
         state = self.root_state
         terminal = False
         depth = 0
-        while (not terminal) and (depth < self.search_depth):  # TODO: add another stopping criteria (number of steps or time)
+        while state.current_time < self.mdp.deadline() and (not terminal) and (depth < self.search_depth):  # TODO: add another stopping criteria (number of steps or time)
             action, action_value = self.evaluate(state)
             self.V[state] = action_value
             terminal, state, reward = self.mdp.step(state, action)
@@ -102,9 +101,9 @@ def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_
     history = []
     rtdp = RTDP(mdp, split_mdp, root_state, search_depth)
 
-    while True:
+    while root_state.current_time < mdp.deadline():
         print(f"started step {step}")
-        action = rtdp.search(40)
+        action = rtdp.search(100)
 
         terminal, root_state, reward = mdp.step(root_state, action)
 
@@ -121,3 +120,6 @@ def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_
             break
 
         step += 1
+
+    if root_state.current_time > mdp.deadline():
+        print("a valid plan is not found")
