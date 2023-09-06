@@ -8,11 +8,12 @@ import itertools
 class Convert_problem_combination:
     def __init__(
             self,
-           original_problem: "up.model.Problem",
+            original_problem: "up.model.Problem",
     ):
         self._original_problem: "up.model.Problem" = original_problem
         self._converted_problem: "up.model.Problem" = self._original_problem.clone()
-        self._split_problem: "up.model.Problem" = unified_planning.engines.Convert_problem(original_problem)._converted_problem
+        self._split_problem: "up.model.Problem" = unified_planning.engines.Convert_problem(
+            original_problem)._converted_problem
         self._action_type: "up.model.UserType" = up.shortcuts.UserType('DurativeAction')
         self._inExecution: "up.model.Fluent" = up.model.Fluent('inExecution', up.shortcuts.BoolType(),
                                                                a=self._action_type)
@@ -21,7 +22,6 @@ class Convert_problem_combination:
         self._mutex_actions()
         self._combination_durative_actions()
         self._add_no_op_action()
-
 
     def __repr__(self) -> str:
         return self._converted_problem.__repr__()
@@ -60,38 +60,51 @@ class Convert_problem_combination:
         The function adds as an action all combinations of durative actions that can run in parallel.
         Action can run in parallel if they are not mutex.
 
-        Mutex defenition:
+        Mutex definition:
         1. they have inconsistent preconditions
         2. an outcome of one action conflicts with an outcome of the other
         3. the precondition of one action conflicts with the (possibly probabilistic) effect of the other.
         4. the effect of one action possibly modifies a feature upon which another action’s transition function is conditioned upon.
 
         """
-        
+
         durative_actions = [action for action in self._converted_problem._actions if
                             isinstance(action, up.engines.DurativeAction)]
-        # Go over each of the actions
-        for i, action in enumerate(durative_actions):
 
-            # step determines the action to start the look a head for the combination
-            for step in range(1, len(durative_actions) - i):
-                combination_actions = [action]
-                neg_precondition = set(action.neg_preconditions)
-                pos_precondition = set(action.pos_preconditions)
-                action_execution = action.inExecution.copy()
+        combination = []
+        action_execution = set()
+        neg_precondition = set()
+        pos_precondition = set()
 
-                # Adds from the i+step action each of the actions that is not mutex
-                for j in range(i+step, len(durative_actions)):
-                    candidate = durative_actions[j]
-                    if not self.is_mutex(action_execution, candidate):
-                        combination_actions.append(candidate)
-                        pos_precondition.update(candidate.pos_preconditions)
-                        neg_precondition.update(candidate.neg_preconditions)
-                        action_execution.update(candidate.inExecution)
-                        self.add_combination(combination_actions, action_execution, neg_precondition, pos_precondition)
-                    # If the first action is mutex with `action` then the next loop will be identical, we can skip
-                    elif j == i+step:
-                        break
+        self._rec_combination_durative_actions(0, durative_actions, combination, action_execution, neg_precondition,
+                                               pos_precondition)
+
+    def _rec_combination_durative_actions(self, i, durative_actions, combination, action_execution, neg_precondition,
+                                          pos_precondition):
+        if i >= len(durative_actions):
+            if len(combination) > 1:
+                # found a legal combination
+                self.add_combination(combination, action_execution, neg_precondition, pos_precondition)
+
+        elif not self.is_mutex(action_execution, durative_actions[i]):
+            # if current action is not mutex with the actions already in the queue
+            combination_i = combination.copy()
+            combination_i.append(durative_actions[i])
+
+            action_execution_i = action_execution.union(durative_actions[i].inExecution)
+            neg_precondition_i = neg_precondition.union(durative_actions[i].neg_preconditions)
+            pos_precondition_i = pos_precondition.union(durative_actions[i].pos_preconditions)
+
+            # Continue adding recursively actions with and without the i action
+            self._rec_combination_durative_actions(i + 1, durative_actions, combination, action_execution,
+                                                  neg_precondition, pos_precondition)
+            self._rec_combination_durative_actions(i + 1, durative_actions, combination_i, action_execution_i,
+                                                  neg_precondition_i, pos_precondition_i)
+
+        else:
+            # Continue adding recursively actions without the i action
+            self._rec_combination_durative_actions(i + 1, durative_actions, combination, action_execution,
+                                                  neg_precondition, pos_precondition)
 
     def is_mutex(self, action_execution, candidate):
         """ checks if one of the actions already in the combination is in mutex with the candidate action
@@ -122,7 +135,6 @@ class Convert_problem_combination:
         action_combination.set_inExecution(action_execution)
         self.converted_problem.add_action(action_combination)
 
-
     def _convert_model_engine_actions(self):
         """
         convert actions from `model` actions to be `engines` actions
@@ -146,7 +158,6 @@ class Convert_problem_combination:
                 engine_action.add_effect(self._inExecution(object_start), False)
 
             self._converted_problem.add_action(engine_action)
-
 
     def _mutex_actions(self):
         """
@@ -237,4 +248,3 @@ class Convert_problem_combination:
     def _add_no_op_action(self):
         noop = up.engines.NoOpAction('noop')
         self._converted_problem.add_action(noop)
-
