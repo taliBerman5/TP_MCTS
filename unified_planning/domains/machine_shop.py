@@ -3,14 +3,14 @@ from unified_planning.shortcuts import *
 
 
 class Machine_Shop:
-    def __init__(self, kind):
+    def __init__(self, kind, deadline):
         self.problem = unified_planning.model.Problem('machine_shop')
         self.kind = kind
         self.user_types()
         self.objects()
         self.fluents()
         self.actions()
-        self.add_goal()
+        self.add_goal(deadline)
         self.set_initial_state()
 
     def get_fluents(self, string):
@@ -82,7 +82,7 @@ class Machine_Shop:
         self.problem.set_initial_value(free(m1), True)
         self.problem.set_initial_value(free(m2), True)
 
-    def add_goal(self):
+    def add_goal(self, deadline):
         shaped, painted, smooth, polished, free = self.get_fluents(['shaped', 'painted', 'smooth', 'polished', 'free'])
         x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
 
@@ -93,8 +93,8 @@ class Machine_Shop:
         self.problem.add_goal(free(m1))
         self.problem.add_goal(free(m2))
 
-        deadline = Timing(delay=27, timepoint=Timepoint(TimepointKind.START))
-        self.problem.set_deadline(deadline)
+        deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
+        self.problem.set_deadline(deadline_timing)
 
     def actions(self):
         self.polish_action()
@@ -134,7 +134,7 @@ class Machine_Shop:
         def probability(state, actual_params):
             piece_param = actual_params.get(piece)
 
-            return {p: {fluent(piece_param): True}, 1 - p: {}}
+            return {p[0]: {fluent(piece_param): True}, p[1]: {}}
 
         return probability
 
@@ -175,7 +175,7 @@ class Machine_Shop:
         if self.kind == 'regular':
             polish.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
 
-        polish.add_probabilistic_effect([polished(piece)], self.action_prob(p=0.9, fluent=polished, piece=piece))
+        polish.add_probabilistic_effect([polished(piece)], self.action_prob(p=[0.9, 0.1], fluent=polished, piece=piece))
         self.problem.add_action(polish)
 
     def spraypaint_action(self):
@@ -192,7 +192,7 @@ class Machine_Shop:
         if self.kind == 'regular':
             spraypaint.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
 
-        spraypaint.add_probabilistic_effect([painted(piece)], self.action_prob(p=0.8, fluent=painted, piece=piece))
+        spraypaint.add_probabilistic_effect([painted(piece)], self.action_prob(p=[0.8, 0.2], fluent=painted, piece=piece))
         self.problem.add_action(spraypaint)
 
     def immersionpaint_action(self):
@@ -253,7 +253,7 @@ class Machine_Shop:
         if self.kind == 'regular':
             grind.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
 
-        grind.add_probabilistic_effect([smooth(piece)], self.action_prob(p=0.9, fluent=smooth, piece=piece))
+        grind.add_probabilistic_effect([smooth(piece)], self.action_prob(p=[0.9, 0.1], fluent=smooth, piece=piece))
         self.problem.add_action(grind)
 
     def buyimmersion_action(self):
@@ -313,7 +313,7 @@ class Machine_Shop:
 
 
 def run_regular():
-    machine_shop = Machine_Shop(kind='regular')
+    machine_shop = Machine_Shop(kind='regular', deadline=27)
     grounder = unified_planning.engines.compilers.Grounder()
     grounding_result = grounder._compile(machine_shop.problem)
     ground_problem = grounding_result.problem
@@ -325,20 +325,29 @@ def run_regular():
 
 
 def remove_actions(machine_shop, converted_problem):
-    on = machine_shop.problem.fluent_by_name('on')
-    x1, x2, m1, m2 = machine_shop.get_fluents(['x1', 'x2', 'm1', 'm2'])
+    on, at = machine_shop.get_fluents(['on', 'at'])
+    x1, x2, m1, m2 = machine_shop.get_objects(['x1', 'x2', 'm1', 'm2'])
 
     not_allowed_predicates = [{on(x1, m1), on(x1, m2)},
-                              {on(x2, m1), on(x2, m2)}]
+                              {on(x2, m1), on(x2, m2)},
+                               {at(x1, m1), at(x1, m2)},
+                              {at(x2, m1), at(x2, m2)},
+                              {on(x1, m1), on(x2, m1)},
+                              {on(x1, m2), on(x2, m2)},
+                              {on(x1, m2), at(x1, m1)},
+                              {at(x1, m2), on(x1, m1)},
+                              {on(x2, m2), at(x2, m1)},
+                              {at(x2, m2), on(x2, m1)}]
     for a in converted_problem.actions[:]:
-        for p in not_allowed_predicates:
-            if p.issubset(a.pos_preconditions):
-                converted_problem._remove_action(a)
-                break
+        if isinstance(a, unified_planning.engines.CombinationAction):
+            for p in not_allowed_predicates:
+                if p.issubset(a.pos_preconditions):
+                    converted_problem.actions.remove(a)
+                    break
 
 
 def run_combination():
-    machine_shop = Machine_Shop(kind='combination')
+    machine_shop = Machine_Shop(kind='combination', deadline=27)
     grounder = unified_planning.engines.compilers.Grounder()
     grounding_result = grounder._compile(machine_shop.problem)
     ground_problem = grounding_result.problem
@@ -350,7 +359,7 @@ def run_combination():
     mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
     split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
 
-    up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40)
+    up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40, search_time=60)
 
 
 # run_regular()
