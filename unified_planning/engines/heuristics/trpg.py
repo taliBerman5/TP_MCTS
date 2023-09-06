@@ -76,6 +76,7 @@ class TRPG:
                 self.positive = positive_eps
             else:
                 endpoints = [earliest.get(a) for a in earliest.keys() if self.legal_action(a) and a in self.new_actions]
+                endpoints += [earliest.get(a) for a in earliest.keys() if a in self.legal_probabilistic_actions]
                 if endpoints:
                     t = min(endpoints)
                 else:
