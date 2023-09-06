@@ -285,21 +285,32 @@ class Stuck_Car:
         action.add_effect(fluent, True)
 
 
-stuck_car = Stuck_Car()
+def run_regular():
+    stuck_car = Stuck_Car()
+    grounder = unified_planning.engines.compilers.Grounder()
+    grounding_result = grounder._compile(stuck_car.problem)
+    ground_problem = grounding_result.problem
 
-grounder = unified_planning.engines.compilers.Grounder()
-grounding_result = grounder._compile(stuck_car.problem)
-ground_problem = grounding_result.problem
+    convert_problem = unified_planning.engines.Convert_problem(ground_problem)
+    converted_problem = convert_problem._converted_problem
+    mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
+    up.engines.solvers.mcts.plan(mdp, steps=10, search_depth=20, exploration_constant=10, search_time=1)
 
-# convert_combination_problem = unified_planning.engines.Convert_problem_combination(ground_problem)
-# converted_problem = convert_combination_problem._converted_problem
-# mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
-# split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
-# up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40)
 
-convert_problem = unified_planning.engines.Convert_problem(ground_problem)
-# print(convert_problem)
-converted_problem = convert_problem._converted_problem
-mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
+# def remove_actions(stuck_car, converted_problem):
 
-up.engines.solvers.mcts.plan(mdp, steps=10, search_depth=20, exploration_constant=10)
+def run_combination(): #TODO: need to decide on the action for the combination - start effects are not optional
+    stuck_car = Stuck_Car()
+    grounder = unified_planning.engines.compilers.Grounder()
+    grounding_result = grounder._compile(stuck_car.problem)
+    ground_problem = grounding_result.problem
+
+    convert_combination_problem = unified_planning.engines.Convert_problem_combination(ground_problem)
+    converted_problem = convert_combination_problem._converted_problem
+    mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
+    split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
+    up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40)
+
+
+run_regular()
+# run_combination()
