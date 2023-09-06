@@ -619,6 +619,23 @@ class CombinationAction(Action):
         s.append("  }")
         return "".join(s)
 
+    def __eq__(self, oth: object) -> bool:
+        if isinstance(oth, CombinationAction):
+            cond = (
+                    self._environment == oth._environment
+                    and self._name == oth._name
+                    and self._parameters == oth._parameters
+            )
+            return (
+                    cond
+                    and set(self._neg_preconditions) == set(oth._neg_preconditions)
+                    and set(self._pos_preconditions) == set(oth._pos_preconditions)
+                    and self._actions == oth._actions
+                    and self._inExecution == oth._inExecution
+            )
+        else:
+            return False
+
     @property
     def neg_preconditions(self):
         return self._neg_preconditions
