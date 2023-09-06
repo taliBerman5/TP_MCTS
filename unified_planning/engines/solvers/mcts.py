@@ -304,7 +304,7 @@ class C_MCTS(Base_MCTS):
         return cumulative_reward
 
 
-def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float):
+def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float, search_time: int):
     stn = create_init_stn(mdp)
     root_state = mdp.initial_state()
 
@@ -317,7 +317,7 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
     while True:
         print(f"started step {step}")
         mcts = C_MCTS(mdp, root_node, root_state, search_depth, exploration_constant, stn, previous_action_node)
-        action = mcts.search(60)
+        action = mcts.search(search_time)
 
         if action == -1:
             print("A valid plan is not found")
