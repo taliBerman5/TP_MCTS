@@ -1,23 +1,17 @@
-import unified_planning
+import unified_planning as up
+from unified_planning.domains import Domain
 from unified_planning.shortcuts import *
 
 
-class Machine_Shop:
+class Machine_Shop(Domain):
     def __init__(self, kind, deadline):
-        self.problem = unified_planning.model.Problem('machine_shop')
-        self.kind = kind
+        Domain.__init__(self, 'machine_shop', kind)
         self.user_types()
         self.objects()
         self.fluents()
         self.actions()
         self.add_goal(deadline)
         self.set_initial_state()
-
-    def get_fluents(self, string):
-        return [self.problem.fluent_by_name(s) for s in string]
-
-    def get_objects(self, string):
-        return [self.problem.object_by_name(s) for s in string]
 
     def user_types(self):
         Piece = UserType('Piece')
@@ -192,7 +186,8 @@ class Machine_Shop:
         if self.kind == 'regular':
             spraypaint.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
 
-        spraypaint.add_probabilistic_effect([painted(piece)], self.action_prob(p=[0.8, 0.2], fluent=painted, piece=piece))
+        spraypaint.add_probabilistic_effect([painted(piece)],
+                                            self.action_prob(p=[0.8, 0.2], fluent=painted, piece=piece))
         self.problem.add_action(spraypaint)
 
     def immersionpaint_action(self):
@@ -311,56 +306,27 @@ class Machine_Shop:
                                       self.move_prob(piece, machine1, machine2))
         self.problem.add_action(move)
 
+    def remove_actions(self, converted_problem):
+        on, at = self.get_fluents(['on', 'at'])
+        x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
 
-def run_regular():
-    machine_shop = Machine_Shop(kind='regular', deadline=27)
-    grounder = unified_planning.engines.compilers.Grounder()
-    grounding_result = grounder._compile(machine_shop.problem)
-    ground_problem = grounding_result.problem
+        not_allowed_predicates = [{on(x1, m1), on(x1, m2)},
+                                  {on(x2, m1), on(x2, m2)},
+                                  {at(x1, m1), at(x1, m2)},
+                                  {at(x2, m1), at(x2, m2)},
+                                  {on(x1, m1), on(x2, m1)},
+                                  {on(x1, m2), on(x2, m2)},
+                                  {on(x1, m2), at(x1, m1)},
+                                  {at(x1, m2), on(x1, m1)},
+                                  {on(x2, m2), at(x2, m1)},
+                                  {at(x2, m2), on(x2, m1)}]
+        for a in converted_problem.actions[:]:
+            if isinstance(a, unified_planning.engines.CombinationAction):
+                for p in not_allowed_predicates:
+                    if p.issubset(a.pos_preconditions):
+                        converted_problem.actions.remove(a)
+                        break
 
-    convert_problem = unified_planning.engines.Convert_problem(ground_problem)
-    converted_problem = convert_problem._converted_problem
-    mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
-    up.engines.solvers.mcts.plan(mdp, steps=90, search_depth=20, exploration_constant=50, search_time=15)
-
-
-def remove_actions(machine_shop, converted_problem):
-    on, at = machine_shop.get_fluents(['on', 'at'])
-    x1, x2, m1, m2 = machine_shop.get_objects(['x1', 'x2', 'm1', 'm2'])
-
-    not_allowed_predicates = [{on(x1, m1), on(x1, m2)},
-                              {on(x2, m1), on(x2, m2)},
-                               {at(x1, m1), at(x1, m2)},
-                              {at(x2, m1), at(x2, m2)},
-                              {on(x1, m1), on(x2, m1)},
-                              {on(x1, m2), on(x2, m2)},
-                              {on(x1, m2), at(x1, m1)},
-                              {at(x1, m2), on(x1, m1)},
-                              {on(x2, m2), at(x2, m1)},
-                              {at(x2, m2), on(x2, m1)}]
-    for a in converted_problem.actions[:]:
-        if isinstance(a, unified_planning.engines.CombinationAction):
-            for p in not_allowed_predicates:
-                if p.issubset(a.pos_preconditions):
-                    converted_problem.actions.remove(a)
-                    break
-
-
-def run_combination():
-    machine_shop = Machine_Shop(kind='combination', deadline=27)
-    grounder = unified_planning.engines.compilers.Grounder()
-    grounding_result = grounder._compile(machine_shop.problem)
-    ground_problem = grounding_result.problem
-
-    convert_combination_problem = unified_planning.engines.Convert_problem_combination(ground_problem)
-    converted_problem = convert_combination_problem._converted_problem
-    remove_actions(machine_shop, converted_problem)
-
-    mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
-    split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
-
-    up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40, search_time=60)
-
-
-# run_regular()
-run_combination()
+    # run_regular(deadline=27, search_time=15, search_depth=40, selection_type='avg')
+# run_combination(solver='rtdp', deadline=80, search_time=10, search_depth=40)
+# run_combination(solver='mcts', deadline=27, search_time=60, search_depth=40, selection_type='avg')

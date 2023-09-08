@@ -1,23 +1,17 @@
 import unified_planning
+from unified_planning.domains import Domain
 from unified_planning.shortcuts import *
 
 
-class Nasa_Rover:
+class Nasa_Rover(Domain):
     def __init__(self, kind, deadline):
-        self.problem = unified_planning.model.Problem('nasa_rover')
-        self.kind = kind
+        Domain.__init__(self, 'nasa_rover', kind)
         self.user_types()
         self.objects()
         self.fluents()
         self.actions()
         self.add_goal(deadline)
         self.set_initial_state()
-
-    def get_fluents(self, string):
-        return [self.problem.fluent_by_name(s) for s in string]
-
-    def get_objects(self, string):
-        return [self.problem.object_by_name(s) for s in string]
 
     def user_types(self):
         Rover = UserType('Rover')
@@ -395,39 +389,8 @@ class Nasa_Rover:
                                                                               param=objective))
         self.problem.add_action(communicate_image_data)
 
-    def use(self, action, fluent):
-        action.add_precondition(StartPreconditionTiming(), fluent, True)
-        action.add_start_effect(fluent, False)
-        action.add_effect(fluent, True)
 
-
-def run_regular(kind):
-    nasa_rover = Nasa_Rover(kind=kind, deadline=20)
-    grounder = unified_planning.engines.compilers.Grounder()
-    grounding_result = grounder._compile(nasa_rover.problem)
-    ground_problem = grounding_result.problem
-
-    convert_problem = unified_planning.engines.Convert_problem(ground_problem)
-    converted_problem = convert_problem._converted_problem
-    mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
-    up.engines.solvers.mcts.plan(mdp, steps=90, search_depth=40, exploration_constant=50, search_time=20)
-
-
-def run_combination():
-    nasa_rover = Nasa_Rover(kind='combination', deadline=27)
-    grounder = unified_planning.engines.compilers.Grounder()
-    grounding_result = grounder._compile(nasa_rover.problem)
-    ground_problem = grounding_result.problem
-
-    convert_combination_problem = unified_planning.engines.Convert_problem_combination(ground_problem)
-    converted_problem = convert_combination_problem._converted_problem
-
-    mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
-    split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
-
-    up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40, search_time=60)
-
-
-# run_regular(kind='regular')
-# run_regular(kind='regular_as_baseline')
-run_combination()
+# run_regular(kind='regular', deadline=20, search_time=20, search_depth=40, selection_type='avg')
+# run_regular(kind='regular_as_baseline', deadline=20, search_time=20, search_depth=40, selection_type='avg')
+# run_combination(solver='rtdp', deadline=20, search_time=60, search_depth=40)
+# run_combination(solver='mcts', deadline=20, search_time=60, search_depth=40, selection_type='avg')

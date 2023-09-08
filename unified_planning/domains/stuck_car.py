@@ -1,15 +1,16 @@
 import unified_planning
 from unified_planning.shortcuts import *
+from unified_planning.domains import Domain
 
 
-class Stuck_Car:
-    def __init__(self):
-        self.problem = unified_planning.model.Problem('stuck_car')
+class Stuck_Car(Domain):
+    def __init__(self, kind, deadline):
+        Domain.__init__(self, 'stuck_car', kind)
         self.user_types()
         self.objects()
         self.fluents()
         self.actions()
-        self.add_goal()
+        self.add_goal(deadline)
 
     def user_types(self):
         Car = UserType('Car')
@@ -272,45 +273,15 @@ class Stuck_Car:
 
         self.problem.add_action(push_car)
 
-    def add_goal(self):
+    def add_goal(self, deadline):
         car_out = self.problem.fluent_by_name('car_out')
 
         self.problem.add_goal(car_out)
-        deadline = Timing(delay=10, timepoint=Timepoint(TimepointKind.START))
-        self.problem.set_deadline(deadline)
-
-    def use(self, action, fluent):
-        action.add_precondition(StartPreconditionTiming(), fluent, True)
-        action.add_start_effect(fluent, False)
-        action.add_effect(fluent, True)
+        deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
+        self.problem.set_deadline(deadline_timing)
 
 
-def run_regular():
-    stuck_car = Stuck_Car()
-    grounder = unified_planning.engines.compilers.Grounder()
-    grounding_result = grounder._compile(stuck_car.problem)
-    ground_problem = grounding_result.problem
-
-    convert_problem = unified_planning.engines.Convert_problem(ground_problem)
-    converted_problem = convert_problem._converted_problem
-    mdp = unified_planning.engines.MDP(converted_problem, discount_factor=0.95)
-    up.engines.solvers.mcts.plan(mdp, steps=10, search_depth=20, exploration_constant=10, search_time=1)
 
 
-# def remove_actions(stuck_car, converted_problem):
+# run_regular(kind='regular', deadline=10, search_time=1, search_depth=20, selection_type='avg',exploration_constant=10)
 
-def run_combination(): #TODO: need to decide on the action for the combination - start effects are not optional
-    stuck_car = Stuck_Car()
-    grounder = unified_planning.engines.compilers.Grounder()
-    grounding_result = grounder._compile(stuck_car.problem)
-    ground_problem = grounding_result.problem
-
-    convert_combination_problem = unified_planning.engines.Convert_problem_combination(ground_problem)
-    converted_problem = convert_combination_problem._converted_problem
-    mdp = unified_planning.engines.combinationMDP(converted_problem, discount_factor=0.95)
-    split_mdp = unified_planning.engines.MDP(convert_combination_problem._split_problem, discount_factor=0.95)
-    up.engines.solvers.rtdp.plan(mdp, split_mdp, steps=90, search_depth=40)
-
-
-run_regular()
-# run_combination()
