@@ -636,6 +636,21 @@ class CombinationAction(Action):
         else:
             return False
 
+    def __hash__(self) -> int:
+        res = hash(self._name)
+        for ap in self._parameters.items():
+            res += hash(ap)
+        for p in self._neg_preconditions:
+            res += hash(p)
+        for p in self._pos_preconditions:
+            res += hash(p)
+        for a in self._actions:
+            res += hash(a)
+        for e in self._inExecution:
+            res += hash(e)
+
+        return res
+
     @property
     def neg_preconditions(self):
         return self._neg_preconditions
