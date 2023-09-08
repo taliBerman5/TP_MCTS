@@ -11,16 +11,23 @@ random.seed(10)
 
 
 class Base_MCTS:
-    def __init__(self, mdp, search_depth: int,
-                 exploration_constant: float, previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+    def __init__(self, mdp: "up.engines.MDP", search_depth: int,
+                 exploration_constant: float):
         self._mdp = mdp
         self._search_depth = search_depth
         self._exploration_constant = exploration_constant
-        self._previous_chosen_action_node = previous_chosen_action_node
+        self._root_node = None
 
     @property
     def mdp(self):
         return self._mdp
+
+    @property
+    def root_node(self):
+        return self._root_node
+
+    def root_state(self):
+        return self.root_node.state
 
     @property
     def search_depth(self):
@@ -30,9 +37,8 @@ class Base_MCTS:
     def exploration_constant(self):
         return self._exploration_constant
 
-    @property
-    def previous_chosen_action_node(self):
-        return self._previous_chosen_action_node
+    def set_root_node(self, root_node):
+        self._root_node = root_node
 
     def default_policy(self, state: "up.engines.State"):
         """ Choose a random action. Heustics can be used here to improve simulations. """
@@ -71,9 +77,30 @@ class Base_MCTS:
                 aStart_value = anodes[action].value
                 aStar = action
 
+        if aStar == -1:
+            print(4)
+
         return aStar
 
+    def search(self, timeout=1, selection_type='avg'):
+        """
+        Execute the MCTS algorithm from the initial state given, with timeout in seconds
+        """
+        start_time = time.time()
+        current_time = time.time()
+        i = 0
+        selection = self.selection if selection_type == 'avg' else self.selection_max
+        while current_time < start_time + timeout:
+            selection(self.root_node)
+            current_time = time.time()
+            i += 1
+        print(f'i = {i}')
+        return self.best_action(self.root_node)
+
     def selection(self, snode: "up.engines.Snode"):
+        raise NotImplementedError
+
+    def selection_max(self, snode: "up.engines.Snode"):
         raise NotImplementedError
 
     def simulate(self, state, depth):
@@ -81,41 +108,33 @@ class Base_MCTS:
 
 
 class MCTS(Base_MCTS):
-    def __init__(self, mdp, root_node: "up.engines.SNode", root_state: "up.engines.state.State", search_depth: int,
-                 exploration_constant: float, previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
-        super().__init__(mdp, search_depth, exploration_constant, previous_chosen_action_node)
-        self._root_node = root_node if root_node is not None else self.create_Snode(root_state, 0,
-                                                                                    previous_chosen_action_node=previous_chosen_action_node)
-
-    @property
-    def root_node(self):
-        return self._root_node
-
-    def root_state(self):
-        return self.root_node.state
+    def __init__(self, mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", root_node: "up.engines.SNode",
+                 root_state: "up.engines.state.State", search_depth: int,
+                 exploration_constant: float):
+        super().__init__(mdp, search_depth, exploration_constant)
+        self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0))
+        self.split_mdp = split_mdp
 
     def create_Snode(self, state: "up.engines.State", depth: int,
-                     parent: "up.engines.ANode" = None, previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+                     parent: "up.engines.ANode" = None):
         """ Create a new Snode for the state `state` with parent `parent`"""
-        return up.engines.SNode(state, depth, self.mdp.legal_actions(state), parent, previous_chosen_action_node)
+        return up.engines.SNode(state, depth, self.mdp.legal_actions(state), parent)
 
-    def search(self, timeout=1):
-        """
-        Execute the MCTS algorithm from the initial state given, with timeout in seconds
-        """
-        start_time = time.time()
-        current_time = time.time()
-        i = 0
-        while current_time < start_time + timeout:
-            self.selection(self.root_node)
-            current_time = time.time()
-            i += 1
-        print(f'i = {i}')
-        return self.best_action(self.root_node)
+    def heuristic(self, state: "up.engines.State"):
+        current_time = 0
+        end_times = {}
+        if isinstance(state, up.engines.CombinationState):
+            current_time = state.current_time
+        h = up.engines.heuristics.TRPG(self.split_mdp, state, current_time, end_times)
+        return h.get_heuristic()
 
     def selection(self, snode: "up.engines.Snode"):
+        if len(snode.possible_actions) == 0:
+            # Stop when there are no possible actions to take so the plan remains consistent
+            return -100
+
         if snode.depth > self.search_depth:
-            return 0
+            return self.heuristic(snode.state)
 
         explore_constant = self.exploration_constant
 
@@ -129,14 +148,44 @@ class MCTS(Base_MCTS):
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
             else:
-                reward += self.mdp.discount_factor * self.simulate(next_state, snode.depth)
                 next_snode = self.create_Snode(next_state, snode.depth + 1, anode)
+                reward += self.mdp.discount_factor * self.heuristic(next_state)
                 anode.add_child(next_snode)
 
         snode.update(reward)
         anode.update(reward)
 
         return reward
+
+    def selection_max(self, snode: "up.engines.Snode"):
+        if len(snode.possible_actions) == 0:
+            # Stop when there are no possible actions to take so the plan remains consistent
+            return -math.inf
+
+        if snode.depth > self.search_depth:
+            # Stop if the search depth is reached
+            return self.heuristic(snode.state)
+        explore_constant = self.exploration_constant
+
+        # Choose a consistent action
+        action = self.uct(snode, explore_constant)
+        terminal, next_state, reward = self.mdp.step(snode.state, action)
+        anode = snode.children[action]
+        if not terminal:
+            snodes = anode.children
+            if next_state in snodes:
+                reward += self.mdp.discount_factor * self.selection_max(snodes[next_state])
+
+            else:
+                next_snode = self.create_Snode(next_state, snode.depth + 1, anode)
+                reward += self.mdp.discount_factor * self.heuristic(next_state)
+                anode.add_child(next_snode)
+                next_snode.update(reward)
+
+        anode.update(reward)
+        max_v = snode.max_update()
+
+        return max_v
 
     def simulate(self, state, depth):
         """ Simulate until a terminal state """
@@ -164,17 +213,15 @@ class C_MCTS(Base_MCTS):
     def __init__(self, mdp, root_node: "up.engines.C_SNode", root_state: "up.engines.state.State", search_depth: int,
                  exploration_constant: float, stn: "up.plans.stn.STNPlan",
                  previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
-        super().__init__(mdp, search_depth, exploration_constant, previous_chosen_action_node)
-        self._root_node = root_node if root_node is not None else self.create_Snode(root_state, 0, stn,
-                                                                                    previous_chosen_action_node=previous_chosen_action_node)
+        super().__init__(mdp, search_depth, exploration_constant)
+        self._previous_chosen_action_node = previous_chosen_action_node
+        self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0, stn,
+                                                                                    previous_chosen_action_node=previous_chosen_action_node))
         self._stn = stn
 
     @property
-    def root_node(self):
-        return self._root_node
-
-    def root_state(self):
-        return self.root_node.state
+    def previous_chosen_action_node(self):
+        return self._previous_chosen_action_node
 
     @property
     def stn(self):
@@ -185,21 +232,6 @@ class C_MCTS(Base_MCTS):
                      previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
         """ Create a new Snode for the state `state` with parent `parent`"""
         return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent, previous_chosen_action_node)
-
-    def search(self, timeout=1):
-        """
-        Execute the MCTS algorithm from the initial state given, with timeout in seconds
-        """
-        start_time = time.time()
-        current_time = time.time()
-        i = 0
-        while current_time < start_time + timeout:
-            self.selection(self.root_node)
-            # self.selection_max(self.root_node)
-            current_time = time.time()
-            i += 1
-        print(f'i = {i}')
-        return self.best_action(self.root_node)
 
     def selection(self, snode: "up.engines.C_Snode"):
         if len(snode.possible_actions) == 0:
@@ -304,7 +336,7 @@ class C_MCTS(Base_MCTS):
         return cumulative_reward
 
 
-def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float, search_time: int):
+def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float, search_time: int, selection_type='avg'):
     stn = create_init_stn(mdp)
     root_state = mdp.initial_state()
 
@@ -317,7 +349,7 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
     while True:
         print(f"started step {step}")
         mcts = C_MCTS(mdp, root_node, root_state, search_depth, exploration_constant, stn, previous_action_node)
-        action = mcts.search(search_time)
+        action = mcts.search(search_time, selection_type)
 
         if action == -1:
             print("A valid plan is not found")
@@ -344,3 +376,42 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
             break
 
         step += 1
+
+
+def combination_plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float,
+                     search_time: int, split_mdp=None, selection_type='avg'):
+    root_state = mdp.initial_state()
+    history = []
+    step = 0
+    root_node = None
+
+    while root_state.current_time < mdp.deadline():
+        print(f"started step {step}")
+
+        mcts = MCTS(mdp, split_mdp, root_node, root_state, search_depth, exploration_constant)
+        action = mcts.search(search_time, selection_type)
+
+        print(f"Current state is {root_state}")
+        print(f"The chosen action is {action.name}")
+
+        terminal, root_state, reward = mcts.mdp.step(root_state, action)
+
+        history.append(action)
+        print(f'current time = {root_state.current_time}')
+
+        if terminal:
+            print(f"Current state is {root_state}")
+            print(f"The amount of time the plan took: {root_state.current_time}")
+            return 1, root_state.current_time
+
+        step += 1
+
+    return 0, -math.inf
+
+
+
+def evaluation_loop(runs, plan_func, params):
+    for i in range(runs):
+        plan_func(*params)
+
+
