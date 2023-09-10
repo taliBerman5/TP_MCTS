@@ -94,7 +94,7 @@ class Base_MCTS:
             selection(self.root_node)
             current_time = time.time()
             i += 1
-        print(f'i = {i}')
+        # print(f'i = {i}')
         return self.best_action(self.root_node)
 
     def selection(self, snode: "up.engines.Snode"):
@@ -122,10 +122,9 @@ class MCTS(Base_MCTS):
 
     def heuristic(self, state: "up.engines.State"):
         current_time = 0
-        end_times = {}
         if isinstance(state, up.engines.CombinationState):
             current_time = state.current_time
-        h = up.engines.heuristics.TRPG(self.split_mdp, state, current_time, end_times)
+        h = up.engines.heuristics.TRPG(self.split_mdp, state, current_time)
         return h.get_heuristic()
 
     def selection(self, snode: "up.engines.Snode"):
@@ -296,12 +295,9 @@ class C_MCTS(Base_MCTS):
 
     def heuristic(self, snode: "up.engines.C_SNode"):
         current_time = 0
-        end_times = {}
         if snode.parent:
             current_time = snode.parent.stn.get_current_end_time()
-            # end_actions = list(snode.parent.stn._potential_end_actions.keys())
-            # end_times = {node.action_instance.action: snode.parent.stn.get_current_time(node) for node in end_actions}
-        h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time, end_times)
+        h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time)
         return h.get_heuristic()
 
     def simulate(self, state, depth):
@@ -336,7 +332,7 @@ class C_MCTS(Base_MCTS):
         return cumulative_reward
 
 
-def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float, search_time: int, selection_type='avg'):
+def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int, exploration_constant: float, selection_type='avg'):
     stn = create_init_stn(mdp)
     root_state = mdp.initial_state()
 
@@ -345,18 +341,18 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
     previous_action_node = None
     step = 0
     root_node = None
-    # for i in range(steps):
-    while True:
+
+    while stn.get_current_end_time() <= mdp.deadline():
         print(f"started step {step}")
         mcts = C_MCTS(mdp, root_node, root_state, search_depth, exploration_constant, stn, previous_action_node)
         action = mcts.search(search_time, selection_type)
 
         if action == -1:
             print("A valid plan is not found")
-            break
+            return 0, -math.inf
 
-        print(f"Current state is {root_state}")
-        print(f"The chosen action is {action.name}")
+        # print(f"Current state is {root_state}")
+        # print(f"The chosen action is {action.name}")
 
         terminal, root_state, reward = mcts.mdp.step(root_state, action)
 
@@ -364,28 +360,32 @@ def plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_const
             root_node = mcts.root_node.children[action].children[root_state]
             root_node.set_depth(0)
 
-        # previous_STNNode = history[-1] if history else None
+        # update STN to include the action
         previous_action_node = update_stn(stn, action, previous_action_node)
-        print(f"The time of the plan so far: {stn.get_current_end_time()}")
-        history.append(previous_action_node)
         assert stn.is_consistent
+
+        # print(f"The time of the plan so far: {stn.get_current_end_time()}")
+        history.append(previous_action_node)
 
         if terminal:
             print(f"Current state is {root_state}")
             print(f"The amount of time the plan took: {stn.get_current_end_time()}")
-            break
+            return 1, stn.get_current_end_time()
 
         step += 1
 
+    print("A valid plan is not found")
+    return 0, -math.inf
 
-def combination_plan(mdp: "up.engines.MDP", steps: int, search_depth: int, exploration_constant: float,
-                     search_time: int, split_mdp=None, selection_type='avg'):
+
+def combination_plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int, exploration_constant: float,
+                     selection_type='avg'):
     root_state = mdp.initial_state()
     history = []
     step = 0
     root_node = None
 
-    while root_state.current_time < mdp.deadline():
+    while root_state.current_time <= mdp.deadline():
         print(f"started step {step}")
 
         mcts = MCTS(mdp, split_mdp, root_node, root_state, search_depth, exploration_constant)
@@ -410,8 +410,5 @@ def combination_plan(mdp: "up.engines.MDP", steps: int, search_depth: int, explo
 
 
 
-def evaluation_loop(runs, plan_func, params):
-    for i in range(runs):
-        plan_func(*params)
 
 

@@ -94,7 +94,7 @@ class RTDP:
         return h.get_heuristic()
 
 
-def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_depth: int):
+def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int):
     root_state = mdp.initial_state()
 
     step = 0
@@ -103,12 +103,12 @@ def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_
 
     while root_state.current_time < mdp.deadline():
         print(f"started step {step}")
-        action = rtdp.search(100)
+        action = rtdp.search(search_time)
+
+        print(f"Current state is {root_state}")
+        print(f"The chosen action is {action.name}")
 
         terminal, root_state, reward = mdp.step(root_state, action)
-
-        print(f"The chosen action is {action.name}")
-        print(f"Current state is {root_state}")
 
         rtdp.update_root(root_state)
         print(f'current time = {root_state.current_time}')
@@ -117,9 +117,10 @@ def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_
 
         if terminal:
             print(f"Current state is {root_state}")
-            break
+            return 1, root_state.current_time
 
         step += 1
 
-    if root_state.current_time > mdp.deadline():
-        print("a valid plan is not found")
+    print("a valid plan is not found")
+    return 0, -math.inf
+
