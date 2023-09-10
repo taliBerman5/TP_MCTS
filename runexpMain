@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+DIR="unified_planning"               # Domain directory
+LOG=/dev/stdout             # Log file output
+REWIND=false
+NUMRUN=10
+SC_DEADLINE=10
+MS_DEADLINE=27
+NR_DEADLINE=20
+
+
+STUCKCAR="-l stuck_car.log run_domain.py --domain stuck_car"
+MACHINESHOP="-l machine_shop.log run_domain.py --domain machine_shop"
+NASAROVER="-l nasa_rover.log run_domain.py --domain nasa_rover"
+
+set -e
+
+
+for d in 20 50 90
+do
+  for t in 1 10 20 60
+  do
+    echo "started depth $d and search_time time $t:"
+
+    echo "Started Stuck Car"
+    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type avg
+#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max
+#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type avg --baseline
+#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --baseline
+#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --baseline
+#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --baseline
+#
+#    echo "Started Machine Shop"
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --baseline
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --baseline
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --baseline
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --baseline
+#
+#    echo "Started Nasa Rover"
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --baseline
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --baseline
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --baseline
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --baseline
+  done
+done
+
+
+
+
+
+
+
+

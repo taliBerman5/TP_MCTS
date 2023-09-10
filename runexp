@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+DIR="unified_planning"               # Domain directory
+LOG=/dev/stdout             # Log file output
+REWIND=false
+
+
+while getopts 'd:l:r' OPTION; do
+	case $OPTION in
+	d)
+		DIR=$OPTARG
+		;;
+	r)
+		REWIND=true
+		;;
+	l)
+		LOG=$OPTARG
+		;;
+
+    ?)
+		echo "Usage: $(basename $0) [-d DIR] [-r] experiment command line ..."
+		;;
+	esac
+done
+
+shift $((OPTIND-1))
+
+
+if [ \! -e $LOG ]; then
+    # If the log file does not exist, initialize with a header
+	echo "model,solver,domain_type,selection_type,search_time,depth,runs,deadline,exploration_constant,success,stmean,ststd" > $LOG
+fi
+
+PYTHONUNBUFFERED=1
+#set -x  # Enable debugging mode
+
+
+python3 $DIR/$@ | awk \
+'/^Model/ {model=$3}
+ /^Solver/ {solver=$3}
+ /^Selection Type/ {selection_type=$4}
+ /^Exploration Constant/ {exploration_constant=$4}
+ /^Search time/ {search_time=$4}
+ /^Search depth/ {depth=$4}
+ /^Deadline/ {deadline=$3}
+ /^Domain Type/ {domain_type=$3}
+ /^Completed/ {runs=$3}
+ /^Amount of success/ {success=$5}
+ /^Average success time/ {stmean=$5}
+ /^STD success time/ {ststd=$5}
+ END {printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+             model,solver,domain_type,selection_type,search_time,depth,runs,deadline,exploration_constant,success,stmean,ststd}
+' >> $LOG
