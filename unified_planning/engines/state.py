@@ -110,6 +110,10 @@ class QueueNode:
         res += hash(self.duration_left)
         return res
 
+    def __eq__(self, other):
+        if isinstance(other, QueueNode):
+            return self.action == other.action and self.duration_left == other.duration_left
+        return False
     def __repr__(self):
         s = []
         s.append(f'({self.action.name},{str(self.duration_left)})')
