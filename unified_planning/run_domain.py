@@ -13,7 +13,7 @@ import unified_planning as up
 from unified_planning.shortcuts import *
 import unified_planning.domains
 
-domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car, strips=up.domains.Strips)
+domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car, strips=up.domains.Strips, strips_prob=up.domains.Strips_Prob)
 
 def print_stats():
     print(f'Model = {up.args.domain}')
@@ -69,7 +69,7 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
 
 if up.args.domain_type == 'combination':
     run_combination(domain=up.args.domain, runs=up.args.runs, solver=up.args.solver, deadline=up.args.deadline, search_time=up.args.search_time,
-                    search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant)
+                    search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant, selection_type=up.args.selection_type)
 else:
     run_regular(domain=up.args.domain, domain_type=up.args.domain_type, runs=up.args.runs, deadline=up.args.deadline, search_time=up.args.search_time,
                 search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
