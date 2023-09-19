@@ -19,10 +19,9 @@ class TRPG:
     def get_heuristic(self):
 
         t = self.current_time
-        r = 0
         earliest = self.init_actions()
 
-        while t < self.deadline and not self.mdp.problem.goals.issubset(self.positive):
+        while t <= self.deadline and not self.mdp.problem.goals.issubset(self.positive):
             negative_eps = set(self.negative)
             positive_eps = set(self.positive)
 
@@ -34,7 +33,6 @@ class TRPG:
                     else:
                         perform = False
                 if perform:
-                    r += -0.1
                     self.add_probabilistic_effects(action, negative_eps, positive_eps)
 
 
@@ -51,7 +49,6 @@ class TRPG:
                 if not legal:
                     continue
 
-                r += -0.1
 
                 # Sets the time when the end action can be executed
                 if isinstance(action, up.engines.InstantaneousStartAction):
@@ -81,7 +78,7 @@ class TRPG:
                 else:
                     t = math.inf
 
-        return -t + r + 10 if t < self.deadline else -self.deadline - 10 + r
+        return -t + 10 if t <= self.deadline else -self.deadline - 10
 
     def add_probabilistic_effects(self, action, negative_eps, positive_eps):
         state = up.engines.State(positive_eps)
