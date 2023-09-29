@@ -157,7 +157,15 @@ class Convert_problem:
                         self._adding_precondition_mutex_actions(action, potential_action)
                         mutex.append(potential_action.name)
                     if self._check_soft_mutex(action, potential_action):
-                        self._adding_soft_mutex_actions(action, potential_action)
+                        self._adding_precondition_soft_mutex_actions(action, potential_action)
+
+                        if isinstance(potential_action, up.model.DurativeAction):
+                            if action.duration_int() > potential_action.duration_int():
+                                self._adding_precondition_mutex_actions(potential_action, action)
+                                print(f'****************action {potential_action.name} is mutex with: {action.name}')
+                        # self._adding_time_mutex_actions(action, potential_action)
+
+
                         soft.append(potential_action.name)
 
                 print(f'action {action.name} is mutex with: {mutex}')
@@ -316,17 +324,50 @@ class Convert_problem:
             conflicting_action = self._converted_problem.action_by_name(conflicting_action.name)
             conflicting_action.add_precondition(self._inExecution(start_action_object), False)
 
-    def _adding_soft_mutex_actions(self, action, conflicting_action):
+    def _adding_precondition_soft_mutex_actions(self, action, conflicting_action):
         """
         Adding to the `conflicting_action` a precondition that they would not be executed in parallel.
 
          A precondition inExecution(start_action) is added to the conflicting action
 
         :param action:
-        :param conflicting_action: The action is mutexed to `action`
+        :param conflicting_action: The action is soft mutexed to `action`
         """
 
         start_action_object = self._converted_problem.object_by_name('start-' + action.name)
 
         end_conflicting_action = self._converted_problem.action_by_name("end_" + conflicting_action.name)
         end_conflicting_action.add_precondition(self._inExecution(start_action_object), False)
+
+
+    def _adding_time_mutex_actions(self, action, conflicting_action):
+        """
+
+        If the `action` is soft mutex with `conflicting_action` but the duration of `action` is longer
+        'action' have to end before 'conflicting_action'.
+        If `action` has longer duration than `conflicting_action` it could not start before it either.
+
+        Example:
+        - action `a` has a duration of 2
+        - action `b` has duration of 1
+
+        action `a` is soft mutex with action `b` (action `a` must end before action `b` in a parallel execution)
+        if action `b` is already in execution, if we start action `a` it will have to finish before action `b`
+        If action `b` started before action `a` and `b` is shorter action `b` will need to fhinish before `a`
+        CONTRADICTION!
+
+        :param action:
+        :param conflicting_action:
+        :return:
+        """
+
+        if isinstance(conflicting_action, up.model.DurativeAction):
+            if action.duration_int() > conflicting_action.duration_int():
+
+                start_conflicting_action_object = self._converted_problem.object_by_name('start-' + conflicting_action.name)
+
+                start_action = self._converted_problem.action_by_name("start_" + action.name)
+                start_action.add_precondition(self._inExecution(start_conflicting_action_object), False)
+
+
+
