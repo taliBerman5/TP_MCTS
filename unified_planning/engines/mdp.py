@@ -83,7 +83,7 @@ class MDP:
 
         # common = len(self.problem.goals.intersection(state.predicates))
         # reward = 100 if terminal else 2 ** (common - len(self.problem.goals))
-        reward = 10 if terminal else -0.1
+        reward = 10 if terminal else -1
 
         return terminal, next_state, reward
 
@@ -145,7 +145,7 @@ class combinationMDP(MDP):
         :param state: checked state
         :return: True is the `state` is a terminal state, False otherwise
         """
-        return super().is_terminal(state) and not state.is_active_actions
+        return super().is_terminal(state) #and not state.is_active_actions  TODO: decide if we allow or not active actions
 
     def step(self, state: "up.engines.CombinationState", action: "up.engines.action.Action"):
         """
@@ -201,7 +201,7 @@ class combinationMDP(MDP):
 
         # common = len(self.problem.goals.intersection(state.predicates))
         # reward = 100 if terminal else 2 ** (common - len(self.problem.goals))
-        reward = 1 if terminal else 0
+        reward = 10 if terminal else -1
 
         return terminal, next_state, reward
 
@@ -209,6 +209,7 @@ class combinationMDP(MDP):
 
         new_preds_init = set(state.predicates)
         new_active_actions = state.active_actions.clone()
+        current_time = state.current_time
 
         if isinstance(action, up.engines.InstantaneousAction):
             new_preds_init |= action.add_effects
@@ -235,6 +236,7 @@ class combinationMDP(MDP):
 
             if delta != -1:
                 new_active_actions.update_delta(delta)
+                current_time += delta
 
         probs = self.all_probabilistic_effects(state, actions_to_perform)
         transition = []
@@ -242,7 +244,7 @@ class combinationMDP(MDP):
             new_preds = new_preds_init.copy()
             new_preds |= prob['add']
             new_preds -= prob['delete']
-            next_state = up.engines.CombinationState(new_preds, new_active_actions)
+            next_state = up.engines.CombinationState(new_preds, new_active_actions, current_time)
             transition.append((next_state, prob['probability']))
 
         return transition
