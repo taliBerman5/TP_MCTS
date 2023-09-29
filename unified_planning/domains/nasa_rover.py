@@ -4,7 +4,7 @@ from unified_planning.shortcuts import *
 
 
 class Nasa_Rover(Domain):
-    def __init__(self, kind, deadline):
+    def __init__(self, kind, deadline, garbage_amount=None):
         Domain.__init__(self, 'nasa_rover', kind)
         self.user_types()
         self.objects()

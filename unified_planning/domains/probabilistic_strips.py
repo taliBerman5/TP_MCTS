@@ -4,8 +4,9 @@ from unified_planning.shortcuts import *
 
 
 class Strips_Prob(Domain):
-    def __init__(self, kind, deadline):
+    def __init__(self, kind, deadline, garbage_amount):
         Domain.__init__(self, 'strips_prob', kind)
+        self.garbage_amount = garbage_amount
         self.userTypes = None
         self.user_types()
         self.objects()
@@ -95,11 +96,11 @@ class Strips_Prob(Domain):
         self.problem.add_action(one)
 
 
-    def garbage_actions(self):
+    def garbage_actions(self, ):
         got = self.problem.fluent_by_name('got')
         e = self.problem.object_by_name('e')
 
-        for i in range(20):
+        for i in range(self.garbage_amount):
             name = 'garbage' + str(i)
             action = unified_planning.model.action.DurativeAction(name)
             action.set_fixed_duration(1)

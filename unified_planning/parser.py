@@ -10,5 +10,6 @@ parser.add_argument('-dt', '--domain_type', help='combination, new approach or n
 parser.add_argument('-s', '--solver', help='solver', nargs='?', default='mcts')
 parser.add_argument('-do', '--domain', help='domain')
 parser.add_argument('-e', '--exploration_constant', help='the exploration constant for mcts solver', nargs='?', default=10, type=int)
+parser.add_argument('-ge', '--garbage_amount', help='how many garbage actions to add to the domain', nargs='?', default=10, type=int)
 
 args = parser.parse_args()

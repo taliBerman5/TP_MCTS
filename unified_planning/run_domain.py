@@ -13,7 +13,7 @@ import unified_planning as up
 from unified_planning.shortcuts import *
 import unified_planning.domains
 
-domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car, strips=up.domains.Strips, strips_prob=up.domains.Strips_Prob)
+domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car, strips=up.domains.Strips, full_strips=up.domains.Full_Strips,  strips_prob=up.domains.Strips_Prob)
 
 def print_stats():
     print(f'Model = {up.args.domain}')
@@ -24,12 +24,13 @@ def print_stats():
     print(f'Search depth = {up.args.search_depth}')
     print(f'Deadline = {up.args.deadline}')
     print(f'Domain Type = {up.args.domain_type}')
+    print(f'Garbage Action Amount = {up.args.garbage_amount}')
 
-def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, selection_type='avg'):
+def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, garbage_amount, selection_type='avg'):
     assert domain in domains
     print_stats()
 
-    model = domains[domain](kind=domain_type, deadline=deadline)
+    model = domains[domain](kind=domain_type, deadline=deadline, garbage_amount=garbage_amount)
     grounder = up.engines.compilers.Grounder()
     grounding_result = grounder._compile(model.problem)
     ground_problem = grounding_result.problem
@@ -42,11 +43,11 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
     up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.mcts.plan, params)
 
 
-def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, selection_type='avg'):
+def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, garbage_amount, selection_type='avg'):
     assert domain in domains
     print_stats()
 
-    model = domains[domain](kind='combination', deadline=deadline)
+    model = domains[domain](kind='combination', deadline=deadline, garbage_amount=garbage_amount)
     grounder = up.engines.compilers.Grounder()
     grounding_result = grounder._compile(model.problem)
     ground_problem = grounding_result.problem
@@ -69,8 +70,8 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
 
 if up.args.domain_type == 'combination':
     run_combination(domain=up.args.domain, runs=up.args.runs, solver=up.args.solver, deadline=up.args.deadline, search_time=up.args.search_time,
-                    search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant, selection_type=up.args.selection_type)
+                    search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant, selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
 else:
     run_regular(domain=up.args.domain, domain_type=up.args.domain_type, runs=up.args.runs, deadline=up.args.deadline, search_time=up.args.search_time,
                 search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
-                selection_type=up.args.selection_type)
+                selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
