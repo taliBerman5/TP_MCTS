@@ -110,15 +110,35 @@ class Base_MCTS:
 class MCTS(Base_MCTS):
     def __init__(self, mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", root_node: "up.engines.SNode",
                  root_state: "up.engines.state.State", search_depth: int,
-                 exploration_constant: float):
+                 exploration_constant: float, selection_type):
         super().__init__(mdp, search_depth, exploration_constant)
-        self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0))
+        create_snode = self.create_Snode_max if selection_type == 'max' else self.create_Snode
+        snode, _ = create_snode(root_state, 0)
+        self.set_root_node(root_node if root_node is not None else snode)
+        # self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0))
         self.split_mdp = split_mdp
 
     def create_Snode(self, state: "up.engines.State", depth: int,
                      parent: "up.engines.ANode" = None):
         """ Create a new Snode for the state `state` with parent `parent`"""
-        return up.engines.SNode(state, depth, self.mdp.legal_actions(state), parent)
+        return up.engines.SNode(state, depth, self.mdp.legal_actions(state), parent), None
+
+    def create_Snode_max(self, state: "up.engines.State", depth: int,
+                     parent: "up.engines.C_ANode" = None):
+        """ Create a new Snode for the state `state` with parent `parent`"""
+        snode = up.engines.SNode(state, depth, self.mdp.legal_actions(state), parent)
+        best = -math.inf
+        for action in snode.children:
+            terminal, next_state, reward = self.mdp.step(snode.state, action)
+            reward += self.mdp.discount_factor * self.heuristic(next_state)
+            snode.children[action].update(reward)
+            if reward > best:
+                best = reward
+        if best == -math.inf:
+            best = self.heuristic(state)
+
+        snode.update(best)
+        return snode, best
 
     def heuristic(self, state: "up.engines.State"):
         current_time = 0
@@ -128,7 +148,7 @@ class MCTS(Base_MCTS):
         return h.get_heuristic()
 
     def selection(self, snode: "up.engines.Snode"):
-        if len(snode.possible_actions) == 0:
+        if len(snode.possible_actions) == 0 or snode.state.current_time > self.mdp.deadline():
             # Stop when there are no possible actions to take so the plan remains consistent
             return -100
 
@@ -147,7 +167,7 @@ class MCTS(Base_MCTS):
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
             else:
-                next_snode = self.create_Snode(next_state, snode.depth + 1, anode)
+                next_snode, _ = self.create_Snode(next_state, snode.depth + 1, anode)
                 reward += self.mdp.discount_factor * self.heuristic(next_state)
                 anode.add_child(next_snode)
 
@@ -157,9 +177,9 @@ class MCTS(Base_MCTS):
         return reward
 
     def selection_max(self, snode: "up.engines.Snode"):
-        if len(snode.possible_actions) == 0:
+        if len(snode.possible_actions) == 0 or snode.state.current_time > self.mdp.deadline():
             # Stop when there are no possible actions to take so the plan remains consistent
-            return -math.inf
+            return -100
 
         if snode.depth > self.search_depth:
             # Stop if the search depth is reached
@@ -176,10 +196,9 @@ class MCTS(Base_MCTS):
                 reward += self.mdp.discount_factor * self.selection_max(snodes[next_state])
 
             else:
-                next_snode = self.create_Snode(next_state, snode.depth + 1, anode)
-                reward += self.mdp.discount_factor * self.heuristic(next_state)
+                next_snode, snode_reward = self.create_Snode_max(next_state, snode.depth + 1, anode)
+                reward += snode_reward
                 anode.add_child(next_snode)
-                next_snode.update(reward)
 
         anode.update(reward)
         max_v = snode.max_update()
@@ -210,12 +229,17 @@ class MCTS(Base_MCTS):
 
 class C_MCTS(Base_MCTS):
     def __init__(self, mdp, root_node: "up.engines.C_SNode", root_state: "up.engines.state.State", search_depth: int,
-                 exploration_constant: float, stn: "up.plans.stn.STNPlan",
+                 exploration_constant: float, stn: "up.plans.stn.STNPlan", selection_type,
                  previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
         super().__init__(mdp, search_depth, exploration_constant)
         self._previous_chosen_action_node = previous_chosen_action_node
-        self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0, stn,
-                                                                                    previous_chosen_action_node=previous_chosen_action_node))
+
+        create_snode = self.create_Snode_max if selection_type == 'max' else self.create_Snode
+        snode, _ = create_snode(root_state, 0, stn,
+                         previous_chosen_action_node=previous_chosen_action_node)
+        self.set_root_node(root_node if root_node is not None else snode)
+        # self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0, stn,
+        #                                                                              previous_chosen_action_node=previous_chosen_action_node))
         self._stn = stn
 
     @property
@@ -230,7 +254,27 @@ class C_MCTS(Base_MCTS):
                      parent: "up.engines.C_ANode" = None,
                      previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
         """ Create a new Snode for the state `state` with parent `parent`"""
-        return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent, previous_chosen_action_node)
+        return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent, previous_chosen_action_node), None
+
+
+    def create_Snode_max(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
+                     parent: "up.engines.C_ANode" = None,
+                     previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
+        """ Create a new Snode for the state `state` with parent `parent`"""
+        snode = up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent, previous_chosen_action_node)
+        best = -math.inf
+        for action in snode.children:
+            terminal, next_state, reward = self.mdp.step(snode.state, action)
+            reward += self.mdp.discount_factor * self.heuristic_init(next_state, stn)
+            snode.children[action].update(reward)
+            if reward > best:
+                best = reward
+        if best == -math.inf:
+            best = self.heuristic(snode)
+
+        snode.update(best)
+        return snode, best
+
 
     def selection(self, snode: "up.engines.C_Snode"):
         if len(snode.possible_actions) == 0:
@@ -254,7 +298,7 @@ class C_MCTS(Base_MCTS):
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
             else:
-                next_snode = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
+                next_snode, _ = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
                 reward += self.mdp.discount_factor * self.heuristic(next_snode)
                 anode.add_child(next_snode)
 
@@ -266,7 +310,7 @@ class C_MCTS(Base_MCTS):
     def selection_max(self, snode: "up.engines.C_Snode"):
         if len(snode.possible_actions) == 0:
             # Stop when there are no possible actions to take so the plan remains consistent
-            return -math.inf
+            return -100
 
         if snode.depth > self.search_depth:
             # Stop if the search depth is reached
@@ -283,10 +327,11 @@ class C_MCTS(Base_MCTS):
                 reward += self.mdp.discount_factor * self.selection_max(snodes[next_state])
 
             else:
-                next_snode = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
-                reward += self.mdp.discount_factor * self.heuristic(next_snode)
+                next_snode, snode_reward = self.create_Snode_max(next_state, snode.depth + 1, anode.stn, anode)
+                reward += snode_reward
                 anode.add_child(next_snode)
-                next_snode.update(reward)
+
+                # next_snode.update(reward)
 
         anode.update(reward)
         max_v = snode.max_update()
@@ -298,6 +343,11 @@ class C_MCTS(Base_MCTS):
         if snode.parent:
             current_time = snode.parent.stn.get_current_end_time()
         h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time)
+        return h.get_heuristic()
+
+    def heuristic_init(self, state, stn):
+        current_time = stn.get_current_end_time()
+        h = up.engines.heuristics.TRPG(self.mdp, state, current_time)
         return h.get_heuristic()
 
     def simulate(self, state, depth):
@@ -344,15 +394,15 @@ def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int,
 
     while stn.get_current_end_time() <= mdp.deadline():
         print(f"started step {step}")
-        mcts = C_MCTS(mdp, root_node, root_state, search_depth, exploration_constant, stn, previous_action_node)
+        mcts = C_MCTS(mdp, root_node, root_state, search_depth, exploration_constant, stn, selection_type, previous_action_node)
         action = mcts.search(search_time, selection_type)
 
         if action == -1:
             print("A valid plan is not found")
             return 0, -math.inf
 
-        # print(f"Current state is {root_state}")
-        # print(f"The chosen action is {action.name}")
+        print(f"Current state is {root_state}")
+        print(f"The chosen action is {action.name}")
 
         terminal, root_state, reward = mcts.mdp.step(root_state, action)
 
@@ -364,7 +414,7 @@ def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int,
         previous_action_node = update_stn(stn, action, previous_action_node)
         assert stn.is_consistent
 
-        # print(f"The time of the plan so far: {stn.get_current_end_time()}")
+        print(f"The time of the plan so far: {stn.get_current_end_time()}")
         history.append(previous_action_node)
 
         if terminal:
@@ -388,7 +438,7 @@ def combination_plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: 
     while root_state.current_time <= mdp.deadline():
         print(f"started step {step}")
 
-        mcts = MCTS(mdp, split_mdp, root_node, root_state, search_depth, exploration_constant)
+        mcts = MCTS(mdp, split_mdp, root_node, root_state, search_depth, exploration_constant, selection_type)
         action = mcts.search(search_time, selection_type)
 
         print(f"Current state is {root_state}")
