@@ -79,6 +79,15 @@ class SNode(Node):
         for action in self.possible_actions:
             self.children[action] = ANode(action, self)
 
+    def max_update(self):
+        max_v = -math.inf
+        for child in self.children.values():
+           if child.count > 0 and child.value > max_v:
+                max_v = child.value
+        self._value = max_v
+        self._count += 1
+        return max_v
+
 
 class C_SNode(Node):
     """ State node with consistency STN check """
