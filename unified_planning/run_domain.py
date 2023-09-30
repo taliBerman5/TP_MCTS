@@ -1,7 +1,8 @@
 import os
+import dill
 import sys
 
-"""For the bach script"""
+"""For the bash script"""
 # Get the current directory (where the script is located)
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,7 +14,12 @@ import unified_planning as up
 from unified_planning.shortcuts import *
 import unified_planning.domains
 
-domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car, strips=up.domains.Strips, full_strips=up.domains.Full_Strips,  strips_prob=up.domains.Strips_Prob)
+domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car,
+               strips=up.domains.Strips, full_strips=up.domains.Full_Strips, strips_prob=up.domains.Strips_Prob)
+domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_rover_domain_comb",
+                     stuck_car="stuck_car_domain_comb", strips="strips_domain_comb",
+                     full_strips="full_strips_domain_comb", strips_prob="strips_prob_domain_comb")
+
 
 def print_stats():
     print(f'Model = {up.args.domain}')
@@ -26,7 +32,9 @@ def print_stats():
     print(f'Domain Type = {up.args.domain_type}')
     print(f'Garbage Action Amount = {up.args.garbage_amount}')
 
-def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, garbage_amount, selection_type='avg'):
+
+def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, garbage_amount,
+                selection_type='avg'):
     assert domain in domains
     print_stats()
 
@@ -43,10 +51,7 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
     up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.mcts.plan, params)
 
 
-def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, garbage_amount, selection_type='avg'):
-    assert domain in domains
-    print_stats()
-
+def create_combination_domain(domain, deadline, garbage_amount):
     model = domains[domain](kind='combination', deadline=deadline, garbage_amount=garbage_amount)
     grounder = up.engines.compilers.Grounder()
     grounding_result = grounder._compile(model.problem)
@@ -56,8 +61,40 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
     converted_problem = convert_combination_problem._converted_problem
     model.remove_actions(converted_problem)
 
+    return convert_combination_problem
+
+
+def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, garbage_amount,
+                    selection_type='avg'):
+    assert domain in domains
+    print_stats()
+
+    file_name = './pickle_domains/' + domains_files[domain]
+    if domain == 'strips_prob':
+        file_name += str(garbage_amount)
+
+    file_name += '.pkl'
+    # try:
+        # Try to load the saved object
+
+
+    with open(file_name, "rb") as file:
+        convert_combination_problem = dill.load(file)
+        converted_problem = convert_combination_problem._converted_problem
+        split_problem = convert_combination_problem._split_problem
+
+    deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
+    converted_problem.set_deadline(deadline_timing)
+    split_problem.set_deadline(deadline_timing)
+
+    # except FileNotFoundError:
+    #     # If the file doesn't exist, create a new instance from scratch
+    # convert_combination_problem = create_combination_domain(domain, deadline, garbage_amount)
+    # converted_problem = convert_combination_problem._converted_problem
+    # split_problem = convert_combination_problem._split_problem
+
     mdp = combinationMDP(converted_problem, discount_factor=0.95)
-    split_mdp = MDP(convert_combination_problem._split_problem, discount_factor=0.95)
+    split_mdp = MDP(split_problem, discount_factor=0.95)
 
     if solver == 'rtdp':
         params = (mdp, split_mdp, 90, search_time, search_depth)
@@ -69,9 +106,12 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
 
 
 if up.args.domain_type == 'combination':
-    run_combination(domain=up.args.domain, runs=up.args.runs, solver=up.args.solver, deadline=up.args.deadline, search_time=up.args.search_time,
-                    search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant, selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
+    run_combination(domain=up.args.domain, runs=up.args.runs, solver=up.args.solver, deadline=up.args.deadline,
+                    search_time=up.args.search_time,
+                    search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
+                    selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
 else:
-    run_regular(domain=up.args.domain, domain_type=up.args.domain_type, runs=up.args.runs, deadline=up.args.deadline, search_time=up.args.search_time,
+    run_regular(domain=up.args.domain, domain_type=up.args.domain_type, runs=up.args.runs, deadline=up.args.deadline,
+                search_time=up.args.search_time,
                 search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
                 selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
