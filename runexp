@@ -35,7 +35,7 @@ PYTHONUNBUFFERED=1
 #set -x  # Enable debugging mode
 
 
-python3 $DIR/$@ | awk \
+/usr/bin/python3.10 $DIR/$@ | awk \
 '/^Model/ {model=$3}
  /^Solver/ {solver=$3}
  /^Selection Type/ {selection_type=$4}
@@ -43,7 +43,7 @@ python3 $DIR/$@ | awk \
  /^Search time/ {search_time=$4}
  /^Search depth/ {depth=$4}
  /^Deadline/ {deadline=$3}
- /^Domain Type/ {domain_type=$3}
+ /^Domain Type/ {domain_type=$4}
  /^Garbage Action Amount/ {garbage_amount=$5}
  /^Completed/ {runs=$3}
  /^Amount of success/ {success=$5}
