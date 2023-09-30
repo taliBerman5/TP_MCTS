@@ -112,11 +112,12 @@ class MCTS(Base_MCTS):
                  root_state: "up.engines.state.State", search_depth: int,
                  exploration_constant: float, selection_type):
         super().__init__(mdp, search_depth, exploration_constant)
+        self.split_mdp = split_mdp
         create_snode = self.create_Snode_max if selection_type == 'max' else self.create_Snode
         snode, _ = create_snode(root_state, 0)
         self.set_root_node(root_node if root_node is not None else snode)
         # self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0))
-        self.split_mdp = split_mdp
+
 
     def create_Snode(self, state: "up.engines.State", depth: int,
                      parent: "up.engines.ANode" = None):
@@ -435,7 +436,7 @@ def combination_plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: 
     step = 0
     root_node = None
 
-    while root_state.current_time <= mdp.deadline():
+    while root_state.current_time < mdp.deadline():
         print(f"started step {step}")
 
         mcts = MCTS(mdp, split_mdp, root_node, root_state, search_depth, exploration_constant, selection_type)
