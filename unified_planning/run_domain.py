@@ -71,7 +71,7 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
 
     file_name = './pickle_domains/' + domains_files[domain]
     if domain == 'strips_prob':
-        file_name += str(garbage_amount)
+        file_name += "_" + str(garbage_amount)
 
     file_name += '.pkl'
     # try:
