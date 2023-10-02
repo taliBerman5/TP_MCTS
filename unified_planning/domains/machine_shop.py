@@ -120,7 +120,9 @@ class Machine_Shop(Domain):
             piece_param = actual_params.get(piece)
             p = 0.9
 
-            return {p: {shaped(piece_param): True, painted(piece_param): False, smooth(piece_param): False}, 1 - p: {}}
+            # return {p: {shaped(piece_param): True, painted(piece_param): False, smooth(piece_param): False}, 1 - p: {}}
+            return {p: {shaped(piece_param): True}, 1 - p: {}}
+            # TODO: changed to be not probabilistic effect
 
         return lathe_probability
 
@@ -231,7 +233,10 @@ class Machine_Shop(Domain):
         if self.kind == 'regular':
             lathe.add_precondition(OverallPreconditionTiming(), at(piece, machine), True)
 
-        lathe.add_probabilistic_effect([shaped(piece), painted(piece), smooth(piece)], self.lathe_prob(piece))
+        lathe.add_effect(painted(piece), False)  # TODO: changed to be not probabilistic effect
+        lathe.add_effect(smooth(piece), False)   # TODO: changed to be not probabilistic effect
+        # lathe.add_probabilistic_effect([shaped(piece), painted(piece), smooth(piece)], self.lathe_prob(piece))
+        lathe.add_probabilistic_effect([shaped(piece)], self.lathe_prob(piece))
         self.problem.add_action(lathe)
 
     def grind_action(self):
