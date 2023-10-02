@@ -5,6 +5,8 @@ from unified_planning.domains.stuck_car import Stuck_Car
 from unified_planning.domains.strips import Strips
 from unified_planning.domains.probabilistic_strips import Strips_Prob
 from unified_planning.domains.full_strips import Full_Strips
+from unified_planning.domains.best_no_parallel import Best_No_Parallel
+from unified_planning.domains.simple import Simple
 
 
 __all__ = [
@@ -15,4 +17,6 @@ __all__ = [
     "Strips",
     "Strips_Prob",
     "Full_Strips",
+    "Best_No_Parallel",
+    "Simple",
     ]

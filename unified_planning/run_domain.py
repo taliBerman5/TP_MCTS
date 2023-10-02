@@ -15,7 +15,8 @@ from unified_planning.shortcuts import *
 import unified_planning.domains
 
 domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car,
-               strips=up.domains.Strips, full_strips=up.domains.Full_Strips, strips_prob=up.domains.Strips_Prob)
+               strips=up.domains.Strips, full_strips=up.domains.Full_Strips, strips_prob=up.domains.Strips_Prob,
+               best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple)
 domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_rover_domain_comb",
                      stuck_car="stuck_car_domain_comb", strips="strips_domain_comb",
                      full_strips="full_strips_domain_comb", strips_prob="strips_prob_domain_comb")
