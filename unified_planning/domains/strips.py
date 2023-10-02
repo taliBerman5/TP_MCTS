@@ -150,6 +150,7 @@ class Strips(Domain):
         one5 = unified_planning.model.action.DurativeAction('one5')
         one5.set_fixed_duration(1)
 
+        one5.add_precondition(StartPreconditionTiming(), got(b), True)
         one5.add_precondition(StartPreconditionTiming(), got(h), True)
         one5.add_precondition(StartPreconditionTiming(), got(f), True)
 
