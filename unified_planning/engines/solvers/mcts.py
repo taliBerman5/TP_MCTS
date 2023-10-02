@@ -266,7 +266,7 @@ class C_MCTS(Base_MCTS):
         best = -math.inf
         for action in snode.children:
             terminal, next_state, reward = self.mdp.step(snode.state, action)
-            reward += self.mdp.discount_factor * self.heuristic_init(next_state, stn)
+            reward += self.mdp.discount_factor * self.heuristic_init(next_state,  snode.children[action].stn)
             snode.children[action].update(reward)
             if reward > best:
                 best = reward
@@ -302,6 +302,7 @@ class C_MCTS(Base_MCTS):
                 next_snode, _ = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
                 reward += self.mdp.discount_factor * self.heuristic(next_snode)
                 anode.add_child(next_snode)
+                next_snode.update(reward)
 
         snode.update(reward)
         anode.update(reward)
