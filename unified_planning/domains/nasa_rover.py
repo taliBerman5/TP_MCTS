@@ -293,7 +293,8 @@ class Nasa_Rover(Domain):
         turn_on_dropping.set_fixed_duration(1)
         store = turn_on_dropping.parameter('store')
 
-        if self.kind == 'regular_as_baseline':
+        # if self.kind == 'regular_as_baseline':
+        if self.kind in ['regular', 'regular_as_baseline']:
             self.use(turn_on_dropping, free_s(store))
 
         turn_on_dropping.add_effect(ready_to_drop(store), True)
