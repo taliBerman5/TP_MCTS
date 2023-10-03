@@ -19,7 +19,8 @@ domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_
                best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple)
 domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_rover_domain_comb",
                      stuck_car="stuck_car_domain_comb", strips="strips_domain_comb",
-                     full_strips="full_strips_domain_comb", strips_prob="strips_prob_domain_comb")
+                     full_strips="full_strips_domain_comb", strips_prob="strips_prob_domain_comb",
+                     simple="simple_domain_comb")
 
 
 def print_stats():
@@ -75,24 +76,23 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
         file_name += "_" + str(garbage_amount)
 
     file_name += '.pkl'
-    # try:
-        # Try to load the saved object
+    try:
+    # Try to load the saved object
 
+        with open(file_name, "rb") as file:
+            convert_combination_problem = dill.load(file)
+            converted_problem = convert_combination_problem._converted_problem
+            split_problem = convert_combination_problem._split_problem
 
-    with open(file_name, "rb") as file:
-        convert_combination_problem = dill.load(file)
+        deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
+        converted_problem.set_deadline(deadline_timing)
+        split_problem.set_deadline(deadline_timing)
+
+    except FileNotFoundError:
+        # If the file doesn't exist, create a new instance from scratch
+        convert_combination_problem = create_combination_domain(domain, deadline, garbage_amount)
         converted_problem = convert_combination_problem._converted_problem
         split_problem = convert_combination_problem._split_problem
-
-    deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
-    converted_problem.set_deadline(deadline_timing)
-    split_problem.set_deadline(deadline_timing)
-
-    # except FileNotFoundError:
-    #     # If the file doesn't exist, create a new instance from scratch
-    # convert_combination_problem = create_combination_domain(domain, deadline, garbage_amount)
-    # converted_problem = convert_combination_problem._converted_problem
-    # split_problem = convert_combination_problem._split_problem
 
     mdp = combinationMDP(converted_problem, discount_factor=0.95)
     split_mdp = MDP(split_problem, discount_factor=0.95)
