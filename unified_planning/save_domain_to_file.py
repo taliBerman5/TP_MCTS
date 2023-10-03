@@ -26,4 +26,9 @@ create_save_model("../pickle_domains/full_strips_domain_comb.pkl", up.domains.Fu
 
 for g in range(11):
     strips_prob = up.domains.Strips_Prob
-    create_save_model(f"strips_prob_domain_comb_{g}.pkl", strips_prob, garbage_amount=g)
+    create_save_model(f"../pickle_domains/strips_prob_domain_comb_{g}.pkl", strips_prob, garbage_amount=g)
+
+
+for g in range(5, 30):
+    simple = up.domains.Simple
+    create_save_model(f"../pickle_domains/simple_domain_comb_{g}.pkl", simple, garbage_amount=g)
