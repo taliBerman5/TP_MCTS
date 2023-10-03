@@ -7,9 +7,9 @@ NUMRUN=10
 SC_DEADLINE=15
 MS_DEADLINE=27
 NR_DEADLINE=20
-S_DEADLINE=9
-#S_DEADLINE=10
-
+S_DEADLINE=15
+RS_DEADLINE=15
+SI_DEADLINE=50
 
 STUCKCAR="-l log/stuck_car.log run_domain.py --domain stuck_car"
 MACHINESHOP="-l log/machine_shop.log run_domain.py --domain machine_shop"
@@ -17,15 +17,16 @@ NASAROVER="-l log/nasa_rover.log run_domain.py --domain nasa_rover"
 STRIPS="-l log/strips.log run_domain.py --domain strips"
 FULLSTRIPS="-l log/full_strips.log run_domain.py --domain full_strips"
 STRIPSPROB="-l log/strips_prob.log run_domain.py --domain strips_prob"
+SIMPLE="-l log/simple.log run_domain.py --domain simple"
 
 set -e
 
 
 #bash runexp "-l save_domain.log save_domain_to_file.py"
 
-for t in 1 10 20 60
+for t in 1 10 20
 do
-  for d in 20 50 90
+  for d in 30
   do
     echo "started depth $d and search_time time $t:"
 
@@ -52,11 +53,11 @@ do
 
 
     echo "Started Strips"
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
+    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
+    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
+    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max --domain_type combination
+    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --solver rtdp --domain_type combination
 
     echo "Started Full Strips"
     bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg
@@ -75,6 +76,16 @@ do
       bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
       bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
       bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+    done
+
+
+    echo "Started Simple"
+    for ((g = 5; g <= 18; g += 1))
+    do
+      echo "started garbage $g"
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
   done
