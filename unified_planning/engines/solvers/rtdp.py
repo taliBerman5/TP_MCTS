@@ -12,7 +12,7 @@ class RTDP:
         self._mdp = mdp
         self._root_state = root_state
         self._search_depth = search_depth
-        self.V = {}
+        self.Q = {}
         self.current_time = 0
         self.split_mdp = split_mdp
 
@@ -38,7 +38,7 @@ class RTDP:
             self.trial(timeout, start_time)
             current_time = time.time()
 
-        best_action, _ = self.evaluate(self.root_state)
+        best_action, _ = self.best_action(self.root_state)
         return best_action
 
     def trial(self, timeout, start_time):
@@ -48,9 +48,9 @@ class RTDP:
         terminal = False
         depth = 0
         while state.current_time < self.mdp.deadline() and (not terminal) and (depth < self.search_depth):  # TODO: add another stopping criteria (number of steps or time)
-            action, action_value = self.evaluate(state)
-            self.V[state] = action_value
-            terminal, state, reward = self.mdp.step(state, action)
+            best_action, best_action_value = self.evaluate(state, timeout, start_time)
+
+            terminal, state, reward = self.mdp.step(state, best_action)
             depth += 1
 
             current_time = time.time()
@@ -64,8 +64,8 @@ class RTDP:
         trans = self.mdp.transition_function(state, action)
         nextV = 0
         for state, prob in trans:
-            if state in self.V:
-                value = self.V[state]
+            if state in self.Q:
+                value = max(list(self.Q[state].values()))
             else:
                 value = self.heuristic(state)
             nextV += prob * value
@@ -73,18 +73,43 @@ class RTDP:
         Q_s_a = reward + self.mdp.discount_factor * nextV   # TODO: multiply be sum of probability function multiply by V or H
         return Q_s_a
 
-    def evaluate(self, state: "up.engines.State"):
+    def evaluate(self, state: "up.engines.State", timeout, start_time):
         best_a = []
         best_value = -math.inf
+        if state not in self.Q:
+            self.Q[state] = {}
+
         for action in self.mdp.legal_actions(state):
             Q_s_a = self.eval_action(state, action)
+            self.Q[state][action] = Q_s_a
             if Q_s_a > best_value:
                 best_a = [action]
                 best_value = Q_s_a
             elif Q_s_a == best_value:
                 best_a.append(action)
+
+            current_time = time.time()
+            if current_time > start_time + timeout:
+                break
+
         best_a = random.choice(best_a)
         return best_a, best_value
+
+    def best_action(self, state: "up.engines.State"):
+        best_a = []
+        best_value = -math.inf
+
+        for action in self.Q[state]:
+            Q_s_a = self.Q[state][action]
+            if Q_s_a > best_value:
+                best_a = [action]
+                best_value = Q_s_a
+            elif Q_s_a == best_value:
+                best_a.append(action)
+
+        best_a = random.choice(best_a)
+        return best_a, best_value
+
 
     def heuristic(self, state: "up.engines.State"):
         current_time = 0
