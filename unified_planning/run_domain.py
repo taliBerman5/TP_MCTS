@@ -33,10 +33,11 @@ def print_stats():
     print(f'Deadline = {up.args.deadline}')
     print(f'Domain Type = {up.args.domain_type}')
     print(f'Garbage Action Amount = {up.args.garbage_amount}')
+    print(f'K Random Actions = {up.args.k}')
 
 
 def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, garbage_amount,
-                selection_type='avg'):
+                selection_type='avg', k=10):
     assert domain in domains
     print_stats()
 
@@ -49,7 +50,7 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
     converted_problem = convert_problem._converted_problem
     mdp = MDP(converted_problem, discount_factor=0.95)
 
-    params = (mdp, 90, search_time, search_depth, exploration_constant, selection_type)
+    params = (mdp, 90, search_time, search_depth, exploration_constant, selection_type, k)
     up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.mcts.plan, params)
 
 
@@ -67,7 +68,7 @@ def create_combination_domain(domain, deadline, garbage_amount):
 
 
 def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, garbage_amount,
-                    selection_type='avg'):
+                    selection_type='avg', k=10):
     assert domain in domains
     print_stats()
 
@@ -102,7 +103,7 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
         up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.rtdp.plan, params)
 
     else:
-        params = (mdp, split_mdp, 90, search_time, search_depth, exploration_constant, selection_type)
+        params = (mdp, split_mdp, 90, search_time, search_depth, exploration_constant, selection_type, k)
         up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.mcts.combination_plan, params)
 
 
@@ -110,9 +111,9 @@ if up.args.domain_type == 'combination':
     run_combination(domain=up.args.domain, runs=up.args.runs, solver=up.args.solver, deadline=up.args.deadline,
                     search_time=up.args.search_time,
                     search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
-                    selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
+                    selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount, k=up.args.k)
 else:
     run_regular(domain=up.args.domain, domain_type=up.args.domain_type, runs=up.args.runs, deadline=up.args.deadline,
                 search_time=up.args.search_time,
                 search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
-                selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount)
+                selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount, k=up.args.k)
