@@ -11,7 +11,7 @@ S_DEADLINE=15
 RS_DEADLINE=15
 SI_DEADLINE=50
 
-STUCKCAR="-l log/stuck_car_maxK_timeRTDP.log run_domain.py --domain stuck_car"
+STUCKCAR="-l log/stuck_car_100.log run_domain.py --domain stuck_car"
 MACHINESHOP="-l log/machine_shop_maxK_timeRTDP.log run_domain.py --domain machine_shop"
 NASAROVER="-l log/nasa_rover_maxK_timeRTDP.log run_domain.py --domain nasa_rover"
 STRIPS="-l log/strips_maxK_timeRTDP.log run_domain.py --domain strips"
