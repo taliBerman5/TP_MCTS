@@ -45,7 +45,7 @@ python3 $DIR/$@ | awk \
  /^Deadline/ {deadline=$3}
  /^Domain Type/ {domain_type=$4}
  /^Garbage Action Amount/ {garbage_amount=$5}
- /^K Random Actions/ {K=$5}
+ /^K Random Actions/ {k_random_actions=$5}
  /^Completed/ {runs=$3}
  /^Amount of success/ {success=$5}
  /^Average success time/ {stmean=$5}

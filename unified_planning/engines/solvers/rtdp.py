@@ -64,7 +64,7 @@ class RTDP:
         trans = self.mdp.transition_function(state, action)
         nextV = 0
         for state, prob in trans:
-            if state in self.Q:
+            if state in self.Q and len(self.Q[state]) > 0:
                 value = max(list(self.Q[state].values()))
             else:
                 value = self.heuristic(state)
