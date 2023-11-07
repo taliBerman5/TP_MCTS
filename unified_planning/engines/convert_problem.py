@@ -146,8 +146,8 @@ class Convert_problem:
         A precondition inExecution(start_action) is added to the conflicting mutex action
         """
         for action in self._original_problem._actions:
-            soft = []
-            mutex = []
+            # soft = []
+            # mutex = []
 
             if isinstance(action, up.model.DurativeAction):
                 for potential_action in self._original_problem._actions:
@@ -155,21 +155,20 @@ class Convert_problem:
                         continue
                     if self._check_mutex(action, potential_action):
                         self._adding_precondition_mutex_actions(action, potential_action)
-                        mutex.append(potential_action.name)
+                        # mutex.append(potential_action.name)
                     if self._check_soft_mutex(action, potential_action):
                         self._adding_precondition_soft_mutex_actions(action, potential_action)
 
                         if isinstance(potential_action, up.model.DurativeAction):
                             if action.duration_int() > potential_action.duration_int():
                                 self._adding_precondition_mutex_actions(potential_action, action)
-                                print(f'****************action {potential_action.name} is mutex with: {action.name}')
                         # self._adding_time_mutex_actions(action, potential_action)
 
 
-                        soft.append(potential_action.name)
+                        # soft.append(potential_action.name)
 
-                print(f'action {action.name} is mutex with: {mutex}')
-                print(f'action {action.name} is soft mutex with: {soft}')
+                # print(f'action {action.name} is mutex with: {mutex}')
+                # print(f'action {action.name} is soft mutex with: {soft}')
 
 
     def all_effects(self, action):
@@ -193,10 +192,6 @@ class Convert_problem:
 
         :return: `True` if the actions are mutex else `False`
         """
-
-        # if action.name == 'take_image_r1_o1_c1':
-        # # if action.name == 'calibrate_c1_o1' and potential_action.name == 'calibrate_c1_o1':
-        #     print(5)
 
         neg_effect, pos_effect = self.all_effects(action)
         neg_potential_effect, pos_potential_effect = self.all_effects(potential_action)
