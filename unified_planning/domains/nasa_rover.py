@@ -1,17 +1,20 @@
 import unified_planning
 from unified_planning.domains import Domain
 from unified_planning.shortcuts import *
+from itertools import product
 
 
 class Nasa_Rover(Domain):
-    def __init__(self, kind, deadline, garbage_amount=None):
+    def __init__(self, kind, deadline, object_amount, garbage_amount=None):
         Domain.__init__(self, 'nasa_rover', kind)
+        self.object_amount = object_amount
         self.user_types()
         self.objects()
         self.fluents()
         self.actions()
-        self.add_goal(deadline)
         self.set_initial_state()
+        self.add_goal(deadline)
+        self.grounding_map()
 
     def user_types(self):
         Rover = UserType('Rover')
@@ -25,32 +28,32 @@ class Nasa_Rover(Domain):
 
     def objects(self):
         """ Init rover """
-        rover_names = ['r1']
+        rover_names = ['r'+str(i) for i in range(self.object_amount)]
         rovers = [unified_planning.model.Object(r, self.userTypes['Rover']) for r in rover_names]
         self.problem.add_objects(rovers)
 
         """ Init store """
-        store_names = ['s1', 's2']
+        store_names = ['s'+str(i) for i in range(self.object_amount*2)]
         stores = [unified_planning.model.Object(s, self.userTypes['Store']) for s in store_names]
         self.problem.add_objects(stores)
 
         """ Init camera """
-        camera_names = ['c1']
+        camera_names = ['c'+str(i) for i in range(self.object_amount)]
         cameras = [unified_planning.model.Object(c, self.userTypes['Camera']) for c in camera_names]
         self.problem.add_objects(cameras)
 
         """ Init objective """
-        objective_names = ['o1']
+        objective_names = ['o'+str(i) for i in range(self.object_amount)]
         objectives = [unified_planning.model.Object(o, self.userTypes['Objective']) for o in objective_names]
         self.problem.add_objects(objectives)
 
         """ Init Rock """
-        rock_names = ['x1', 'x2']
+        rock_names = ['x'+str(i) for i in range(self.object_amount*2)]
         rocks = [unified_planning.model.Object(r, self.userTypes['Rock']) for r in rock_names]
         self.problem.add_objects(rocks)
 
         """ Init Hand """
-        hand_names = ['h1', 'h2']
+        hand_names = ['h'+str(i) for i in range(self.object_amount*2)]
         hands = [unified_planning.model.Object(h, self.userTypes['Hand']) for h in hand_names]
         self.problem.add_objects(hands)
 
@@ -109,28 +112,92 @@ class Nasa_Rover(Domain):
                                               rock=self.userTypes['Rock'])
         self.problem.add_fluent(ready, default_initial_value=False)
 
+    def grounding_map(self):
+        # creates a map of the objects relevant for each action
+
+        ground_map = {}
+
+        store_list = self.get_objects(['s' + str(i) for i in range(self.object_amount * 2)])
+        rover_list = self.get_objects(['r' + str(i) for i in range(self.object_amount)])
+        camera_list = self.get_objects(['c' + str(i) for i in range(self.object_amount)])
+        objective_list = self.get_objects(['o' + str(i) for i in range(self.object_amount)])
+        hands_list = self.get_objects(['h' + str(i) for i in range(self.object_amount * 2)])
+        rock_list = self.get_objects(['x' + str(i) for i in range(self.object_amount * 2)])
+
+        rsxh_combinations = []
+        rx_combinations = []
+        hx_combinations = []
+        for i in range(0, self.object_amount * 2, 2):
+            rover = [ObjectExp(rover_list[int(i / 2)])]
+            stores = [ObjectExp(store_list[i]), ObjectExp(store_list[i+1])]
+            rocks = [ObjectExp(rock_list[i]), ObjectExp(rock_list[i+1])]
+            hands = [ObjectExp(hands_list[i]), ObjectExp(hands_list[i+1])]
+
+            rsxh_combinations.extend(list(product(rover, stores, rocks, hands)))
+            rx_combinations.extend(list(product(rover, rocks)))
+            hx_combinations.extend(list(product(hands, rocks)))
+
+        ground_map[self.problem.actions[0]] = rsxh_combinations
+        ground_map[self.problem.actions[1]] = rsxh_combinations
+        ground_map[self.problem.actions[8]] = rx_combinations
+        ground_map[self.problem.actions[5]] = hx_combinations
+        ground_map[self.problem.actions[6]] = hx_combinations
+
+        stores = []
+        for i in range(0, self.object_amount * 2):
+            stores.append((ObjectExp(store_list[i]),))
+        ground_map[self.problem.actions[2]] = stores
+        ground_map[self.problem.actions[4]] = stores
+
+        co_combinations = []
+        roc_combination = []
+        ro_combination = []
+        for i in range(0, self.object_amount):
+            co_combinations.append((ObjectExp(camera_list[i]), ObjectExp(objective_list[i])))
+            roc_combination.append((ObjectExp(rover_list[i]), ObjectExp(objective_list[i]), ObjectExp(camera_list[i])))
+            ro_combination.append((ObjectExp(rover_list[i]), ObjectExp(objective_list[i])))
+        ground_map[self.problem.actions[3]] = co_combinations
+        ground_map[self.problem.actions[7]] = roc_combination
+        ground_map[self.problem.actions[9]] = ro_combination
+
+        return ground_map
+
     def set_initial_state(self):
         store_of, on_board, free_h, free_c, good, hand_of = self.get_fluents(
             ['store_of', 'on_board', 'free_h', 'free_c', 'good', 'hand_of'])
-        s1, s2, r1, c1, h1, h2 = self.get_objects(['s1', 's2', 'r1', 'c1', 'h1', 'h2'])
+        store_list = self.get_objects(['s'+str(i) for i in range(self.object_amount*2)])
+        rover_list = self.get_objects(['r'+str(i) for i in range(self.object_amount)])
+        camera_list = self.get_objects(['c'+str(i) for i in range(self.object_amount)])
+        hands_list = self.get_objects(['h'+str(i) for i in range(self.object_amount*2)])
 
-        self.problem.set_initial_value(store_of(s1, r1), True)
-        self.problem.set_initial_value(store_of(s2, r1), True)
-        self.problem.set_initial_value(on_board(c1, r1), True)
-        self.problem.set_initial_value(free_h(h1), True)
-        self.problem.set_initial_value(free_h(h2), True)
-        self.problem.set_initial_value(free_c(c1), True)
-        self.problem.set_initial_value(good(h1), True)
-        self.problem.set_initial_value(hand_of(h1, r1), True)
-        self.problem.set_initial_value(hand_of(h2, r1), True)
+        for i in range(0, self.object_amount*2, 2):
+            rover_inx = int(i/2)
+            rover = rover_list[rover_inx]
+            self.problem.set_initial_value(store_of(store_list[i], rover), True)
+            self.problem.set_initial_value(store_of(store_list[i+1], rover), True)
+            self.problem.set_initial_value(on_board(camera_list[rover_inx], rover), True)
+            self.problem.set_initial_value(hand_of(hands_list[i], rover), True)
+            self.problem.set_initial_value(hand_of(hands_list[i+1], rover), True)
+
+        for i, hand in enumerate(hands_list):
+            self.problem.set_initial_value(free_h(hand), True)
+            if i%2 == 0:
+                self.problem.set_initial_value(good(hand), True)
+
+        for camera in camera_list:
+            self.problem.set_initial_value(free_c(camera), True)
+
 
     def add_goal(self, deadline):
         communicated_rock_data, communicated_image_data = self.get_fluents(
             ['communicated_rock_data', 'communicated_image_data'])
-        x1, x2, o1 = self.get_objects(['x1', 'x2', 'o1'])
-        self.problem.add_goal(communicated_rock_data(x1))
-        self.problem.add_goal(communicated_rock_data(x2))
-        self.problem.add_goal(communicated_image_data(o1))
+        objective_list = self.get_objects(['o' + str(i) for i in range(self.object_amount)])
+        rock_list = self.get_objects(['x' + str(i) for i in range(self.object_amount * 2)])
+        for x in rock_list:
+            self.problem.add_goal(communicated_rock_data(x))
+
+        for o in objective_list:
+            self.problem.add_goal(communicated_image_data(o))
 
         deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
         self.problem.set_deadline(deadline_timing)
@@ -389,6 +456,9 @@ class Nasa_Rover(Domain):
                                                                               fluent=communicated_image_data,
                                                                               param=objective))
         self.problem.add_action(communicate_image_data)
+
+
+
 
 
 # run_regular(kind='regular', deadline=20, search_time=20, search_depth=40, selection_type='avg')

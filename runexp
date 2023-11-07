@@ -28,7 +28,7 @@ shift $((OPTIND-1))
 
 if [ \! -e $LOG ]; then
     # If the log file does not exist, initialize with a header
-	echo "model,solver,domain_type,selection_type,search_time,depth,runs,deadline,exploration_constant,garbage_amount,k_random_actions,success,stmean,ststd" > $LOG
+	echo "model,solver,domain_type,selection_type,search_time,depth,runs,deadline,exploration_constant,object_amount,garbage_amount,k_random_actions,success,stmean,ststd" > $LOG
 fi
 
 PYTHONUNBUFFERED=1
@@ -44,12 +44,13 @@ python3 $DIR/$@ | awk \
  /^Search depth/ {depth=$4}
  /^Deadline/ {deadline=$3}
  /^Domain Type/ {domain_type=$4}
+ /^Object Amount/ {object_amount=$4}
  /^Garbage Action Amount/ {garbage_amount=$5}
  /^K Random Actions/ {k_random_actions=$5}
  /^Completed/ {runs=$3}
  /^Amount of success/ {success=$5}
  /^Average success time/ {stmean=$5}
  /^STD success time/ {ststd=$5}
- END {printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
-             model,solver,domain_type,selection_type,search_time,depth,runs,deadline,exploration_constant,garbage_amount,k_random_actions,success,stmean,ststd}
+ END {printf "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+             model,solver,domain_type,selection_type,search_time,depth,runs,deadline,exploration_constant,object_amount,garbage_amount,k_random_actions,success,stmean,ststd}
 ' >> $LOG

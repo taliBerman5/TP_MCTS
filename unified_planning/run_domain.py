@@ -32,17 +32,22 @@ def print_stats():
     print(f'Search depth = {up.args.search_depth}')
     print(f'Deadline = {up.args.deadline}')
     print(f'Domain Type = {up.args.domain_type}')
+    print(f'Object Amount = {up.args.object_amount}')
     print(f'Garbage Action Amount = {up.args.garbage_amount}')
     print(f'K Random Actions = {up.args.k}')
 
 
-def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, garbage_amount,
+def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, object_amount, garbage_amount,
                 selection_type='avg', k=10):
     assert domain in domains
     print_stats()
 
-    model = domains[domain](kind=domain_type, deadline=deadline, garbage_amount=garbage_amount)
-    grounder = up.engines.compilers.Grounder()
+    model = domains[domain](kind=domain_type, deadline=deadline, object_amount=object_amount, garbage_amount=garbage_amount)
+    if domain == 'nasa_rover':
+        grounder = up.engines.compilers.Grounder(model.grounding_map())
+    else:
+        grounder = up.engines.compilers.Grounder()
+
     grounding_result = grounder._compile(model.problem)
     ground_problem = grounding_result.problem
 
@@ -54,8 +59,8 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
     up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.mcts.plan, params)
 
 
-def create_combination_domain(domain, deadline, garbage_amount):
-    model = domains[domain](kind='combination', deadline=deadline, garbage_amount=garbage_amount)
+def create_combination_domain(domain, deadline, object_amount, garbage_amount):
+    model = domains[domain](kind='combination', deadline=deadline, object_amount=object_amount, garbage_amount=garbage_amount)
     grounder = up.engines.compilers.Grounder()
     grounding_result = grounder._compile(model.problem)
     ground_problem = grounding_result.problem
@@ -67,7 +72,7 @@ def create_combination_domain(domain, deadline, garbage_amount):
     return convert_combination_problem
 
 
-def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, garbage_amount,
+def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, object_amount, garbage_amount,
                     selection_type='avg', k=10):
     assert domain in domains
     print_stats()
@@ -75,6 +80,8 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
     file_name = './pickle_domains/' + domains_files[domain]
     if domain == 'strips_prob':
         file_name += "_" + str(garbage_amount)
+    if domain == 'nasa_rover':
+        file_name += "_" + str(object_amount)
 
     file_name += '.pkl'
     try:
@@ -91,7 +98,7 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
 
     except FileNotFoundError:
         # If the file doesn't exist, create a new instance from scratch
-        convert_combination_problem = create_combination_domain(domain, deadline, garbage_amount)
+        convert_combination_problem = create_combination_domain(domain, deadline, object_amount, garbage_amount)
         converted_problem = convert_combination_problem._converted_problem
         split_problem = convert_combination_problem._split_problem
 
@@ -111,9 +118,9 @@ if up.args.domain_type == 'combination':
     run_combination(domain=up.args.domain, runs=up.args.runs, solver=up.args.solver, deadline=up.args.deadline,
                     search_time=up.args.search_time,
                     search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
-                    selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount, k=up.args.k)
+                    selection_type=up.args.selection_type, object_amount=up.args.object_amount, garbage_amount=up.args.garbage_amount, k=up.args.k)
 else:
     run_regular(domain=up.args.domain, domain_type=up.args.domain_type, runs=up.args.runs, deadline=up.args.deadline,
                 search_time=up.args.search_time,
                 search_depth=up.args.search_depth, exploration_constant=up.args.exploration_constant,
-                selection_type=up.args.selection_type, garbage_amount=up.args.garbage_amount, k=up.args.k)
+                selection_type=up.args.selection_type, object_amount=up.args.object_amount, garbage_amount=up.args.garbage_amount, k=up.args.k)
