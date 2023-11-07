@@ -61,7 +61,10 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
 
 def create_combination_domain(domain, deadline, object_amount, garbage_amount):
     model = domains[domain](kind='combination', deadline=deadline, object_amount=object_amount, garbage_amount=garbage_amount)
-    grounder = up.engines.compilers.Grounder()
+    if domain == 'nasa_rover':
+        grounder = up.engines.compilers.Grounder(model.grounding_map())
+    else:
+        grounder = up.engines.compilers.Grounder()
     grounding_result = grounder._compile(model.problem)
     ground_problem = grounding_result.problem
 
