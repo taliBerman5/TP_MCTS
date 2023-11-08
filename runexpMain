@@ -25,7 +25,6 @@ set -e
 #bash runexp "-l save_domain.log save_domain_to_file.py"
 
 
-
 #for t in 1 10 20
 for t in 1 10 20
 do
@@ -54,7 +53,7 @@ do
 #      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
     done
 
-     bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
 #      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
     bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 1
 #
@@ -98,8 +97,3 @@ do
 
   done
 done
-
-
-
-
-
