@@ -4,7 +4,7 @@ from unified_planning.shortcuts import *
 
 
 class Simple(Domain):
-    def __init__(self, kind, deadline, garbage_amount):
+    def __init__(self, kind, deadline, object_amount=None, garbage_amount=0):
         Domain.__init__(self, f'simple_{garbage_amount}', kind)
         self.garbage_amount = garbage_amount
         self.userTypes = None

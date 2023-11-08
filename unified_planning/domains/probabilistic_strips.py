@@ -4,7 +4,7 @@ from unified_planning.shortcuts import *
 
 
 class Strips_Prob(Domain):
-    def __init__(self, kind, deadline, garbage_amount):
+    def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
         Domain.__init__(self, 'strips_prob', kind)
         self.garbage_amount = garbage_amount
         self.userTypes = None
