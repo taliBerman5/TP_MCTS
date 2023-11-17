@@ -39,37 +39,37 @@ do
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination
 
-    echo "Started Machine Shop"
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination
+#    echo "Started Machine Shop"
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30
+##    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30
+##    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination
 
     echo "Started Nasa Rover"
-    for g in 1 2 3
+    for o in 1 2 3
     do
       bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
 #      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
     done
 
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 1
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
+##      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 1
+##
+#    echo "Started Strips"
+#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
+#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
+#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
+#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max --domain_type combination
+#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --solver rtdp --domain_type combination
 #
-    echo "Started Strips"
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max --domain_type combination
-    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --solver rtdp --domain_type combination
-
-    echo "Started Full Strips"
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination
+#    echo "Started Full Strips"
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination
 
 #
 #    echo "Started Probabilistic Strips"
