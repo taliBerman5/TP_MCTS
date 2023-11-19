@@ -85,6 +85,8 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
         file_name += "_" + str(garbage_amount)
     if domain == 'nasa_rover':
         file_name += "_" + str(object_amount)
+    if domain == 'machine_shop':
+        file_name += "_" + str(object_amount)
 
     file_name += '.pkl'
     try:

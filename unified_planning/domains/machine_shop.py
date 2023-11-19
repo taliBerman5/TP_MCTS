@@ -1,17 +1,21 @@
+import itertools
+
 import unified_planning as up
 from unified_planning.domains import Domain
 from unified_planning.shortcuts import *
 
 
 class Machine_Shop(Domain):
-    def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
+    def __init__(self, kind, deadline, object_amount, garbage_amount=None):
         Domain.__init__(self, 'machine_shop', kind)
+        assert object_amount > 1
+        self.object_amount = object_amount
         self.user_types()
         self.objects()
         self.fluents()
         self.actions()
-        self.add_goal(deadline)
         self.set_initial_state()
+        self.add_goal(deadline)
 
     def user_types(self):
         Piece = UserType('Piece')
@@ -20,12 +24,12 @@ class Machine_Shop(Domain):
 
     def objects(self):
         """ Init piece """
-        piece_names = ['x1', 'x2']
+        piece_names = ['x'+str(i) for i in range(self.object_amount)]
         pieces = [unified_planning.model.Object(p, self.userTypes['Piece']) for p in piece_names]
         self.problem.add_objects(pieces)
 
         """ Init machine """
-        machine_names = ['m1', 'm2']
+        machine_names = ['m'+str(i) for i in range(self.object_amount)]
         machines = [unified_planning.model.Object(m, self.userTypes['Machine']) for m in machine_names]
         self.problem.add_objects(machines)
 
@@ -66,26 +70,38 @@ class Machine_Shop(Domain):
     def set_initial_state(self):
         at, canpolpaint, canlatroll, cangrind, free = self.get_fluents(
             ['at', 'canpolpaint', 'canlatroll', 'cangrind', 'free'])
-        x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
+        piece_list = self.get_objects(['x'+str(i) for i in range(self.object_amount)])
+        machine_list = self.get_objects(['m'+str(i) for i in range(self.object_amount)])
 
-        self.problem.set_initial_value(at(x1, m2), True)
-        self.problem.set_initial_value(at(x2, m2), True)
-        self.problem.set_initial_value(canpolpaint(m1), True)
-        self.problem.set_initial_value(canlatroll(m2), True)
-        self.problem.set_initial_value(cangrind(m2), True)
-        self.problem.set_initial_value(free(m1), True)
-        self.problem.set_initial_value(free(m2), True)
+        for i in range(0, self.object_amount):
+            self.problem.set_initial_value(free(machine_list[i]), True)
+
+            if i%2 == 0:
+                self.problem.set_initial_value(canlatroll(machine_list[i]), True)
+                self.problem.set_initial_value(cangrind(machine_list[i]), True)
+                self.problem.set_initial_value(at(piece_list[i], machine_list[i]), True)
+
+            else:
+                self.problem.set_initial_value(canpolpaint(machine_list[i]), True)
+                self.problem.set_initial_value(at(piece_list[i], machine_list[i-1]), True)
+
+
+
 
     def add_goal(self, deadline):
         shaped, painted, smooth, polished, free = self.get_fluents(['shaped', 'painted', 'smooth', 'polished', 'free'])
-        x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
+        piece_list = self.get_objects(['x'+str(i) for i in range(self.object_amount)])
+        machine_list = self.get_objects(['m'+str(i) for i in range(self.object_amount)])
 
-        self.problem.add_goal(shaped(x1))
-        self.problem.add_goal(painted(x2))
-        self.problem.add_goal(smooth(x1))
-        self.problem.add_goal(polished(x2))
-        self.problem.add_goal(free(m1))
-        self.problem.add_goal(free(m2))
+        for i in range(0, self.object_amount):
+            self.problem.add_goal(free(machine_list[i]))
+            if i % 2 == 0:
+                self.problem.add_goal(shaped(piece_list[i]))
+                self.problem.add_goal(smooth(piece_list[i]))
+            else:
+                self.problem.add_goal(painted(piece_list[i]))
+                self.problem.add_goal(polished(piece_list[i]))
+
 
         deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
         self.problem.set_deadline(deadline_timing)
@@ -313,18 +329,34 @@ class Machine_Shop(Domain):
 
     def remove_actions(self, converted_problem):
         on, at = self.get_fluents(['on', 'at'])
-        x1, x2, m1, m2 = self.get_objects(['x1', 'x2', 'm1', 'm2'])
+        piece_list = self.get_objects(['x' + str(i) for i in range(self.object_amount)])
+        machine_list = self.get_objects(['m' + str(i) for i in range(self.object_amount)])
 
-        not_allowed_predicates = [{on(x1, m1), on(x1, m2)},
-                                  {on(x2, m1), on(x2, m2)},
-                                  {at(x1, m1), at(x1, m2)},
-                                  {at(x2, m1), at(x2, m2)},
-                                  {on(x1, m1), on(x2, m1)},
-                                  {on(x1, m2), on(x2, m2)},
-                                  {on(x1, m2), at(x1, m1)},
-                                  {at(x1, m2), on(x1, m1)},
-                                  {on(x2, m2), at(x2, m1)},
-                                  {at(x2, m2), on(x2, m1)}]
+        list(itertools.product(piece_list, machine_list))
+
+        not_allowed_predicates = []
+        for i in range(0, self.object_amount):
+            piece_with_machines = list(itertools.product([piece_list[i]], machine_list))
+            result_tuples = list(itertools.combinations(piece_with_machines, 2))
+
+            # a piece can't be `on` two different machines
+            on_set = [{on(*combination[0]), on(*combination[1])} for combination in result_tuples]
+            # a piece can't be `at` two different machines
+            at_set = [{at(*combination[0]), at(*combination[1])} for combination in result_tuples]
+            # a piece can't be `on` and `at different machines
+            on_at_set = [{on(*combination[0]), at(*combination[1])} for combination in result_tuples]
+            at_on_set = [{at(*combination[0]), on(*combination[1])} for combination in result_tuples]
+
+            not_allowed_predicates += on_set + at_set + on_at_set + at_on_set
+
+            # a machine can't carry (`on`) two different pieces
+            machine_with_pieces = list(itertools.product(piece_list, [machine_list[i]]))
+            result_tuples = list(itertools.combinations(machine_with_pieces, 2))
+            on_set = [{on(*combination[0]), on(*combination[1])} for combination in result_tuples]
+
+            not_allowed_predicates += on_set
+
+
         for a in converted_problem.actions[:]:
             if isinstance(a, unified_planning.engines.CombinationAction):
                 for p in not_allowed_predicates:
