@@ -5,10 +5,13 @@ import dill
 
 """For the bash script"""
 # Get the current directory (where the script is located)
+
 current_directory = os.path.dirname(os.path.abspath(__file__))
+print(current_directory)
 
 # Get the parent directory
 parent_directory = os.path.dirname(current_directory)
+print(parent_directory)
 sys.path.append(parent_directory)  # Add the path to your 'unified_planning' directory
 
 def create_save_model(file_name, domain, object_amount=1, garbage_amount=0):
