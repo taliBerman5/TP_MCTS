@@ -1,7 +1,5 @@
-import unified_planning as up
-import unified_planning.domains
-from unified_planning.shortcuts import *
-import dill
+import os
+import sys
 
 """For the bash script"""
 # Get the current directory (where the script is located)
@@ -13,6 +11,14 @@ print(current_directory)
 parent_directory = os.path.dirname(current_directory)
 print(parent_directory)
 sys.path.append(parent_directory)  # Add the path to your 'unified_planning' directory
+
+
+import unified_planning as up
+import unified_planning.domains
+from unified_planning.shortcuts import *
+import dill
+
+
 
 def create_save_model(file_name, domain, object_amount=1, garbage_amount=0):
     model = domain(kind='combination', deadline=up.args.deadline, object_amount=object_amount, garbage_amount=garbage_amount)
