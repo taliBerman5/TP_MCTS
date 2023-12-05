@@ -26,7 +26,7 @@ set -e
 
 
 #for t in 1 10 20
-for t in 1 10
+for t in 10
 do
   for d in 30
   do
@@ -39,22 +39,23 @@ do
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination
 
-    echo "Started Machine Shop"
-    for o in 2 3 4
-    do
-      echo "Started object $o"
-    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30 --object_amount $o
-        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
-    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30 --object_amount $o
-    done
-
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 2
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 2
-
+#    echo "Started Machine Shop"
+#    for o in 2 3 4
+#    do
+#      echo "Started object $o"
+#    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30 --object_amount $o
+#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
+#    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30 --object_amount $o
+#    done
+#
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 2
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 2
+#
 
 
     echo "Started Nasa Rover"
-    for o in 1 2 3
+#    for o in 1 2 3
+    for o in 3
     do
       echo "Started object $o"
 #      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
