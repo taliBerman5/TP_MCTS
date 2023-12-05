@@ -75,14 +75,15 @@ do
 #
 #    echo "Started Full Strips"
 #    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max
 #    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination
-    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
+#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination
 
 #
     echo "Started Probabilistic Strips"
-    for g in 0 1 2 3 4 5 6 7 8 9 10
+#    for g in 0 1 2 3 4 5 6 7 8 9 10
+    for g in 8 9 10
     do
       echo "started garbage $g"
 #      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
@@ -94,7 +95,8 @@ do
 #
 #
     echo "Started Simple"
-    for ((g = 5; g <= 18; g += 1))
+#    for ((g = 5; g <= 18; g += 1))
+    for ((g = 10; g <= 15; g += 1))
     do
       echo "started garbage $g"
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
