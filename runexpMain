@@ -11,18 +11,27 @@ S_DEADLINE=15
 RS_DEADLINE=15
 SI_DEADLINE=50
 
-STUCKCAR="-l log/stuck_car_100.log run_domain.py --domain stuck_car"
-MACHINESHOP="-l log/machine_shop_100.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/nasa_rover_100.log run_domain.py --domain nasa_rover"
-STRIPS="-l log/strips_100.log run_domain.py --domain strips"
-FULLSTRIPS="-l log/full_strips_100.log run_domain.py --domain full_strips"
-STRIPSPROB="-l log/strips_prob_100.log run_domain.py --domain strips_prob"
-SIMPLE="-l log/simple_100.log run_domain.py --domain simple"
+STUCKCAR="-l log/stuck_car_100_2.log run_domain.py --domain stuck_car"
+MACHINESHOP="-l log/machine_shop_100_2.log run_domain.py --domain machine_shop"
+NASAROVER="-l log/nasa_rover_100_2.log run_domain.py --domain nasa_rover"
+STRIPS="-l log/strips_100_2.log run_domain.py --domain strips"
+FULLSTRIPS="-l log/full_strips_100_2.log run_domain.py --domain full_strips"
+STRIPSPROB="-l log/strips_prob_100_2.log run_domain.py --domain strips_prob"
+SIMPLE="-l log/simple_100_2.log run_domain.py --domain simple"
 
 set -e
 
 
 #bash runexp "-l save_domain.log save_domain_to_file.py"
+echo "started machine_shop 3 depth 30 and search_time time 1:"
+bash runexp $MACHINESHOP --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
+bash runexp $MACHINESHOP --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
+
+
+#TODO:upload the pickle and then run
+#echo "started nasa_rover 2 depth 30 and search_time time 1:"
+#bash runexp $NASAROVER --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
+#bash runexp $NASAROVER --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
 
 
 #for t in 1 10 20
@@ -48,23 +57,26 @@ do
 #    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30 --object_amount $o
 #    done
 #
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 2
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 2
+    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
+    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
 #
 
 
-    echo "Started Nasa Rover"
-#    for o in 1 2 3
-    for o in 3
-    do
-      echo "Started object $o"
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
-      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
-    done
+#    echo "Started Nasa Rover"
+##    for o in 1 2 3
+#    for o in 3
+#    do
+#      echo "Started object $o"
+##      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
+#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
+#    done
 
 #   bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
     bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
-#   bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 1
+
+    #TODO:upload the pickle and then run
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
 ##
 #    echo "Started Strips"
 #    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
