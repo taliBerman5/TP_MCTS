@@ -22,16 +22,16 @@ SIMPLE="-l log/simple_100_2.log run_domain.py --domain simple"
 set -e
 
 
-#bash runexp "-l save_domain.log save_domain_to_file.py"
-echo "started machine_shop 3 depth 30 and search_time time 1:"
-bash runexp $MACHINESHOP --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
-bash runexp $MACHINESHOP --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
+##bash runexp "-l save_domain.log save_domain_to_file.py"
+#echo "started machine_shop 3 depth 30 and search_time time 1:"
+#bash runexp $MACHINESHOP --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
+#bash runexp $MACHINESHOP --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
 
 
-#TODO:upload the pickle and then run
-#echo "started nasa_rover 2 depth 30 and search_time time 1:"
-#bash runexp $NASAROVER --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
-#bash runexp $NASAROVER --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
+
+echo "started nasa_rover 2 depth 30 and search_time time 1:"
+bash runexp $NASAROVER --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
+bash runexp $NASAROVER --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
 
 
 #for t in 1 10 20
@@ -57,9 +57,9 @@ do
 #    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30 --object_amount $o
 #    done
 #
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
-#
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
+##
 
 
 #    echo "Started Nasa Rover"
@@ -72,12 +72,12 @@ do
 #    done
 
 #   bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
 
-    #TODO:upload the pickle and then run
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
-##
+    echo "started nasa_rover 2 depth 30 and search_time time 10:"
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
+#
 #    echo "Started Strips"
 #    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
 #    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
@@ -92,20 +92,6 @@ do
 #    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination
 
-#
-    echo "Started Probabilistic Strips"
-#    for g in 0 1 2 3 4 5 6 7 8 9 10
-    for g in 8 9 10
-    do
-      echo "started garbage $g"
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
-      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --garbage_amount $g
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
-      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
-    done
-#
-#
     echo "Started Simple"
 #    for ((g = 5; g <= 18; g += 1))
     for ((g = 10; g <= 15; g += 1))
@@ -116,6 +102,19 @@ do
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
       bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
       bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+    done
+#
+
+    echo "Started Probabilistic Strips"
+#    for g in 0 1 2 3 4 5 6 7 8 9 10
+    for g in 7 10
+    do
+      echo "started garbage $g"
+#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
+      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
+      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
   done
