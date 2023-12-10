@@ -63,7 +63,10 @@ class Stuck_Car_Robot(Domain):
         self.problem.add_fluent(got_rock, default_initial_value=False)
 
         free = unified_planning.model.Fluent('free', BoolType(), ro=self.userTypes['Robot'], b=self.userTypes['BodyPart'])
-        self.problem.add_fluent(free, default_initial_value=True)
+        if self.kind == 'combination':
+            self.problem.add_fluent(free, default_initial_value=False)
+        if self.kind == 'regular':
+            self.problem.add_fluent(free, default_initial_value=True)
 
         rock_under_car = unified_planning.model.Fluent('rock_under_car', BoolType(), c=self.userTypes['Car'], r=self.userTypes['Rock'])
         self.problem.add_fluent(rock_under_car, default_initial_value=False)
@@ -71,9 +74,9 @@ class Stuck_Car_Robot(Domain):
         gas_pressed = unified_planning.model.Fluent('gas_pressed', BoolType(), c=self.userTypes['Car'])
         self.problem.add_fluent(gas_pressed, default_initial_value=False)
 
-        # To make rest action mutex with every other action in the combination setting
-        dummy = unified_planning.model.Fluent('dummy', BoolType(), ro=self.userTypes['Robot'])
-        self.problem.add_fluent(dummy, default_initial_value=False)
+        if self.kind == 'combination':
+            ready = unified_planning.model.Fluent('ready', BoolType(), ro=self.userTypes['Robot'], b=self.userTypes['BodyPart'])
+            self.problem.add_fluent(ready, default_initial_value=True)
 
     def add_goal(self, deadline):
         car_out = self.problem.fluent_by_name('car_out')
@@ -85,6 +88,20 @@ class Stuck_Car_Robot(Domain):
         deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
         self.problem.set_deadline(deadline_timing)
 
+    def use_bodyPart(self, action, robot, bodyPart):
+        ready, free = self.get_fluents(['ready', 'free'])
+
+        if self.kind == 'combination':
+            action.add_precondition(OverallPreconditionTiming(), ready(robot, bodyPart), True)
+            action.add_effect(ready(robot, bodyPart), False)
+            action.add_effect(free(robot, bodyPart), True)
+
+        if self.kind == 'regular':
+            self.use(action, free(robot, bodyPart))
+
+
+
+
     def actions(self):
         self.rest_action()
         self.place_rock_action()
@@ -92,6 +109,8 @@ class Stuck_Car_Robot(Domain):
         self.push_car_action()
         self.push_gas_action()
         self.push_car_gas_action()
+        if self.kind == 'combination':
+            self.turn_on()
 
     def tired_prob(self, robot):
         tired = self.problem.fluent_by_name('tired')
@@ -136,6 +155,20 @@ class Stuck_Car_Robot(Domain):
 
         return push_probability
 
+
+    def turn_on(self):
+        ready, free = self.get_fluents(['ready', 'free'])
+
+        turn_on = unified_planning.model.InstantaneousAction('turn_on', robot=self.userTypes['Robot'], bodyPart=self.userTypes['BodyPart'])
+        robot = turn_on.parameter('robot')
+        bodyPart = turn_on.parameter('bodyPart')
+
+        turn_on.add_precondition(free(robot, bodyPart), True)
+        turn_on.add_effect(free(robot, bodyPart), False)
+        turn_on.add_effect(ready(robot, bodyPart), True)
+
+        self.problem.add_action(turn_on)
+
     def rest_action(self):
         """ Rest Action """
         tired, free = self.get_fluents(['tired', 'free'])
@@ -143,8 +176,16 @@ class Stuck_Car_Robot(Domain):
 
         rest = unified_planning.model.DurativeAction('rest', robot=self.userTypes['Robot'])
         robot = rest.parameter('robot')
-        rest.add_precondition(OverallPreconditionTiming(), free(robot, hands), True)
-        rest.add_precondition(OverallPreconditionTiming(), free(robot, legs), True)
+
+        if self.kind == 'regular':
+            rest.add_precondition(OverallPreconditionTiming(), free(robot, hands), True)
+            rest.add_precondition(OverallPreconditionTiming(), free(robot, legs), True)
+
+        if self.kind == 'combination':
+            self.use_bodyPart(rest, robot, hands)
+            self.use_bodyPart(rest, robot, legs)
+
+
         rest.set_fixed_duration(1)
         rest.add_effect(tired(robot), False)
 
@@ -152,7 +193,7 @@ class Stuck_Car_Robot(Domain):
 
     def place_rock_action(self):
         """ Place a rock under the car Action """
-        tired, free, got_rock, rock_under_car = self.get_fluents(['tired', 'free', 'got_rock', 'rock_under_car'])
+        tired, got_rock, rock_under_car, free = self.get_fluents(['tired', 'got_rock', 'rock_under_car', 'free'])
         hands, legs = self.get_objects(['hands', 'legs'])
 
 
@@ -165,8 +206,9 @@ class Stuck_Car_Robot(Domain):
         place_rock.add_precondition(OverallPreconditionTiming(), got_rock(robot, rock), True)
         place_rock.add_precondition(StartPreconditionTiming(), tired(robot), False)
 
-        self.use(place_rock, free(robot, hands))
-        self.use(place_rock, free(robot, legs))
+        self.use_bodyPart(place_rock, robot, hands)
+        self.use_bodyPart(place_rock, robot, legs)
+
 
         place_rock.add_effect(rock_under_car(car, rock), True)
         place_rock.add_effect(got_rock(robot, rock), False)
@@ -187,7 +229,8 @@ class Stuck_Car_Robot(Domain):
 
         search.add_precondition(StartPreconditionTiming(), tired(robot), False)
 
-        self.use(search, free(robot, hands))
+        self.use_bodyPart(search, robot, hands)
+
 
         # import inspect as i
         # got_rock_0_exp = self.problem.get_fluent_exp(got_rock(robot, bad))
@@ -197,8 +240,11 @@ class Stuck_Car_Robot(Domain):
             # The probability of finding a good rock when searching
             p = 0.1
             robot_param = actual_params.get(robot)
-            return {p: {got_rock(robot_param, bad): True, got_rock(robot_param, good): False},
-                    1 - p: {got_rock(robot_param, bad): False, got_rock(robot_param, good): True}}
+            return {p: {got_rock(robot_param, bad): True},
+                    1 - p: {got_rock(robot_param, good): True}}
+
+            # return {p: {got_rock(robot_param, bad): True, got_rock(robot_param, good): False},
+            #         1 - p: {got_rock(robot_param, bad): False, got_rock(robot_param, good): True}}
 
         search.add_probabilistic_effect([got_rock(robot, bad), got_rock(robot, good)], rock_probability)
         self.problem.add_action(search)
@@ -216,7 +262,9 @@ class Stuck_Car_Robot(Domain):
         push_gas.set_fixed_duration(2)
 
         push_gas.add_precondition(StartPreconditionTiming(), tired(robot), False)
-        self.use(push_gas, free(robot, legs))
+
+        self.use_bodyPart(push_gas, robot, legs)
+
 
         push_gas.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.2, good=0.4, none=0.1)))
         self.problem.add_action(push_gas)
@@ -234,7 +282,9 @@ class Stuck_Car_Robot(Domain):
         push_car.set_fixed_duration(2)
 
         push_car.add_precondition(StartPreconditionTiming(), tired(robot), False)
-        self.use(push_car, free(robot, hands))
+
+        self.use_bodyPart(push_car, robot, hands)
+        # self.use(push_car, free(robot, hands))
         # self.use(push_car, free(robot, legs))
 
         push_car.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.3, good=0.48, none=0.1)))
@@ -252,8 +302,11 @@ class Stuck_Car_Robot(Domain):
         push_car_gas.set_fixed_duration(4)
 
         push_car_gas.add_precondition(StartPreconditionTiming(), tired(robot), False)
-        self.use(push_car_gas, free(robot, hands))
-        self.use(push_car_gas, free(robot, legs))
+
+        self.use_bodyPart(push_car_gas, robot, hands)
+        self.use_bodyPart(push_car_gas, robot, legs)
+        # self.use(push_car_gas, free(robot, hands))
+        # self.use(push_car_gas, free(robot, legs))
 
         push_car_gas.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.4, good=0.9, none=0.2)))
         push_car_gas.add_probabilistic_effect([tired(robot)], self.tired_prob(robot))
