@@ -37,3 +37,7 @@ class Domain:
 
     def remove_actions(self, converted_problem):
         return
+
+    def allowed_actions(self, actions, potential_action):
+        return True
+

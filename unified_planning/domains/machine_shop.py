@@ -364,6 +364,46 @@ class Machine_Shop(Domain):
                         converted_problem.actions.remove(a)
                         break
 
+    def allowed_actions(self, actions, potential_action):
+        on, at = self.get_fluents(['on', 'at'])
+        piece_list = self.get_objects(['x' + str(i) for i in range(self.object_amount)])
+        machine_list = self.get_objects(['m' + str(i) for i in range(self.object_amount)])
+
+        list(itertools.product(piece_list, machine_list))
+
+        not_allowed_predicates = []
+        for i in range(0, self.object_amount):
+            piece_with_machines = list(itertools.product([piece_list[i]], machine_list))
+            result_tuples = list(itertools.combinations(piece_with_machines, 2))
+
+            # a piece can't be `on` two different machines
+            on_set = [{on(*combination[0]), on(*combination[1])} for combination in result_tuples]
+            # a piece can't be `at` two different machines
+            at_set = [{at(*combination[0]), at(*combination[1])} for combination in result_tuples]
+            # a piece can't be `on` and `at different machines
+            on_at_set = [{on(*combination[0]), at(*combination[1])} for combination in result_tuples]
+            at_on_set = [{at(*combination[0]), on(*combination[1])} for combination in result_tuples]
+
+            not_allowed_predicates += on_set + at_set + on_at_set + at_on_set
+
+            # a machine can't carry (`on`) two different pieces
+            machine_with_pieces = list(itertools.product(piece_list, [machine_list[i]]))
+            result_tuples = list(itertools.combinations(machine_with_pieces, 2))
+            on_set = [{on(*combination[0]), on(*combination[1])} for combination in result_tuples]
+
+            not_allowed_predicates += on_set
+
+        pos_precondition_combination = potential_action.pos_preconditions
+        for a in actions[:]:
+            pos_precondition_combination = pos_precondition_combination.union(a.pos_preconditions)
+
+        for p in not_allowed_predicates:
+                if p.issubset(pos_precondition_combination):
+                    return False
+
+        return True
+
+
     # run_regular(deadline=27, search_time=15, search_depth=40, selection_type='avg')
 # run_combination(solver='rtdp', deadline=80, search_time=10, search_depth=40)
 # run_combination(solver='mcts', deadline=27, search_time=60, search_depth=40, selection_type='avg')
