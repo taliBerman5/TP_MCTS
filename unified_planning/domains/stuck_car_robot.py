@@ -3,7 +3,7 @@ from unified_planning.shortcuts import *
 from unified_planning.domains import Domain
 
 
-class Stuck_Car(Domain):
+class Stuck_Car_Robot(Domain):
     def __init__(self, kind, deadline, object_amount, garbage_amount=None):
         Domain.__init__(self, 'stuck_car', kind)
         self.object_amount = object_amount
@@ -71,6 +71,10 @@ class Stuck_Car(Domain):
         gas_pressed = unified_planning.model.Fluent('gas_pressed', BoolType(), c=self.userTypes['Car'])
         self.problem.add_fluent(gas_pressed, default_initial_value=False)
 
+        # To make rest action mutex with every other action in the combination setting
+        dummy = unified_planning.model.Fluent('dummy', BoolType(), ro=self.userTypes['Robot'])
+        self.problem.add_fluent(dummy, default_initial_value=False)
+
     def add_goal(self, deadline):
         car_out = self.problem.fluent_by_name('car_out')
         cars_list = self.get_objects(['c' + str(i) for i in range(self.object_amount)])
@@ -91,7 +95,7 @@ class Stuck_Car(Domain):
 
     def tired_prob(self, robot):
         tired = self.problem.fluent_by_name('tired')
-        tired_exp = self.problem.get_fluent_exp(tired)
+        # tired_exp = self.problem.get_fluent_exp(tired)
         #TODO: I need the line above?
         def tired_probability(state, actual_params):
             p = 0.4
@@ -100,13 +104,14 @@ class Stuck_Car(Domain):
 
         return tired_probability
 
+
     def push_prob(self, car, probs):
         car_out, rock_under_car = self.get_fluents(['car_out', 'rock_under_car'])
         bad, good = self.get_objects(['bad', 'good'])
 
-        rock_0_under_exp = self.problem.get_fluent_exp(rock_under_car(bad))
-        rock_1_under_exp = self.problem.get_fluent_exp(rock_under_car(good))
-        car_out_exp = self.problem.get_fluent_exp(car_out)
+        # rock_0_under_exp = self.problem.get_fluent_exp(rock_under_car(bad))
+        # rock_1_under_exp = self.problem.get_fluent_exp(rock_under_car(good))
+        # car_out_exp = self.problem.get_fluent_exp(car_out)
         #TODO: check if the three rows above is not necessary
         def push_probability(state, actual_params):
             # The probability of getting the car out when pushing
@@ -133,7 +138,7 @@ class Stuck_Car(Domain):
 
     def rest_action(self):
         """ Rest Action """
-        tired, free, hands, legs = self.get_fluents(['tired', 'free'])
+        tired, free = self.get_fluents(['tired', 'free'])
         hands, legs = self.get_objects(['hands', 'legs'])
 
         rest = unified_planning.model.DurativeAction('rest', robot=self.userTypes['Robot'])
@@ -142,6 +147,7 @@ class Stuck_Car(Domain):
         rest.add_precondition(OverallPreconditionTiming(), free(robot, legs), True)
         rest.set_fixed_duration(1)
         rest.add_effect(tired(robot), False)
+
         self.problem.add_action(rest)
 
     def place_rock_action(self):
@@ -165,6 +171,7 @@ class Stuck_Car(Domain):
         place_rock.add_effect(rock_under_car(car, rock), True)
         place_rock.add_effect(got_rock(robot, rock), False)
         place_rock.add_probabilistic_effect([tired(robot)], self.tired_prob(robot))
+
         self.problem.add_action(place_rock)
 
     def search_rock_action(self):
@@ -174,7 +181,7 @@ class Stuck_Car(Domain):
         tired, free, got_rock = self.get_fluents(['tired', 'free', 'got_rock'])
         bad, good, hands = self.get_objects(['bad', 'good', 'hands'])
 
-        search = unified_planning.model.action.DurativeAction('search', robot=self.userTypes['robot'])
+        search = unified_planning.model.action.DurativeAction('search', robot=self.userTypes['Robot'])
         robot = search.parameter('robot')
         search.set_fixed_duration(2)
 
@@ -183,8 +190,8 @@ class Stuck_Car(Domain):
         self.use(search, free(robot, hands))
 
         # import inspect as i
-        got_rock_0_exp = self.problem.get_fluent_exp(got_rock(robot, bad))
-        got_rock_1_exp = self.problem.get_fluent_exp(got_rock(robot, good))
+        # got_rock_0_exp = self.problem.get_fluent_exp(got_rock(robot, bad))
+        # got_rock_1_exp = self.problem.get_fluent_exp(got_rock(robot, good))
         #TODO: check if the two rows above are needed
         def rock_probability(state, actual_params):
             # The probability of finding a good rock when searching
@@ -200,10 +207,10 @@ class Stuck_Car(Domain):
         """ Push Gas Pedal Action
         The probability of getting the car out is lower than push car but the robot won't get tired"""
 
-        tired, car_out, free = self.get_fluents(['tired', 'car_out', 'free'])
+        tired, car_out, free, = self.get_fluents(['tired', 'car_out', 'free'])
         legs = self.problem.object_by_name('legs')
 
-        push_gas = unified_planning.model.action.DurativeAction('push_gas', robot=self.userTypes['robot'], car=self.userTypes['Car'])
+        push_gas = unified_planning.model.action.DurativeAction('push_gas', robot=self.userTypes['Robot'], car=self.userTypes['Car'])
         robot = push_gas.parameter('robot')
         car = push_gas.parameter('car')
         push_gas.set_fixed_duration(2)
@@ -219,19 +226,19 @@ class Stuck_Car(Domain):
             The probability of getting the car out is higher than push gas but the robot can get tired"""
 
         tired, car_out, free = self.get_fluents(['tired', 'car_out', 'free'])
-        hands = self.problem.object_by_name('hands')
+        hands, legs = self.get_objects(['hands', 'legs'])
 
-        push_car = unified_planning.model.action.DurativeAction('push_car', robot=self.userTypes['robot'], car=self.userTypes['Car'])
+        push_car = unified_planning.model.action.DurativeAction('push_car', robot=self.userTypes['Robot'], car=self.userTypes['Car'])
         robot = push_car.parameter('robot')
         car = push_car.parameter('car')
         push_car.set_fixed_duration(2)
 
         push_car.add_precondition(StartPreconditionTiming(), tired(robot), False)
         self.use(push_car, free(robot, hands))
+        # self.use(push_car, free(robot, legs))
 
         push_car.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.3, good=0.48, none=0.1)))
         push_car.add_probabilistic_effect([tired(robot)], self.tired_prob(robot))
-
         self.problem.add_action(push_car)
 
 
@@ -239,7 +246,7 @@ class Stuck_Car(Domain):
         tired, car_out, free = self.get_fluents(['tired', 'car_out', 'free'])
         hands, legs = self.get_objects(['hands', 'legs'])
 
-        push_car_gas = unified_planning.model.action.DurativeAction('push_car_gas', robot=self.userTypes['robot'], car=self.userTypes['Car'])
+        push_car_gas = unified_planning.model.action.DurativeAction('push_car_gas', robot=self.userTypes['Robot'], car=self.userTypes['Car'])
         robot = push_car_gas.parameter('robot')
         car = push_car_gas.parameter('car')
         push_car_gas.set_fixed_duration(4)
@@ -254,12 +261,13 @@ class Stuck_Car(Domain):
         self.problem.add_action(push_car_gas)
 
 
-    def remove_actions(self, converted_problem):
-        #TODO: needs to update this. rest(car) action cant be preformed with other actions of the same car
-        for action in converted_problem.actions[:]:
-            if isinstance(action, CombinationAction):
-                if 'rest' in action.name:
-                    converted_problem.actions.remove(action)
+    # def remove_actions(self, converted_problem):
+    #     #TODO: needs to update this. rest(car) action cant be preformed with other actions of the same car
+    #     for action in converted_problem.actions[:]:
+    #         if isinstance(action, CombinationAction):
+    #             if 'rest' in action.name:
+    #                 converted_problem.actions.remove(action)
+
 
 # run_regular(kind='regular', deadline=10, search_time=1, search_depth=20, selection_type='avg',exploration_constant=10)
 
