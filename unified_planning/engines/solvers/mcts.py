@@ -432,6 +432,7 @@ def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int,
             root_node.set_depth(0)
 
         # update STN to include the action
+        # previous_action_node = update_stn(stn, action, previous_action_node, type='SetTime')
         previous_action_node = update_stn(stn, action, previous_action_node)
         assert stn.is_consistent
 
@@ -470,7 +471,7 @@ def combination_plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: 
         history.append(action)
         print(f'current time = {root_state.current_time}')
 
-        if terminal:
+        if terminal and root_state.current_time < mdp.deadline():
             print(f"Current state is {root_state}")
             print(f"The amount of time the plan took: {root_state.current_time}")
             return 1, root_state.current_time
