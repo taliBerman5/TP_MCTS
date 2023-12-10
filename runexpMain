@@ -27,14 +27,14 @@ set -e
 ##bash runexp "-l save_domain.log save_domain_to_file.py"
 
 
-echo "Started Stuck Car Robot one second"
-for o in 1 2 3
-do
-  echo "Started object $o"
-  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --selection_type max --object_amount $o
-  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --selection_type max --domain_type combination --object_amount $o
-  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-done
+#echo "Started Stuck Car Robot one second"
+#for o in 1 2 3
+#do
+#  echo "Started object $o"
+#  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --selection_type max --object_amount $o
+#  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --selection_type max --domain_type combination --object_amount $o
+#  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+#done
 
 
 
@@ -53,7 +53,7 @@ do
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination
 
     echo "Started Stuck Car Robot"
-    for o in 2 3
+    for o in 2
     do
       echo "Started object $o"
       bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --object_amount $o
@@ -104,7 +104,7 @@ do
 
     echo "Started Simple"
 #    for ((g = 5; g <= 18; g += 1))
-    for ((g = 12; g <= 15; g += 1))
+    for ((g = 12; g <= 13; g += 1))
     do
       echo "started garbage $g"
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
