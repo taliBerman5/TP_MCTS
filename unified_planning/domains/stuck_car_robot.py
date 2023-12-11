@@ -114,8 +114,6 @@ class Stuck_Car_Robot(Domain):
 
     def tired_prob(self, robot):
         tired = self.problem.fluent_by_name('tired')
-        # tired_exp = self.problem.get_fluent_exp(tired)
-        #TODO: I need the line above?
         def tired_probability(state, actual_params):
             p = 0.4
             robot_param = actual_params.get(robot)
@@ -128,10 +126,6 @@ class Stuck_Car_Robot(Domain):
         car_out, rock_under_car = self.get_fluents(['car_out', 'rock_under_car'])
         bad, good = self.get_objects(['bad', 'good'])
 
-        # rock_0_under_exp = self.problem.get_fluent_exp(rock_under_car(bad))
-        # rock_1_under_exp = self.problem.get_fluent_exp(rock_under_car(good))
-        # car_out_exp = self.problem.get_fluent_exp(car_out)
-        #TODO: check if the three rows above is not necessary
         def push_probability(state, actual_params):
             # The probability of getting the car out when pushing
             p = 1
@@ -231,11 +225,6 @@ class Stuck_Car_Robot(Domain):
 
         self.use_bodyPart(search, robot, hands)
 
-
-        # import inspect as i
-        # got_rock_0_exp = self.problem.get_fluent_exp(got_rock(robot, bad))
-        # got_rock_1_exp = self.problem.get_fluent_exp(got_rock(robot, good))
-        #TODO: check if the two rows above are needed
         def rock_probability(state, actual_params):
             # The probability of finding a good rock when searching
             p = 0.1
@@ -312,14 +301,6 @@ class Stuck_Car_Robot(Domain):
         push_car_gas.add_probabilistic_effect([tired(robot)], self.tired_prob(robot))
 
         self.problem.add_action(push_car_gas)
-
-
-    # def remove_actions(self, converted_problem):
-    #     #TODO: needs to update this. rest(car) action cant be preformed with other actions of the same car
-    #     for action in converted_problem.actions[:]:
-    #         if isinstance(action, CombinationAction):
-    #             if 'rest' in action.name:
-    #                 converted_problem.actions.remove(action)
 
 
 # run_regular(kind='regular', deadline=10, search_time=1, search_depth=20, selection_type='avg',exploration_constant=10)

@@ -2,7 +2,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Description of your script')
 parser.add_argument('-d', '--deadline', help='deadline of the problem', nargs='?', default=None, type=int)
-parser.add_argument('-st', '--search_time', help='amount of time in each step', nargs='?', default=10, type=int)
+parser.add_argument('-st', '--search_time', help='amount of time in each step', nargs='?', default=1, type=int)
 parser.add_argument('-sd', '--search_depth', help='search depth of ', nargs='?', default=40, type=int)
 parser.add_argument('-se', '--selection_type', help='selection type in MCTS algorithm', nargs='?', default='avg')
 parser.add_argument('-r', '--runs', help='how many runs to run the script', nargs='?', default=1, type=int)
