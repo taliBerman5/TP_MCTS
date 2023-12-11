@@ -20,10 +20,10 @@ To Run an experiment use the bash file runexp:
 
 ```bash
 $ cd TP_MCTS
-$ bash runexp "-l log/nasa_rover.log run_domain.py --domain nasa_rover" --runs 3
+$ bash runexp -l log/nasa_rover.log run_domain.py --domain nasa_rover --deadline 35 --runs 3 
 ```
 
-This command computes the TP-MCTS algorithm on the Nasa Rover(1) domain `N = 3` runs and outputs the results to nasa_rover.log file. 
+This command computes the TP-MCTS algorithm on the Nasa Rover(1) domain with a deadline of 35 seconds `N = 3` runs and outputs the results to nasa_rover.log file. 
 
 For more usage parameters see "[usage parameters](doc/usage_parameters.txt)".
 
