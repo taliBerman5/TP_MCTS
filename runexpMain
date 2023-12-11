@@ -127,5 +127,5 @@ do
 #      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
 #    done
 #
-#  done
-#done
+  done
+done
