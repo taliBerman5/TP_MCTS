@@ -19,7 +19,7 @@ NASAROVER="-l log/nasa_rover_100_2.log run_domain.py --domain nasa_rover"
 STRIPS="-l log/strips_100_2.log run_domain.py --domain strips"
 FULLSTRIPS="-l log/full_strips_100_2.log run_domain.py --domain full_strips"
 STRIPSPROB="-l log/strips_prob_100_2.log run_domain.py --domain strips_prob"
-SIMPLE="-l log/simple_100_2.log run_domain.py --domain simple"
+SIMPLE="-l log/simple_100_3.log run_domain.py --domain simple"
 
 set -e
 
@@ -51,15 +51,15 @@ do
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type avg --domain_type combination
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination
-
-    echo "Started Stuck Car Robot"
-    for o in 2
-    do
-      echo "Started object $o"
-      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --object_amount $o
-      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --domain_type combination --object_amount $o
-      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-    done
+#
+#    echo "Started Stuck Car Robot"
+#    for o in 2
+#    do
+#      echo "Started object $o"
+#      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --object_amount $o
+#      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --domain_type combination --object_amount $o
+#      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+#    done
 
 #    echo "Started Machine Shop"
 #    for o in 2 3 4
@@ -115,17 +115,17 @@ do
     done
 #
 
-    echo "Started Probabilistic Strips"
-#    for g in 0 1 2 3 4 5 6 7 8 9 10
-    for g in 7 10
-    do
-      echo "started garbage $g"
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
-      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --garbage_amount $g
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
-      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
-    done
-
-  done
-done
+#    echo "Started Probabilistic Strips"
+##    for g in 0 1 2 3 4 5 6 7 8 9 10
+#    for g in 7 10
+#    do
+#      echo "started garbage $g"
+##      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
+#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --garbage_amount $g
+##      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
+#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+#    done
+#
+#  done
+#done
