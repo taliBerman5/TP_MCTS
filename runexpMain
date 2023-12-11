@@ -19,7 +19,7 @@ NASAROVER="-l log/nasa_rover_100_2.log run_domain.py --domain nasa_rover"
 STRIPS="-l log/strips_100_2.log run_domain.py --domain strips"
 FULLSTRIPS="-l log/full_strips_100_2.log run_domain.py --domain full_strips"
 STRIPSPROB="-l log/strips_prob_100_3.log run_domain.py --domain strips_prob"
-SIMPLE="-l log/simple_100_13.log run_domain.py --domain simple"
+SIMPLE="-l log/simple_100_15.log run_domain.py --domain simple"
 
 set -e
 
@@ -104,7 +104,7 @@ do
 
     echo "Started Simple"
 #    for ((g = 5; g <= 18; g += 1))
-    for ((g = 13; g <= 14; g += 1))
+    for ((g = 15; g <= 15; g += 1))
     do
       echo "started garbage $g"
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
