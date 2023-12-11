@@ -530,6 +530,20 @@ class STNPlan(unified_planning.plans.plan.Plan):
         self._stn.insert_interval(start_plan, action, left_bound=f0)
         self._stn.insert_interval(action, end_plan, left_bound=f0)
 
+    def fix_action_time(self, action: STNPlanNode, fix_time):
+        """ add constraint so the time of the action is fixed and can't be changed
+        :param fix_time is the fixed execution time of the action
+        """
+
+        f_fix_time = Fraction(fix_time)
+        if (action.environment is not None
+                    and action.environment != self._environment ):
+                raise UPUsageError(
+                    "Different environments given inside the same STNPlan!"
+                )
+        start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+        self._stn.insert_interval(start_plan, action, right_bound=f_fix_time)
+
     def add_deadline(self, deadline: int):
         """
         add a deadline to the STN: end plan - start plan <= deadline

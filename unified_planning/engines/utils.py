@@ -15,7 +15,7 @@ def create_init_stn(mdp: "up.engines.MDP"):
 
 
 
-def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previous_action_node: "up.plans.stn.STNPlanNode"=None):
+def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previous_action_node: "up.plans.stn.STNPlanNode"=None, type=None):
     """
     Add constrains to the `stn` according to the `action` and the `previous_action`
 
@@ -37,6 +37,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
     :param action: according to the `action` constraints are added
     :return: The STNPlanNode of the `action`
     """
+
     if isinstance(action, up.engines.action.InstantaneousStartAction):
         start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(action, ()))
         if previous_action_node:
@@ -52,6 +53,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         upper_bound = action.duration.upper.type.upper_bound
         stn.add_potential_end_action([(start_node, lower_bound, upper_bound, end_node)])
 
+        check_fix_time(stn, start_node, type)
         return start_node
 
     if isinstance(action, up.engines.action.InstantaneousEndAction):
@@ -66,7 +68,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
 
         if start_node != previous_action_node:
             stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, end_node)])
-
+        check_fix_time(stn, end_node, type)
         return end_node
 
 
@@ -77,4 +79,12 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
     else:
         stn.add_action(Instant_node)
 
+    check_fix_time(stn, Instant_node, type)
+
     return Instant_node
+
+
+def check_fix_time(stn: "up.plans.stn.STNPlan", action: "up.plans.stn.STNPlanNode", type):
+    if type == 'SetTime':
+        fix_time = stn.get_current_time(action)
+        stn.fix_action_time(action, fix_time)

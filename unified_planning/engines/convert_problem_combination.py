@@ -8,8 +8,10 @@ import itertools
 class Convert_problem_combination:
     def __init__(
             self,
+            model,
             original_problem: "up.model.Problem",
     ):
+        self._model = model
         self._original_problem: "up.model.Problem" = original_problem
         self._converted_problem: "up.model.Problem" = self._original_problem.clone()
         self._split_problem: "up.model.Problem" = unified_planning.engines.Convert_problem(
@@ -88,18 +90,23 @@ class Convert_problem_combination:
 
         elif not self.is_mutex(action_execution, durative_actions[i]):
             # if current action is not mutex with the actions already in the queue
-            combination_i = combination.copy()
-            combination_i.append(durative_actions[i])
+            if self._model.allowed_actions(combination, durative_actions[i]):
+                # if current action is allowed with the actions already in the queue
+                combination_i = combination.copy()
+                combination_i.append(durative_actions[i])
 
-            action_execution_i = action_execution.union(durative_actions[i].inExecution)
-            neg_precondition_i = neg_precondition.union(durative_actions[i].neg_preconditions)
-            pos_precondition_i = pos_precondition.union(durative_actions[i].pos_preconditions)
+                action_execution_i = action_execution.union(durative_actions[i].inExecution)
+                neg_precondition_i = neg_precondition.union(durative_actions[i].neg_preconditions)
+                pos_precondition_i = pos_precondition.union(durative_actions[i].pos_preconditions)
 
-            # Continue adding recursively actions with and without the i action
-            self._rec_combination_durative_actions(i + 1, durative_actions, combination, action_execution,
-                                                  neg_precondition, pos_precondition)
-            self._rec_combination_durative_actions(i + 1, durative_actions, combination_i, action_execution_i,
-                                                  neg_precondition_i, pos_precondition_i)
+                # Continue adding recursively actions with and without the i action
+                self._rec_combination_durative_actions(i + 1, durative_actions, combination, action_execution,
+                                                      neg_precondition, pos_precondition)
+                self._rec_combination_durative_actions(i + 1, durative_actions, combination_i, action_execution_i,
+                                                      neg_precondition_i, pos_precondition_i)
+            else:
+                self._rec_combination_durative_actions(i + 1, durative_actions, combination, action_execution,
+                                                       neg_precondition, pos_precondition)
 
         else:
             # Continue adding recursively actions without the i action
