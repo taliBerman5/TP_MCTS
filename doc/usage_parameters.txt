@@ -1,0 +1,15 @@
+================================================================================
+COMMAND LINE OPTIONS
+================================================================================
+-do <arg> --domain <arg>                Domain name.
+-r <arg>  --runs <arg>                  Number of runs (default is 1).
+-dt <arg> --domain_type <arg>           TP-MCTS listed as regular or MW listed as combination (default regular).
+-s <arg>  --solver <arg>                Solver, MCTS or RTDP. RTDP relevant only for MW domain type (default MCTS).
+-d <arg>  --deadline <arg>              Deadline for the problem.
+-st <arg> --search_time <arg>           Search time per move, in seconds (default 1).
+-se <arg> --selection_type <arg>        Selection type, average or maximum (default avg).
+-ge <arg> --garbage_amount <arg>        Amount of garbage actions in the domain (default 0).
+-oe <arg> --object_amount <arg>         Amount of object in the domain (default 1).   
+-e <arg>  --exploration_constant <arg>  The exploration constant for mcts solver (default 10).
+-sd <arg> --serach_depth <arg>          Maximum depth of search tree (default 40).
+-k <arg>  --k <arg>                     K random actions to evaluation in the maximum selection type (default 10). 
