@@ -432,8 +432,7 @@ def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int,
             root_node.set_depth(0)
 
         # update STN to include the action
-        # previous_action_node = update_stn(stn, action, previous_action_node, type='SetTime')
-        previous_action_node = update_stn(stn, action, previous_action_node)
+        previous_action_node = update_stn(stn, action, previous_action_node, type='SetTime')
         assert stn.is_consistent
 
         print(f"The time of the plan so far: {stn.get_current_end_time()}")

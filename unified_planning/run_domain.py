@@ -80,7 +80,6 @@ def create_combination_domain(domain, deadline, object_amount, garbage_amount):
     ground_problem = grounding_result.problem
 
     convert_combination_problem = Convert_problem_combination(model, ground_problem)
-    # convert_combination_problem = Convert_problem_combination(model, ground_problem)
     converted_problem = convert_combination_problem._converted_problem
     model.remove_actions(converted_problem)
 
