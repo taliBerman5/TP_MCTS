@@ -306,7 +306,8 @@ class InstantaneousAction(Action):
         ), "effect does not have the same environment of the action"
         up.model.effect.check_conflicting_effects(
             effect,
-            None,
+            self._probabilistic_effects,
+            self._effects,
             "action"
         )
         self._effects.append(effect)
@@ -601,7 +602,8 @@ class DurativeAction(Action):
         ), "effect does not have the same environment of the action"
         up.model.effect.check_conflicting_effects(
             effect,
-            None,
+            self._probabilistic_effects,
+            self._effects,
             "action"
         )
         self._effects.append(effect)
@@ -640,7 +642,8 @@ class DurativeAction(Action):
         ), "effect does not have the same environment of the action"
         up.model.effect.check_conflicting_effects(
             effect,
-            None,
+            self._probabilistic_effects,
+            self._effects,
             "action"
         )
         self._start_effects.append(effect)

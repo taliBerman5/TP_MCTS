@@ -157,9 +157,10 @@ class ProbabilisticEffect:
         return self._probability_func
 
 
-def check_conflicting_effects( #TODO: need to update
+def check_conflicting_effects(
     effect: Effect,
-    timing: Optional["unified_planning.model.timing.Timing"],
+    probabilistic_effects: List[ProbabilisticEffect],
+    effects: List[Effect],
     name: str,
 ):
     """
@@ -176,10 +177,23 @@ def check_conflicting_effects( #TODO: need to update
     :raises: UPConflictingException if the given effect is in conflict with the data structure around it.
     """
 
-    #raise NotImplementedError
+    f = effect.fluent
+
+    if effects:
+        effects_fluents = [effect.fluent for effect in effects]
+        if f in effects_fluents:
+            msg = f"The effect {effect} is in conflict with the effects already in the {name}."
+            raise UPConflictingEffectsException(msg)
+
+    if probabilistic_effects:
+        probabilistic__effects_fluents = list(
+            np.concatenate([effect.fluents for effect in probabilistic_effects]).flat)
+        if f in probabilistic__effects_fluents:
+            msg = f"The effect {effect} is in conflict with the probabilistic_ effects already in the {name}."
+            raise UPConflictingEffectsException(msg)
     return
 
-def check_conflicting_probabilistic_effects(  #TODO: need to update
+def check_conflicting_probabilistic_effects(
     probabilistic_effect: ProbabilisticEffect,
     probabilistic_effects: List[ProbabilisticEffect],
     effects: List[Effect],
@@ -204,7 +218,7 @@ def check_conflicting_probabilistic_effects(  #TODO: need to update
                 msg = f"The effect {probabilistic_effect} is in conflict with the effects already in the {name}."
                 raise UPConflictingEffectsException(msg)
 
-        elif probabilistic_effects:
+        if probabilistic_effects:
             probabilistic__effects_fluents = list(np.concatenate([effect.fluents for effect in probabilistic_effects]).flat)
             if f in probabilistic__effects_fluents:
                 msg = f"The effect {probabilistic_effect} is in conflict with the probabilistic_ effects already in the {name}."
