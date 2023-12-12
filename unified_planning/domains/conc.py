@@ -5,7 +5,7 @@ from unified_planning.shortcuts import *
 
 class Conc(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
-        Domain.__init__(self, 'strips', kind)
+        Domain.__init__(self, 'conc', kind)
         self.userTypes = None
         self.user_types()
         self.objects()

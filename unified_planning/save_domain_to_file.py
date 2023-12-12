@@ -88,9 +88,9 @@ for o in range(1, 4):
 
 # for g in range(11):
 #     prob_conc = up.domains.Prob_Conc
-#     create_save_model("prob_conc", f"../pickle_domains/strips_prob_domain_comb_{g}.pkl", prob_conc, garbage_amount=g)
+#     create_save_model("prob_conc", f"../pickle_domains/prob_conc_domain_comb_{g}.pkl", prob_conc, garbage_amount=g)
 
 
 # for g in range(5, 30):
 #     simple = up.domains.Simple
-#     create_save_model(f"../pickle_domains/simple_domain_comb_{g}.pkl", simple, garbage_amount=g)
+#     create_save_model("simple", f"../pickle_domains/simple_domain_comb_{g}.pkl", simple, garbage_amount=g)

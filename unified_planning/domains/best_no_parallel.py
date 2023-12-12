@@ -5,7 +5,7 @@ from unified_planning.shortcuts import *
 
 class Best_No_Parallel(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
-        Domain.__init__(self, 'strips', kind)
+        Domain.__init__(self, 'best_no_parallel', kind)
         self.userTypes = None
         self.user_types()
         self.objects()

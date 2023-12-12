@@ -5,7 +5,7 @@ from unified_planning.shortcuts import *
 
 class Full_Conc(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
-        Domain.__init__(self, 'full_strips', kind)
+        Domain.__init__(self, 'full_conc', kind)
         self.userTypes = None
         self.user_types()
         self.objects()

@@ -5,7 +5,7 @@ from unified_planning.shortcuts import *
 
 class Prob_Conc(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
-        Domain.__init__(self, 'strips_prob', kind)
+        Domain.__init__(self, 'prob_conc', kind)
         self.garbage_amount = garbage_amount
         self.userTypes = None
         self.user_types()

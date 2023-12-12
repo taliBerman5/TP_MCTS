@@ -5,7 +5,7 @@ from unified_planning.domains import Domain
 
 class Stuck_Car_1o(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
-        Domain.__init__(self, 'stuck_car', kind)
+        Domain.__init__(self, 'stuck_car_1o', kind)
         self.user_types()
         self.objects()
         self.fluents()

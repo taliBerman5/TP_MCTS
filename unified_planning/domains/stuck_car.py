@@ -30,12 +30,10 @@ class Stuck_Car(Domain):
         robots = [unified_planning.model.Object(r, self.userTypes['Robot']) for r in robot_names]
         self.problem.add_objects(robots)
 
-
         """ Init car """
         car_names = ['c' + str(i) for i in range(self.object_amount)]
         cars = [unified_planning.model.Object(c, self.userTypes['Car']) for c in car_names]
         self.problem.add_objects(cars)
-
 
         gasPedal = unified_planning.model.Object('gasPedal', self.userTypes['GasPedal'])
         self.problem.add_object(gasPedal)
@@ -59,23 +57,27 @@ class Stuck_Car(Domain):
         tired = unified_planning.model.Fluent('tired', BoolType(), ro=self.userTypes['Robot'])
         self.problem.add_fluent(tired, default_initial_value=False)
 
-        got_rock = unified_planning.model.Fluent('got_rock', BoolType(), ro=self.userTypes['Robot'], r=self.userTypes['Rock'])
+        got_rock = unified_planning.model.Fluent('got_rock', BoolType(), ro=self.userTypes['Robot'],
+                                                 r=self.userTypes['Rock'])
         self.problem.add_fluent(got_rock, default_initial_value=False)
 
-        free = unified_planning.model.Fluent('free', BoolType(), ro=self.userTypes['Robot'], b=self.userTypes['BodyPart'])
+        free = unified_planning.model.Fluent('free', BoolType(), ro=self.userTypes['Robot'],
+                                             b=self.userTypes['BodyPart'])
         if self.kind == 'combination':
             self.problem.add_fluent(free, default_initial_value=False)
         if self.kind == 'regular':
             self.problem.add_fluent(free, default_initial_value=True)
 
-        rock_under_car = unified_planning.model.Fluent('rock_under_car', BoolType(), c=self.userTypes['Car'], r=self.userTypes['Rock'])
+        rock_under_car = unified_planning.model.Fluent('rock_under_car', BoolType(), c=self.userTypes['Car'],
+                                                       r=self.userTypes['Rock'])
         self.problem.add_fluent(rock_under_car, default_initial_value=False)
 
         gas_pressed = unified_planning.model.Fluent('gas_pressed', BoolType(), c=self.userTypes['Car'])
         self.problem.add_fluent(gas_pressed, default_initial_value=False)
 
         if self.kind == 'combination':
-            ready = unified_planning.model.Fluent('ready', BoolType(), ro=self.userTypes['Robot'], b=self.userTypes['BodyPart'])
+            ready = unified_planning.model.Fluent('ready', BoolType(), ro=self.userTypes['Robot'],
+                                                  b=self.userTypes['BodyPart'])
             self.problem.add_fluent(ready, default_initial_value=True)
 
     def add_goal(self, deadline):
@@ -99,9 +101,6 @@ class Stuck_Car(Domain):
         if self.kind == 'regular':
             self.use(action, free(robot, bodyPart))
 
-
-
-
     def actions(self):
         self.rest_action()
         self.place_rock_action()
@@ -114,13 +113,13 @@ class Stuck_Car(Domain):
 
     def tired_prob(self, robot):
         tired = self.problem.fluent_by_name('tired')
+
         def tired_probability(state, actual_params):
             p = 0.4
             robot_param = actual_params.get(robot)
             return {p: {tired(robot_param): True}, 1 - p: {tired(robot_param): False}}
 
         return tired_probability
-
 
     def push_prob(self, car, probs):
         car_out, rock_under_car = self.get_fluents(['car_out', 'rock_under_car'])
@@ -145,15 +144,15 @@ class Stuck_Car(Domain):
                 else:
                     p = probs['none']
 
-            return {p: {car_out(car_param): True}, 1-p: {}}
+            return {p: {car_out(car_param): True}, 1 - p: {}}
 
         return push_probability
-
 
     def turn_on(self):
         ready, free = self.get_fluents(['ready', 'free'])
 
-        turn_on = unified_planning.model.InstantaneousAction('turn_on', robot=self.userTypes['Robot'], bodyPart=self.userTypes['BodyPart'])
+        turn_on = unified_planning.model.InstantaneousAction('turn_on', robot=self.userTypes['Robot'],
+                                                             bodyPart=self.userTypes['BodyPart'])
         robot = turn_on.parameter('robot')
         bodyPart = turn_on.parameter('bodyPart')
 
@@ -179,7 +178,6 @@ class Stuck_Car(Domain):
             self.use_bodyPart(rest, robot, hands)
             self.use_bodyPart(rest, robot, legs)
 
-
         rest.set_fixed_duration(1)
         rest.add_effect(tired(robot), False)
 
@@ -190,8 +188,8 @@ class Stuck_Car(Domain):
         tired, got_rock, rock_under_car, free = self.get_fluents(['tired', 'got_rock', 'rock_under_car', 'free'])
         hands, legs = self.get_objects(['hands', 'legs'])
 
-
-        place_rock = unified_planning.model.DurativeAction('place_rock', robot=self.userTypes['Robot'], car=self.userTypes['Car'], rock=self.userTypes['Rock'])
+        place_rock = unified_planning.model.DurativeAction('place_rock', robot=self.userTypes['Robot'],
+                                                           car=self.userTypes['Car'], rock=self.userTypes['Rock'])
         robot = place_rock.parameter('robot')
         car = place_rock.parameter('car')
         rock = place_rock.parameter('rock')
@@ -202,7 +200,6 @@ class Stuck_Car(Domain):
 
         self.use_bodyPart(place_rock, robot, hands)
         self.use_bodyPart(place_rock, robot, legs)
-
 
         place_rock.add_effect(rock_under_car(car, rock), True)
         place_rock.add_effect(got_rock(robot, rock), False)
@@ -232,9 +229,6 @@ class Stuck_Car(Domain):
             return {p: {got_rock(robot_param, bad): True},
                     1 - p: {got_rock(robot_param, good): True}}
 
-            # return {p: {got_rock(robot_param, bad): True, got_rock(robot_param, good): False},
-            #         1 - p: {got_rock(robot_param, bad): False, got_rock(robot_param, good): True}}
-
         search.add_probabilistic_effect([got_rock(robot, bad), got_rock(robot, good)], rock_probability)
         self.problem.add_action(search)
 
@@ -245,7 +239,8 @@ class Stuck_Car(Domain):
         tired, car_out, free, = self.get_fluents(['tired', 'car_out', 'free'])
         legs = self.problem.object_by_name('legs')
 
-        push_gas = unified_planning.model.action.DurativeAction('push_gas', robot=self.userTypes['Robot'], car=self.userTypes['Car'])
+        push_gas = unified_planning.model.action.DurativeAction('push_gas', robot=self.userTypes['Robot'],
+                                                                car=self.userTypes['Car'])
         robot = push_gas.parameter('robot')
         car = push_gas.parameter('car')
         push_gas.set_fixed_duration(2)
@@ -253,7 +248,6 @@ class Stuck_Car(Domain):
         push_gas.add_precondition(StartPreconditionTiming(), tired(robot), False)
 
         self.use_bodyPart(push_gas, robot, legs)
-
 
         push_gas.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.2, good=0.4, none=0.1)))
         self.problem.add_action(push_gas)
@@ -265,7 +259,8 @@ class Stuck_Car(Domain):
         tired, car_out, free = self.get_fluents(['tired', 'car_out', 'free'])
         hands, legs = self.get_objects(['hands', 'legs'])
 
-        push_car = unified_planning.model.action.DurativeAction('push_car', robot=self.userTypes['Robot'], car=self.userTypes['Car'])
+        push_car = unified_planning.model.action.DurativeAction('push_car', robot=self.userTypes['Robot'],
+                                                                car=self.userTypes['Car'])
         robot = push_car.parameter('robot')
         car = push_car.parameter('car')
         push_car.set_fixed_duration(2)
@@ -273,19 +268,17 @@ class Stuck_Car(Domain):
         push_car.add_precondition(StartPreconditionTiming(), tired(robot), False)
 
         self.use_bodyPart(push_car, robot, hands)
-        # self.use(push_car, free(robot, hands))
-        # self.use(push_car, free(robot, legs))
 
         push_car.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.3, good=0.48, none=0.1)))
         push_car.add_probabilistic_effect([tired(robot)], self.tired_prob(robot))
         self.problem.add_action(push_car)
 
-
     def push_car_gas_action(self):
         tired, car_out, free = self.get_fluents(['tired', 'car_out', 'free'])
         hands, legs = self.get_objects(['hands', 'legs'])
 
-        push_car_gas = unified_planning.model.action.DurativeAction('push_car_gas', robot=self.userTypes['Robot'], car=self.userTypes['Car'])
+        push_car_gas = unified_planning.model.action.DurativeAction('push_car_gas', robot=self.userTypes['Robot'],
+                                                                    car=self.userTypes['Car'])
         robot = push_car_gas.parameter('robot')
         car = push_car_gas.parameter('car')
         push_car_gas.set_fixed_duration(4)
@@ -294,14 +287,11 @@ class Stuck_Car(Domain):
 
         self.use_bodyPart(push_car_gas, robot, hands)
         self.use_bodyPart(push_car_gas, robot, legs)
-        # self.use(push_car_gas, free(robot, hands))
-        # self.use(push_car_gas, free(robot, legs))
 
-        push_car_gas.add_probabilistic_effect([car_out(car)], self.push_prob(car, probs=dict(bad=0.4, good=0.9, none=0.2)))
+        push_car_gas.add_probabilistic_effect([car_out(car)],
+                                              self.push_prob(car, probs=dict(bad=0.4, good=0.9, none=0.2)))
         push_car_gas.add_probabilistic_effect([tired(robot)], self.tired_prob(robot))
 
         self.problem.add_action(push_car_gas)
 
-
 # run_regular(kind='regular', deadline=10, search_time=1, search_depth=20, selection_type='avg',exploration_constant=10)
-
