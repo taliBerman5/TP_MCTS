@@ -3,7 +3,7 @@ from unified_planning.domains import Domain
 from unified_planning.shortcuts import *
 
 
-class Strips_Prob(Domain):
+class Prob_Conc(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
         Domain.__init__(self, 'strips_prob', kind)
         self.garbage_amount = garbage_amount

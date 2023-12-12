@@ -4,128 +4,101 @@ DIR="unified_planning"               # Domain directory
 LOG=/dev/stdout             # Log file output
 REWIND=false
 NUMRUN=100
-SC_DEADLINE=15
-SCR_DEADLINE=20
+SC1_DEADLINE=15
+SC_DEADLINE=20
 MS_DEADLINE=27
 NR_DEADLINE=35
-S_DEADLINE=15
+C_DEADLINE=15
 RS_DEADLINE=15
-SI_DEADLINE=50
 
-STUCKCAR="-l log/stuck_car_100_2.log run_domain.py --domain stuck_car"
-STUCKCARROBOT="-l log/stuck_car_robot_100_2.log run_domain.py --domain stuck_car_robot"
+
+STUCKCAR1o="-l log/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
+STUCKCAR="-l log/stuck_car.log run_domain.py --domain stuck_car"
 MACHINESHOP="-l log/machine_shop_100_2.log run_domain.py --domain machine_shop"
 NASAROVER="-l log/nasa_rover_100_2.log run_domain.py --domain nasa_rover"
-STRIPS="-l log/strips_100_2.log run_domain.py --domain strips"
-FULLSTRIPS="-l log/full_strips_100_2.log run_domain.py --domain full_strips"
-STRIPSPROB="-l log/strips_prob_100_10.log run_domain.py --domain strips_prob"
+CONC="-l log/conc.log run_domain.py --domain conc"
+PROBCONC="-l log/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/simple_100_rerun.log run_domain.py --domain simple"
 
 set -e
 
 
-##bash runexp "-l save_domain.log save_domain_to_file.py"
 
 
-#echo "Started Stuck Car Robot one second"
-#for o in 1 2 3
-#do
-#  echo "Started object $o"
-#  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --selection_type max --object_amount $o
-#  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --selection_type max --domain_type combination --object_amount $o
-#  bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth 30 --search_time 1 --deadline $SCR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-#done
-
-
-
-#for t in 1 10 20
-for t in 1
+for t in 1 10
 do
   for d in 30
   do
     echo "started depth $d and search_time time $t:"
 
-#    echo "Started Stuck Car Robot"
-#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type avg
-#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max
-#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination
-#
-#    echo "Started Stuck Car Robot"
-#    for o in 2
-#    do
-#      echo "Started object $o"
-#      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --object_amount $o
-#      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --selection_type max --domain_type combination --object_amount $o
-#      bash runexp $STUCKCARROBOT --runs $NUMRUN --search_depth $d --search_time $t --deadline $SCR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-#    done
+    echo "Started Stuck Car 1 object"
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
 
-#    echo "Started Machine Shop"
-#    for o in 2 3 4
-#    do
-#      echo "Started object $o"
-#    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30 --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
-#    #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --domain_type combination --exploration_constant 30 --object_amount $o
-#    done
-#
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount 3
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount 3
-##
+    echo "Started Stuck Car"
+    for o in 2 3
+    do
+      echo "Started object $o"
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --object_amount $o
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination --object_amount $o
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+    done
+
+    echo "Started Machine Shop"
+    for o in 2 3
+    do
+      echo "Started object $o"
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+    done
+
+    echo "Started object 4"
+    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount 4
 
 
-#    echo "Started Nasa Rover"
-##    for o in 1 2 3
-#    do
-#      echo "Started object $o"
-##      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
-#    done
 
-#   bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --domain_type combination --object_amount 1
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 1
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount 2
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount 2
-#
-#    echo "Started Strips"
-#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
-#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
-#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $STRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --solver rtdp --domain_type combination
-#
-#    echo "Started Full Strips"
-#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg
-#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max
-#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $FULLSTRIPS --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination
+    echo "Started Nasa Rover"
+    for o in 1 2
+    do
+      echo "Started object $o"
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+    done
+
+    echo "Started object 3"
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
+
+
+    echo "Started Conc"
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --solver rtdp --domain_type combination
+
+
 
     echo "Started Simple"
-#    for ((g = 5; g <= 18; g += 1))
     for ((g = 12; g <= 15; g += 1))
     do
       echo "started garbage $g"
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --garbage_amount $g
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 #
 
-#    echo "Started Probabilistic Strips"
-##    for g in 0 1 2 3 4 5 6 7 8 9 10
-#    for g in 10
-#    do
-#      echo "started garbage $g"
-##      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --garbage_amount $g
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --garbage_amount $g
-##      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-#      bash runexp $STRIPSPROB --runs $NUMRUN --search_depth $d --search_time $t --deadline $S_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
-#    done
-#
+    echo "Started Probabilistic Conc"
+    for g in 7 8 9 10
+    do
+      echo "started garbage $g"
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+    done
+
   done
 done

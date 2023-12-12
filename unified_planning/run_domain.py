@@ -16,12 +16,12 @@ import unified_planning as up
 from unified_planning.shortcuts import *
 import unified_planning.domains
 
-domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car=up.domains.Stuck_Car,
-               stuck_car_robot=up.domains.Stuck_Car_Robot, strips=up.domains.Strips, full_strips=up.domains.Full_Strips,
-               strips_prob=up.domains.Strips_Prob, best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple)
+domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car_1o=up.domains.Stuck_Car_1o,
+               stuck_car=up.domains.Stuck_Car, conc=up.domains.Conc, full_conc=up.domains.Full_Conc,
+               prob_conc=up.domains.Prob_Conc, best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple)
 domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_rover_domain_comb",
-                     stuck_car="stuck_car_domain_comb", stuck_car_robot="stuck_car_robot_domain_comb", strips="strips_domain_comb",
-                     full_strips="full_strips_domain_comb", strips_prob="strips_prob_domain_comb",
+                     stuck_car_1o="stuck_car_1o_domain_comb", stuck_car="stuck_car_domain_comb", conc="conc_domain_comb",
+                     conc_strips="full_conc_domain_comb", prob_conc="prob_conc_domain_comb",
                      simple="simple_domain_comb")
 
 
@@ -92,9 +92,9 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
     print_stats()
 
     file_name = './pickle_domains/' + domains_files[domain]
-    if domain == 'strips_prob' or domain == 'simple':
+    if domain == 'prob_conc' or domain == 'simple':
         file_name += "_" + str(garbage_amount)
-    if domain == 'nasa_rover' or domain == 'stuck_car_robot':
+    if domain == 'nasa_rover' or domain == 'stuck_car':
         file_name += "_" + str(object_amount)
     if domain == 'machine_shop':
         file_name += "_" + str(object_amount)

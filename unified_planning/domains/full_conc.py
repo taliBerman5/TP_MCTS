@@ -3,9 +3,9 @@ from unified_planning.domains import Domain
 from unified_planning.shortcuts import *
 
 
-class Strips(Domain):
+class Full_Conc(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
-        Domain.__init__(self, 'strips', kind)
+        Domain.__init__(self, 'full_strips', kind)
         self.userTypes = None
         self.user_types()
         self.objects()
@@ -20,7 +20,7 @@ class Strips(Domain):
 
     def objects(self):
         """ Init parts """
-        part_names = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+        part_names = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o']
         parts = [unified_planning.model.Object(p, self.userTypes['Part']) for p in part_names]
         self.problem.add_objects(parts)
 
@@ -30,7 +30,8 @@ class Strips(Domain):
 
     def add_goal(self, deadline):
         got = self.problem.fluent_by_name('got')
-        a, b, c, d, e, f, g, h, i= self.get_objects(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'])
+        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o = self.get_objects(
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o'])
 
         self.problem.add_goal(got(a))
         self.problem.add_goal(got(b))
@@ -41,30 +42,42 @@ class Strips(Domain):
         self.problem.add_goal(got(g))
         self.problem.add_goal(got(h))
         self.problem.add_goal(got(i))
+        self.problem.add_goal(got(j))
+        self.problem.add_goal(got(k))
+        self.problem.add_goal(got(l))
+        self.problem.add_goal(got(m))
+        self.problem.add_goal(got(n))
+        self.problem.add_goal(got(o))
 
         deadline_timing = Timing(delay=deadline, timepoint=Timepoint(TimepointKind.START))
         self.problem.set_deadline(deadline_timing)
 
     def actions(self):
-        self.nine_action()
+        self.eight_action()
         self.four1_action()
+        self.four2_action()
         self.two1_action()
         self.two2_action()
+        self.two3_action()
+        self.two4_action()
         self.one1_action()
         self.one2_action()
         self.one3_action()
         self.one4_action()
         self.one5_action()
+        self.one6_action()
+        self.one7_action()
+        self.one8_action()
 
-    def nine_action(self):
+    def eight_action(self):
         got = self.problem.fluent_by_name('got')
         a = self.problem.object_by_name('a')
 
-        nine = unified_planning.model.action.DurativeAction('nine')
-        nine.set_fixed_duration(9)
+        eight = unified_planning.model.action.DurativeAction('eight')
+        eight.set_fixed_duration(8)
 
-        nine.add_effect(got(a), True)
-        self.problem.add_action(nine)
+        eight.add_effect(got(a), True)
+        self.problem.add_action(eight)
 
     def four1_action(self):
         got = self.problem.fluent_by_name('got')
@@ -143,9 +156,37 @@ class Strips(Domain):
         one4.add_effect(got(h), True)
         self.problem.add_action(one4)
 
+    def four2_action(self):
+        got = self.problem.fluent_by_name('got')
+        b, h, f, i = self.get_objects(['b', 'h', 'f', 'i'])
+
+        four2 = unified_planning.model.action.DurativeAction('four2')
+        four2.set_fixed_duration(4)
+
+        four2.add_precondition(StartPreconditionTiming(), got(b), True)
+        four2.add_precondition(StartPreconditionTiming(), got(h), True)
+        four2.add_precondition(StartPreconditionTiming(), got(f), True)
+
+        four2.add_effect(got(i), True)
+        self.problem.add_action(four2)
+
+    def two3_action(self):
+        got = self.problem.fluent_by_name('got')
+        b, h, f, j = self.get_objects(['b', 'h', 'f', 'j'])
+
+        two3 = unified_planning.model.action.DurativeAction('two3')
+        two3.set_fixed_duration(2)
+
+        two3.add_precondition(StartPreconditionTiming(), got(b), True)
+        two3.add_precondition(StartPreconditionTiming(), got(h), True)
+        two3.add_precondition(StartPreconditionTiming(), got(f), True)
+
+        two3.add_effect(got(j), True)
+        self.problem.add_action(two3)
+
     def one5_action(self):
         got = self.problem.fluent_by_name('got')
-        b, c, d, e, f, g, h, i = self.get_objects(['b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'])
+        b, h, f, k = self.get_objects(['b', 'h', 'f', 'k'])
 
         one5 = unified_planning.model.action.DurativeAction('one5')
         one5.set_fixed_duration(1)
@@ -154,17 +195,55 @@ class Strips(Domain):
         one5.add_precondition(StartPreconditionTiming(), got(h), True)
         one5.add_precondition(StartPreconditionTiming(), got(f), True)
 
-        one5.add_effect(got(i), True)
-
-        one5.add_effect(got(b), False)
-        one5.add_effect(got(c), False)
-        one5.add_effect(got(d), False)
-        one5.add_effect(got(e), False)
-        one5.add_effect(got(f), False)
-        one5.add_effect(got(g), False)
-        one5.add_effect(got(h), False)
+        one5.add_effect(got(k), True)
         self.problem.add_action(one5)
 
+    def one6_action(self):
+        got = self.problem.fluent_by_name('got')
+        k, l = self.get_objects(['k', 'l'])
 
+        one6 = unified_planning.model.action.DurativeAction('one6')
+        one6.set_fixed_duration(1)
 
+        one6.add_precondition(StartPreconditionTiming(), got(k), True)
 
+        one6.add_effect(got(l), True)
+        self.problem.add_action(one6)
+
+    def two4_action(self):
+        got = self.problem.fluent_by_name('got')
+        j, l, m = self.get_objects(['j', 'l', 'm'])
+
+        two4 = unified_planning.model.action.DurativeAction('two4')
+        two4.set_fixed_duration(2)
+
+        two4.add_precondition(StartPreconditionTiming(), got(j), True)
+        two4.add_precondition(StartPreconditionTiming(), got(l), True)
+
+        two4.add_effect(got(m), True)
+        self.problem.add_action(two4)
+
+    def one7_action(self):
+        got = self.problem.fluent_by_name('got')
+        j, l, n = self.get_objects(['j', 'l', 'n'])
+
+        one7 = unified_planning.model.action.DurativeAction('one7')
+        one7.set_fixed_duration(1)
+
+        one7.add_precondition(StartPreconditionTiming(), got(j), True)
+        one7.add_precondition(StartPreconditionTiming(), got(l), True)
+
+        one7.add_effect(got(n), True)
+        self.problem.add_action(one7)
+
+    def one8_action(self):
+        got = self.problem.fluent_by_name('got')
+        n, o = self.get_objects(['n', 'o'])
+
+        one8 = unified_planning.model.action.DurativeAction('one8')
+        one8.set_fixed_duration(1)
+
+        one8.add_precondition(StartPreconditionTiming(), got(n), True)
+
+        one8.add_effect(got(o), True)
+        self.problem.add_action(one8)
