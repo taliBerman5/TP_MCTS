@@ -138,6 +138,9 @@ class DeltaSimpleTemporalNetwork(Generic[T]):
         return cast(T, -1 * self._distances[x])
 
     def _is_subsumed(self, x: Any, y: Any, b: T) -> bool:
+        """
+        Check if there is a harder constraint from x to y
+        """
         neighbor = self._constraints.get(x, None)
         while neighbor is not None:
             if neighbor.dst == y:
