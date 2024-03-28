@@ -64,7 +64,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         start_node = stn._potential_end_actions[end_node]
 
 
-        stn.add_end_action_constrains([end_node])
+        stn.add_end_action_constrains([(start_node,end_node)])
 
         if start_node != previous_action_node:
             stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, end_node)])

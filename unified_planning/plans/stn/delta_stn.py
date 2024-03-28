@@ -19,6 +19,9 @@ from dataclasses import dataclass
 from numbers import Real
 from typing import Deque, Dict, List, Optional, Any, Generic, Set, Tuple, TypeVar, cast
 
+import unified_planning
+
+# from unified_planning.plans.stn import Graph
 
 T = TypeVar("T", bound=Real)
 
@@ -222,3 +225,22 @@ class DeltaSimpleTemporalNetwork(Generic[T]):
                     constraints[x].append((neighbor.bound, neighbor.dst))
                 neighbor = neighbor.next
         return constraints
+
+    def remove_endPlan_constraint(self, x: Any, end_plan):
+        neighbor = self._constraints[x]
+        new_constraints: DeltaNeighbors = None
+        while neighbor is not None:
+            if neighbor.dst != end_plan:
+                new_constraints = DeltaNeighbors(neighbor.dst, neighbor.bound, new_constraints)
+            neighbor = neighbor.next
+        self._constraints[x] = new_constraints
+
+    def calculate_shortest_path(self, start_node):
+        vertices = self._constraints.keys()
+        g = unified_planning.plans.stn.Graph(vertices)
+        for x, neighbor in self._constraints.items():
+            while neighbor is not None:
+                g.addEdge(neighbor.dst, x, neighbor.bound)
+                neighbor = neighbor.next
+
+        return g.BellmanFord(start_node)

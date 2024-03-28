@@ -451,6 +451,16 @@ class STNPlan(unified_planning.plans.plan.Plan):
     def get_current_time(self, node: "up.plans.stn.STNPlanNode"):
         return self._stn.get_stn_model(node).numerator
 
+
+    def get_upper_bound_node(self, node: "up.plans.stn.STNPlanNode"):
+        start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+        apsp = self._stn.calculate_shortest_path(start_plan)
+        return apsp[node]
+
+    def get_upper_bound(self):
+        start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+        return self._stn.calculate_shortest_path(start_plan)
+
     def add_constrains_to_previous_chosen_action(self, constraints: Union[
             List[Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]],
             Dict[STNPlanNode, List[Tuple[Optional[Real], Optional[Real], STNPlanNode]]],
@@ -481,6 +491,8 @@ class STNPlan(unified_planning.plans.plan.Plan):
             start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
             self._stn.insert_interval(start_plan, b_node, left_bound=f0)
+
+            # self._stn.remove_endPlan_constraint(a_node, end_plan)
             self._stn.insert_interval(b_node, end_plan, left_bound=f0)
             lb = None if lower_bound is None else Fraction(float(lower_bound))
             ub = None if upper_bound is None else Fraction(float(upper_bound))
@@ -495,8 +507,11 @@ class STNPlan(unified_planning.plans.plan.Plan):
          - The end action must be before the end plan
          - and before all potential end action not yet chosen"""
         f0 = Fraction(0)
-        for b_node in constraints:
-            if  (
+        for a_node, b_node in constraints:
+            if (
+                a_node.environment is not None
+                and a_node.environment != self._environment
+            ) or (
                 b_node.environment is not None
                 and b_node.environment != self._environment
             ):
@@ -507,6 +522,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
             self._potential_end_actions.pop(b_node)
 
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
+            # self._stn.remove_endPlan_constraint(a_node, end_plan)
             self._stn.insert_interval(b_node, end_plan, left_bound=f0)
 
             for potential in self._potential_end_actions:
@@ -527,6 +543,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
                 )
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
         end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
+        # self._stn.remove_endPlan_constraint(start_plan, end_plan)
         self._stn.insert_interval(start_plan, action, left_bound=f0)
         self._stn.insert_interval(action, end_plan, left_bound=f0)
 

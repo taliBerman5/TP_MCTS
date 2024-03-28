@@ -30,6 +30,19 @@ class TestSTN(unittest.TestCase):
         very_long_action.set_fixed_duration(7)
         problem.add_action(very_long_action)
 
+
+        """ very_short_action Action """
+        very_short_action = unified_planning.model.DurativeAction('very_short_action')
+        very_short_action.add_start_effect(goal, True)
+        very_short_action.set_fixed_duration(1)
+        problem.add_action(very_short_action)
+
+        """ very_short_action2 Action """
+        very_short_action2 = unified_planning.model.DurativeAction('very_short_action2')
+        very_short_action2.add_start_effect(goal, True)
+        very_short_action2.set_fixed_duration(1)
+        problem.add_action(very_short_action2)
+
         deadline = Timing(delay=6, timepoint=Timepoint(TimepointKind.START))
         problem.set_deadline(deadline)
         problem.add_goal(goal)
@@ -52,6 +65,12 @@ class TestSTN(unittest.TestCase):
         cls.a_start_very_long = cls.converted_problem.action_by_name("start_very_long_action")
         cls.a_end_very_long = cls.converted_problem.action_by_name("end_very_long_action")
 
+        cls.a_start_very_short = cls.converted_problem.action_by_name("start_very_short_action")
+        cls.a_end_very_short = cls.converted_problem.action_by_name("end_very_short_action")
+
+        cls.a_start_very_short2 = cls.converted_problem.action_by_name("start_very_short_action2")
+        cls.a_end_very_short2 = cls.converted_problem.action_by_name("end_very_short_action2")
+
     def setUp(self) -> None:
         self.stn = create_init_stn(self.mdp)
     def test_long_before_short(self):
@@ -65,14 +84,54 @@ class TestSTN(unittest.TestCase):
 
         self.assertFalse(self.stn.is_consistent(), 'Long action cannot end before the short action')
 
+
+    def test_long_ends_before_short(self):
+        print("Running test_long_before_short...")
+
+        # Long action can not end before a short action
+        node = update_stn(self.stn, self.a_start_long)
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 6, 'start long can be no later than 6')
+
+        node1 = update_stn(self.stn, self.a_start_short, node)
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 6, 'start long can be no later than 6')
+        self.assertTrue(self.stn.get_upper_bound_node(node1) == 6, 'start short can be no later than 6')
+
+        node2 = update_stn(self.stn, self.a_end_long, node1)
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 1, 'start long can be no later than 1')
+        self.assertTrue(self.stn.get_upper_bound_node(node1) == 6, 'start short can be no later than 6')
+        self.assertTrue(self.stn.get_upper_bound_node(node2) == 6, 'end long can be no later than 6')
+
+        node3 = update_stn(self.stn, self.a_end_short, node2)
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 1, 'start long can be no later than 1')
+        self.assertTrue(self.stn.get_upper_bound_node(node1) == 4, 'start short can be no later than 1')
+        self.assertTrue(self.stn.get_upper_bound_node(node2) == 6, 'end long can be no later than 6')
+        self.assertTrue(self.stn.get_upper_bound_node(node3) == 6, 'end short can be no later than 6')
+
+
+
+        self.assertTrue(self.stn.is_consistent(), 'Long action can end before the short action')
+
+
     def test_long_after_short(self):
         print("Running test_long_after_short...")
 
         node = update_stn(self.stn, self.a_start_short)
-        node = update_stn(self.stn, self.a_start_long, node)
-        node = update_stn(self.stn, self.a_end_short, node)
-        node = update_stn(self.stn, self.a_end_long, node)
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 6, 'start short can be no later than 6')
 
+        node1 = update_stn(self.stn, self.a_start_long, node)
+        self.assertTrue(self.stn.get_upper_bound_node(node1) == 6, 'start long can be no later than 6')
+
+        node2 = update_stn(self.stn, self.a_end_short, node1)
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 4, 'start short can be no later than 4')
+        self.assertTrue(self.stn.get_upper_bound_node(node1) == 6, 'start long can be no later than 4')
+        self.assertTrue(self.stn.get_upper_bound_node(node2) == 6, 'end short can be no later than 6')
+
+        node3 = update_stn(self.stn, self.a_end_long, node2)
+
+        self.assertTrue(self.stn.get_upper_bound_node(node) == 1, 'start short can be no later than 1')
+        self.assertTrue(self.stn.get_upper_bound_node(node1) == 1, 'start long can be no later than 1')
+        self.assertTrue(self.stn.get_upper_bound_node(node2) == 3, 'end short can be no later than 3')
+        self.assertTrue(self.stn.get_upper_bound_node(node3) == 6, 'end long can be no later than 6')
         self.assertTrue(self.stn.is_consistent(), 'Long action can end after the short action')
 
 
@@ -85,6 +144,13 @@ class TestSTN(unittest.TestCase):
         node = update_stn(self.stn, self.a_end_very_long, node)
         self.assertFalse(self.stn.is_consistent(), 'The deadline is 6 and the action is 7 seconds')
 
+    def test_shorter_than_deadline(self):
+        print("Running test_shorter_than_deadline...")
+
+        node = update_stn(self.stn, self.a_start_long)
+        node = update_stn(self.stn, self.a_end_long, node)
+
+        self.assertTrue(self.stn.is_consistent(), 'The deadline is 6 and the action is 5 seconds')
 
     def test_potential_actions(self):
         print("Running test_potential_actions...")
@@ -112,6 +178,31 @@ class TestSTN(unittest.TestCase):
 
         self.assertTrue(terminal,
                         'if the goal is achieved and the plan is consistent this is a terminal state')
+
+
+
+
+    # def test_long_before_short2(self):
+    #     print("Running test_long_before_short...")
+    #
+    #     # Long action can not end before a short action
+    #     node = update_stn(self.stn, self.a_start_very_short)
+    #     node = update_stn(self.stn, self.a_start_short, node)
+    #     node1 = update_stn(self.stn, self.a_end_very_short, node)
+    #
+    #     node_short2 = update_stn(self.stn, self.a_start_very_short2, node1)
+    #     node = update_stn(self.stn, self.a_end_short, node1)
+    #
+    #     self.stn.add_constrains_to_previous_chosen_action([(node_short2, 0, None, node)])
+    #
+    #     self.stn.get_constraints()
+    #
+    #
+    #
+    #
+    #     # node = update_stn(stn, a_end_short, node)
+    #
+    #     self.assertFalse(self.stn.is_consistent(), 'Long action cannot end before the short action')
 
 
 if __name__ == '__main__':
