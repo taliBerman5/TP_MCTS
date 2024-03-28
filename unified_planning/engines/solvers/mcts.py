@@ -123,7 +123,6 @@ class MCTS(Base_MCTS):
         create_snode = self.create_Snode_max if selection_type == 'max' else self.create_Snode
         snode, _ = create_snode(root_state, 0)
         self.set_root_node(root_node if root_node is not None else snode)
-        # self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0))
 
 
     def create_Snode(self, state: "up.engines.State", depth: int,
@@ -224,7 +223,6 @@ class MCTS(Base_MCTS):
         cumulative_reward = 0.0
         terminal = False
         deadline = self.mdp.deadline()
-        # while not terminal and len(self.mdp.legal_actions(state)) > 0:
         while not terminal and depth < self.search_depth and len(self.mdp.legal_actions(state)) > 0:
             # Choose an action to execute
             action = self.default_policy(state)
@@ -252,8 +250,6 @@ class C_MCTS(Base_MCTS):
         snode, _ = create_snode(root_state, 0, stn,
                          previous_chosen_action_node=previous_chosen_action_node)
         self.set_root_node(root_node if root_node is not None else snode)
-        # self.set_root_node(root_node if root_node is not None else self.create_Snode(root_state, 0, stn,
-        #                                                                              previous_chosen_action_node=previous_chosen_action_node))
         self._stn = stn
 
     @property
@@ -352,7 +348,6 @@ class C_MCTS(Base_MCTS):
                 reward += snode_reward
                 anode.add_child(next_snode)
 
-                # next_snode.update(reward)
 
         anode.update(reward)
         max_v = snode.max_update()
@@ -378,7 +373,6 @@ class C_MCTS(Base_MCTS):
         deadline = self.mdp.deadline()
         time = self.stn.get_current_end_time()
         end = -1
-        # while not terminal and len(self.mdp.legal_actions(state)) > 0:
         while not terminal and depth < self.search_depth and len(self.mdp.legal_actions(state)) > 0:
             if deadline:
                 if time > deadline:
