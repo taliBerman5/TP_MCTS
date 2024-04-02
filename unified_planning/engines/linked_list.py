@@ -1,137 +1,183 @@
-
 from typing import Deque, Dict, List, Optional, Any, Generic, Set, Tuple, TypeVar, cast
+import math
+
+
 class LinkedListNode:
-    def __init__(self, lower_bound, upper_bound, value, count = 1):
+    def __init__(self, lower_bound, upper_bound, value, count=1):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
         self.value = value
-        self.count = count
         self.next: Optional["LinkedListNode"] = None
 
-
-    def update_value(self, reward, count):
-        self.value = (self.value * self.count + reward * count) / (self.count + count)
-        self.count += count
+    def update_value(self, reward):
+        self.value += reward
 
 
 class LinkedList:
     def __init__(self):
         self.head: Optional[LinkedListNode] = None
         self.epsilon = 0.001
+        self.count = 0.0
+        self.max_value = -math.inf
+
     def update(self, lower_bound, upper_bound, value):
+
         if self.head is None:
             self.head = LinkedListNode(lower_bound, upper_bound, value)
+            self.update_max_value_count(value)
+            return
 
-        else:
+        if self.check_change_head(lower_bound, upper_bound, value):
+            return
 
-            if self.check_change_head(lower_bound, upper_bound, value):
+        previous_node = self.head
+        current_node = self.head.next
+
+        inserted = False
+        count = 1
+
+        while current_node is not None:
+
+            # Should be inserted before the current node
+            if self.before_current_node(current_node, previous_node, lower_bound, upper_bound, value):
                 return
 
-            previous_node = self.head
-            current_node = self.head.next
+            # Should be inserted after the current node
+            if self.after_current_node(current_node, previous_node, lower_bound):
+                continue
 
-            inserted = False
-            count = 1
+            # There is an intersection
 
-            while current_node is not None:
-                # Should be inserted before the current node
-                if current_node.lower_bound > upper_bound:
-                    new_node = LinkedListNode(lower_bound, upper_bound, value)
-                    new_node.next = current_node
-                    previous_node.next = new_node
-                    inserted = True
-                    break
+            # Same interval
+            if self.same_interval(current_node, lower_bound, upper_bound, value):
+                return
 
-                # Should be inserted after the current node
-                if current_node.upper_bound < lower_bound:
-                    previous_node = current_node
-                    current_node = current_node.next
-                    continue
+            # Find the intersection interval
+            common_lower = max(lower_bound, current_node.lower_bound)
+            common_upper = min(upper_bound, current_node.upper_bound)
 
-                # There is an intersection
+            # Create a node with the intersection interval and update the value
+            update_node = LinkedListNode(common_lower, common_upper, current_node.value)
+            update_node.update_value(value)
 
-                # Same interval
-                if current_node.lower_bound == lower_bound and current_node.lower_bound == upper_bound:
-                    update_node = LinkedListNode(lower_bound, lower_bound, current_node.value, current_node.count)
-                    update_node.update_value(value, count)
-                    inserted = True
-                    break
+            self.part_before_intersection(current_node, previous_node, update_node, lower_bound, common_lower, value)
 
+            x = self.part_after_intersection(current_node, update_node, upper_bound, common_upper, value)
+            if x is not None:
+                lower_bound, upper_bound, value = x
+            else:
+                return
 
-                # Find the intersection interval
-                common_lower = max(lower_bound, current_node.lower_bound)
-                common_upper = min(upper_bound, current_node.upper_bound)
+        # should be inserted as the last node
+        if not inserted:
+            previous_node.next = LinkedListNode(lower_bound, upper_bound, value)
+            self.update_max_value_count(value)
 
-                # Create a node with the intersection interval and update the value and count
-                update_node = LinkedListNode(common_lower, common_upper, current_node.value, current_node.count)
-                update_node.update_value(value, count)
+    def update_max_value_count(self, value_candidate):
+        self.max_value = max(self.max_value, value_candidate)
+        self.count += 1
 
-
-                # Both lower bound is the same
-                if current_node.lower_bound == lower_bound:
-                    previous_node.next = update_node
-                    update_node.next = current_node.next
-
-                    previous_node = update_node
-                    lower_bound = common_upper + self.epsilon
-
-                    if current_node.upper_bound > common_upper:
-                        upper_bound = current_node.upper_bound
-                        count = current_node.count
-
-                # Both upper bounds is the same
-                if current_node.upper_bound == upper_bound:
-                    update_node.next = current_node.next
-
-                    if current_node.lower_bound < lower_bound:
-                        new_node = LinkedListNode(current_node.lower_bound, common_lower - self.epsilon,
-                                                  current_node.value, current_node.count)
-                    else:
-                        new_node = LinkedListNode(lower_bound, common_lower - self.epsilon, value, count)
-
-                    previous_node.next = new_node
-                    new_node.next = update_node
-                    inserted = True
-                    break
-
-                # There is a part of the before the intersection
-                else:
-
-                    # part of current node interval is before of the intersection
-                    if current_node.lower_bound < common_lower:
-                        new_node = LinkedListNode(current_node.lower_bound, common_lower - self.epsilon, current_node.value, current_node.count)
-
-                    # part of inserted node interval is before of the intersection
-                    else:
-                        new_node = LinkedListNode(lower_bound, common_lower - self.epsilon, value,
-                                                  count)
-
-                    previous_node.next = new_node
-                    new_node.next = update_node
-                    update_node.next = current_node.next
-
-                    # There is an interval after the intersection to be inserted
-                    # For example current [3-6] and new interval [4-5]
-                    lower_bound = common_upper + self.epsilon
-                    if current_node.upper_bound > common_upper:
-                        upper_bound = current_node.upper_bound
-                        count = current_node.count
-
-
-
-            # should be inserted as the last node
-            if not inserted:
-                previous_node.next = LinkedListNode(lower_bound, upper_bound, value)
-
-
+    def value(self):
+        return self.max_value / self.count
 
     def check_change_head(self, lower_bound, upper_bound, value):
-        if self.head.lower_bound > upper_bound:
-            new_head = LinkedListNode(lower_bound, upper_bound, value)
-            new_head.next = self.head
-            self.head = new_head  #TODO: check if works correctly
+
+        if self.before_current_node(self.head, None, lower_bound, upper_bound, value):
+            return True
+
+        if self.head.upper_bound < lower_bound:
+            return False
+
+        if self.same_interval(self.head, lower_bound, upper_bound, value):
+            return True
 
 
-        if self.head.lower_bound > lower_bound:
-            if self.head.upper_bound > upper_bound:
+        #TODO: not good
+        # Find the intersection interval
+        common_lower = max(lower_bound, self.head.lower_bound)
+        common_upper = min(upper_bound, self.head.upper_bound)
 
+        # Create a node with the intersection interval and update the value
+        update_node = LinkedListNode(common_lower, common_upper, self.head.value)
+        update_node.update_value(value)
+
+        self.part_before_intersection(self.head, None, update_node, lower_bound, common_lower, value)
+
+        x = self.part_after_intersection(self.head, update_node, upper_bound, common_upper, value)
+        if x is not None:
+            lower_bound, upper_bound, value = x  #TODO: need to return this somehow, this code is duplicate. maybe create a function
+        else:
+            return
+
+
+
+    def before_current_node(self, current_node, previous_node, lower_bound, upper_bound, value):
+        if current_node.lower_bound > upper_bound:
+            new_node = LinkedListNode(lower_bound, upper_bound, value)
+            new_node.next = current_node
+
+            self.update_max_value_count(value)
+
+            if current_node == self.head:
+                self.head = new_node
+            else:
+                previous_node.next = new_node
+            return True
+
+        return False
+
+    def after_current_node(self, current_node, previous_node, lower_bound):
+        if current_node.upper_bound < lower_bound:
+            previous_node = current_node
+            current_node = current_node.next
+            return True
+
+        return False
+
+    def same_interval(self, current_node, lower_bound, upper_bound, value):
+        if current_node.lower_bound == lower_bound and current_node.upper_bound == upper_bound:
+            current_node.update_value(value)
+            self.update_max_value_count(value)
+            return True
+
+        return False
+
+    def part_before_intersection(self, current_node, previous_node, update_node, lower_bound, common_lower, value):
+        if current_node.lower_bound < common_lower or lower_bound < common_lower:
+            upper_bound = common_lower - self.epsilon
+
+            if current_node.lower_bound < common_lower:
+                first_node = LinkedListNode(current_node.lower_bound, upper_bound, current_node.value)
+            else:
+                first_node = LinkedListNode(lower_bound, upper_bound, value)
+                self.update_max_value_count(value)
+
+            if current_node == self.head: #TODO: make sure
+                self.head = first_node
+            else:
+                previous_node.next = first_node
+            first_node.next = update_node
+            update_node.next = current_node.next
+
+            # If there is a part after the intersection the nodes must be updated
+            previous_node = first_node
+
+
+    def part_after_intersection(self, current_node, update_node, upper_bound, common_upper, value):
+        lower_bound = common_upper + self.epsilon
+
+        if current_node.upper_bound > common_upper:
+            current_node = update_node
+            return lower_bound, current_node.upper_bound, current_node.value
+
+        if upper_bound > common_upper:
+            current_node = update_node
+            return lower_bound, upper_bound, value
+
+        return None
+
+
+a = LinkedList()
+a.update(3, 5, 10)
+a.update(10, 16, 20)
+a.update(6, 7, 20)
