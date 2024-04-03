@@ -25,6 +25,7 @@ from unified_planning.engines.solvers.mcts import (plan, MCTS, C_MCTS)
 from unified_planning.engines.solvers.rtdp import (plan, RTDP)
 from unified_planning.engines.utils import create_init_stn, update_stn
 from unified_planning.engines.heuristics import TRPG
+from unified_planning.engines.linked_list import LinkedList, LinkedListNode
 
 __all__ = [
     "Convert_problem",
@@ -58,5 +59,7 @@ __all__ = [
     "create_init_stn",
     "update_stn",
     "TRPG",
+    "LinkedList",
+    "LinkedListNode",
 
 ]
