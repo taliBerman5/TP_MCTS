@@ -2,15 +2,22 @@ import math
 
 import unified_planning as up
 from typing import List, Dict
+from unified_planning.shortcuts import *
 from unified_planning.engines.utils import (
     update_stn,
 )
+from unified_planning.engines.linked_list import LinkedList
 
 
 class Node:
-    def __init__(self):
+    def __init__(self, isInterval=False):
+        if isInterval:
+            self._linkList = LinkedList()
+        else:
+            self._value = 0.0
         self._count = 0.0
-        self._value = 0.0
+        self._isInterval = isInterval
+
 
     def __repr__(self):
         s = "Node; visits: %d; value: %f" % (self.count, self.value)
@@ -21,11 +28,28 @@ class Node:
         return self._count
 
     @property
+    def isInterval(self):
+        return self._isInterval
+
+    @property
     def value(self):
+        if self._isInterval:
+            return self._linkList.max_value / self.count
         return self._value
 
-    def update(self, reward):
-        self._value = (self._value * self._count + reward) / (self._count + 1)
+    def interval_value(self, lower, upper):
+        return self._linkList.interval_value(lower, upper)
+
+
+    def max_interval(self):
+        if self._isInterval:
+            return self._linkList.max_interval
+
+    def update(self, reward, add_node: "LinkedListNode" = None):
+        if add_node is None:
+            self._value = (self._value * self._count + reward) / (self._count + 1)
+        else:
+            return self._linkList.update(add_node)
         self._count += 1
 
 
@@ -94,8 +118,8 @@ class C_SNode(Node):
 
     def __init__(self, state: "up.engines.State", depth: int, possible_actions: List["up.engines.Action"],
                  stn: "up.plans.stn.STNPlan", parent: "up.engines.ANode" = None,
-                 previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
-        super().__init__()
+                 previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None, isInterval=False):
+        super().__init__(isInterval)
         self._state = state
         self._depth = depth
         self._parent = parent
@@ -148,7 +172,7 @@ class C_SNode(Node):
         """
         not_consistent = []
         for action in self.possible_actions:
-            child = C_ANode(action, stn.clone(), self, previous_chosen_action_node)
+            child = C_ANode(action, stn.clone(), self, previous_chosen_action_node, isInterval=self.isInterval)
 
             if child.is_consistent():
                 self.children[action] = child
@@ -158,14 +182,25 @@ class C_SNode(Node):
         for a in not_consistent:
             self.possible_actions.remove(a)
 
-    def max_update(self):
+    def max_update(self, node=None):
+        self._count += 1
+        if node is None:  # TODO: maybe change to if self.isInterval
+            return self.max_update_wo_interval()
+        else:
+            return self.max_update_interval(node)
+
+    def max_update_wo_interval(self):
         max_v = -math.inf
         for child in self.children.values():
            if child.count > 0 and child.value > max_v:
                 max_v = child.value
         self._value = max_v
-        self._count += 1
         return max_v
+
+    def max_update_interval(self, node):
+        #TODO: is it ok to do max between the new value and the current value or should i go over all the children
+        update_node = self._linkList.update(node, type='Max')
+        return update_node
 
 
 class ANode(Node):
@@ -206,8 +241,8 @@ class C_ANode(Node):
 
     def __init__(self, action: "up.engines.action.Action", stn: "up.plans.stn.STNPlan",
                  parent: "up.engines.node.C_SNode" = None,
-                 previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
-        super().__init__()
+                 previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None, isInterval = False):
+        super().__init__(isInterval)
         self._action = action
         self._parent = parent
         self._children: Dict["up.engines.State", "up.engines.node.SNode"] = {}
@@ -229,6 +264,10 @@ class C_ANode(Node):
     @property
     def children(self):
         return self._children
+
+    @property
+    def STNNode(self):
+        return self._STNNode
 
     def add_child(self, child_node: "up.engines.SNode"):
         self._children[child_node.state] = child_node
