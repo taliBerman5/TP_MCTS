@@ -451,6 +451,12 @@ class STNPlan(unified_planning.plans.plan.Plan):
     def get_current_time(self, node: "up.plans.stn.STNPlanNode"):
         return self._stn.get_stn_model(node).numerator
 
+    def get_legal_interval(self, node: "up.plans.stn.STNPlanNode"):
+        lower = self._stn.get_stn_model(node).numerator
+        start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+        apsp = self._stn.calculate_shortest_path(start_plan)
+        upper = apsp[node].numerator
+        return lower, upper
 
     def get_upper_bound_node(self, node: "up.plans.stn.STNPlanNode"):
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
