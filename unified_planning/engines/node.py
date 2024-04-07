@@ -46,11 +46,12 @@ class Node:
             return self._linkList.max_interval
 
     def update(self, reward, add_node: "LinkedListNode" = None):
+        self._count += 1
         if add_node is None:
             self._value = (self._value * self._count + reward) / (self._count + 1)
         else:
             return self._linkList.update(add_node)
-        self._count += 1
+
 
 
 class SNode(Node):

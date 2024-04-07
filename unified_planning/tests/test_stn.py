@@ -182,29 +182,6 @@ class TestSTN(unittest.TestCase):
 
 
 
-    # def test_long_before_short2(self):
-    #     print("Running test_long_before_short...")
-    #
-    #     # Long action can not end before a short action
-    #     node = update_stn(self.stn, self.a_start_very_short)
-    #     node = update_stn(self.stn, self.a_start_short, node)
-    #     node1 = update_stn(self.stn, self.a_end_very_short, node)
-    #
-    #     node_short2 = update_stn(self.stn, self.a_start_very_short2, node1)
-    #     node = update_stn(self.stn, self.a_end_short, node1)
-    #
-    #     self.stn.add_constrains_to_previous_chosen_action([(node_short2, 0, None, node)])
-    #
-    #     self.stn.get_constraints()
-    #
-    #
-    #
-    #
-    #     # node = update_stn(stn, a_end_short, node)
-    #
-    #     self.assertFalse(self.stn.is_consistent(), 'Long action cannot end before the short action')
-
-
 if __name__ == '__main__':
     unittest.main()
 

@@ -61,8 +61,10 @@ class Base_MCTS:
             if anodes[action].count == 0:
                 return action
 
-            ub = (anodes[action].value / anodes[action].count) + (
-                    explore_constant * math.sqrt(math.log(snode.count) / anodes[action].count))
+            # ub = (anodes[action].value / anodes[action].count) + (
+            #         explore_constant * math.sqrt(math.log(snode.count) / anodes[action].count)) #TODO: this was the original (ICAPS)
+            ub = anodes[action].value + (
+                    explore_constant * math.sqrt(math.log(snode.count + 1) / anodes[action].count))
             if ub > best_ub:
                 best_ub = ub
                 best_action = action
@@ -388,6 +390,8 @@ class C_MCTS(Base_MCTS):
 
     def selection_root_interval_max(self, snode: "up.engines.C_Snode", root_STNnode: "up.plans.stn.STNPlanNode" = None):
         if len(snode.possible_actions) == 0:
+            if root_STNnode is None:
+                return -100
             # Stop when there are no possible actions to take so the plan remains consistent
             return LinkedListNode(*snode.parent.stn.get_legal_interval(root_STNnode), - 100)
 
@@ -395,7 +399,6 @@ class C_MCTS(Base_MCTS):
             # Stop if the search depth is reached
             return LinkedListNode(*snode.parent.stn.get_legal_interval(root_STNnode), self.heuristic(snode))
         explore_constant = self.exploration_constant
-        print(1)
         # Choose a consistent action
         action = self.uct(snode, explore_constant)
         terminal, next_state, reward = self.mdp.step(snode.state, action)
@@ -406,25 +409,19 @@ class C_MCTS(Base_MCTS):
         if not terminal:
             snodes = anode.children
             if next_state in snodes:
-                print(2)
                 backup_node = self.selection_root_interval_max(snodes[next_state], root_STNnode)
-                print(3)
                 backup_node.update_df_reward(self.mdp.discount_factor, reward)
-                print(4)
 
             else:
-                print(5)
                 next_snode, backup_node = self.create_Snode_root_interval_max(next_state, snode.depth + 1, anode.stn, anode, root_STNnode=root_STNnode)
-                print(6)
                 backup_node.update_df_reward(self.mdp.discount_factor, reward) #TODO: should it be with discount reward
-                print(7)
                 anode.add_child(next_snode)
 
-        print(8)
+        else:
+            backup_node = LinkedListNode(*anode.stn.get_legal_interval(root_STNnode), reward)
+
         backup_node = anode.update(None, backup_node)
-        print(9)
         backup_node = snode.max_update(backup_node)
-        print(10)
         return backup_node
 
     def heuristic(self, snode: "up.engines.C_SNode"):
