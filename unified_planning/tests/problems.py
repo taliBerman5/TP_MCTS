@@ -1,6 +1,6 @@
 import unified_planning
 from unified_planning.shortcuts import *
-
+from unified_planning.domains import Domain
 
 mutex_problem = unified_planning.model.Problem('mutex_problem')
 
@@ -131,12 +131,13 @@ instant = unified_planning.model.InstantaneousAction('instant')
 instant.add_effect(effect_instant, True)
 combination_problem.add_action(instant)
 
-
+domain = Domain('combination', 'combination')
+domain.problem = combination_problem
 grounder = unified_planning.engines.compilers.Grounder()
 combination_grounding_result = grounder._compile(combination_problem)
 combination_ground_problem = combination_grounding_result.problem
 
-combination_convert_problem = unified_planning.engines.Convert_problem_combination(combination_ground_problem)
+combination_convert_problem = unified_planning.engines.Convert_problem_combination(domain,combination_ground_problem)
 
 combination_converted_problem = combination_convert_problem._converted_problem
 
