@@ -78,7 +78,8 @@ class TRPG:
                 else:
                     t = math.inf
 
-        return -t + 10 if t <= self.deadline else -self.deadline - 10
+        # -t + 10 if t <= self.deadline else -self.deadline - 10
+        return 1 - t*1.0/self.deadline if t <= self.deadline else 0
 
     def add_probabilistic_effects(self, action, negative_eps, positive_eps):
         state = up.engines.State(positive_eps)
