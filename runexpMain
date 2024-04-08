@@ -12,13 +12,13 @@ C_DEADLINE=15
 RS_DEADLINE=15
 
 
-STUCKCAR1o="-l log/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
-STUCKCAR="-l log/stuck_car.log run_domain.py --domain stuck_car"
-MACHINESHOP="-l log/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/nasa_rover.log run_domain.py --domain nasa_rover"
-CONC="-l log/conc.log run_domain.py --domain conc"
-PROBCONC="-l log/prob_conc.log run_domain.py --domain prob_conc"
-SIMPLE="-l log/simple.log run_domain.py --domain simple"
+STUCKCAR1o="-l log/stuck_car_1o_rootInterval.log run_domain.py --domain stuck_car_1o"
+STUCKCAR="-l log/stuck_car_rootInterval.log run_domain.py --domain stuck_car"
+MACHINESHOP="-l log/machine_shop_rootInterval.log run_domain.py --domain machine_shop"
+NASAROVER="-l log/nasa_rover_rootInterval.log run_domain.py --domain nasa_rover"
+CONC="-l log/conc_rootInterval.log run_domain.py --domain conc"
+PROBCONC="-l log/prob_conc_rootInterval.log run_domain.py --domain prob_conc"
+SIMPLE="-l log/simple_rootInterval.log run_domain.py --domain simple"
 
 set -e
 

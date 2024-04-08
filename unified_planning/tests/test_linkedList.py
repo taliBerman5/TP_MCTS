@@ -16,7 +16,7 @@ class TestLinkedList(unittest.TestCase):
 
         self.linkedList.update(node)
         self.assertTrue(self.linkedList.max_value == 10, 'max value should be 10')
-        self.assertTrue(self.linkedList.head == node, 'head must be equal to node')
+        self.assertTrue(self.linkedList.head.equal(node), 'head must be equal to node')
 
     def test_add_before_head(self):
         print("Running test_add_before_head...")
@@ -30,7 +30,7 @@ class TestLinkedList(unittest.TestCase):
         head.next = next
 
         self.assertTrue(self.linkedList.max_value == 20, 'max value should be 20')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
 
     def test_add_intersection_head(self):
         print("Running test_add_intersection_head...")
@@ -48,7 +48,7 @@ class TestLinkedList(unittest.TestCase):
         next.next = next2
 
         self.assertTrue(self.linkedList.max_value == 30, 'max value should be 30')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
 
     def test_add_intersection(self):
         print("Running test_add_intersection_head...")
@@ -76,8 +76,8 @@ class TestLinkedList(unittest.TestCase):
         node.next = LinkedListNode(6, 6.5, 10)
 
         self.assertTrue(self.linkedList.max_value == 30, 'max value should be 30')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
-        self.assertTrue(interval_value == node)
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
+        self.assertTrue(interval_value.equal(node))
 
     def test_add_after_head(self):
         print("Running test_add_after_head...")
@@ -93,7 +93,7 @@ class TestLinkedList(unittest.TestCase):
         head.next = next
 
         self.assertTrue(self.linkedList.max_value == 20, 'max value should be 20')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
 
 
     def test_add_several_nodes_at_once(self):
@@ -122,7 +122,7 @@ class TestLinkedList(unittest.TestCase):
 
 
         self.assertTrue(self.linkedList.max_value == 20, 'max value should be 20')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
 
     def test_same_interval(self):
         print("Running test_same_interval...")
@@ -142,7 +142,7 @@ class TestLinkedList(unittest.TestCase):
         head.next.next = next2
 
         self.assertTrue(self.linkedList.max_value == 20, 'max value should be 20')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
 
     def test_same_interval_and_head_change(self):
         print("Running test_same_interval_and_head_change...")
@@ -161,7 +161,7 @@ class TestLinkedList(unittest.TestCase):
         head.next.next = next2
 
         self.assertTrue(self.linkedList.max_value == 20, 'max value should be 20')
-        self.assertTrue(self.linkedList.head == head, 'head must be equal to head')
+        self.assertTrue(self.linkedList.head.equal(head), 'head must be equal to head')
 
 
     def test_maximum_value_interval(self):
