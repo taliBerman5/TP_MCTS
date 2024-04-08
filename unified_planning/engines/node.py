@@ -45,12 +45,22 @@ class Node:
         if self._isInterval:
             return self._linkList.max_interval
 
-    def update(self, reward, add_node: "LinkedListNode" = None):
+    def update(self, reward, lower = None, upper = None):
+        self._count += 1
+        if lower is None:
+            self._value = (self._value * self._count + reward) / (self._count + 1)
+        else:
+            self._linkList.update(lower, upper, reward)
+
+    def update_old(self, reward, add_node: "LinkedListNode" = None):
         self._count += 1
         if add_node is None:
             self._value = (self._value * self._count + reward) / (self._count + 1)
         else:
-            return self._linkList.update(add_node)
+            self._linkList.update(add_node)
+            # update_node = self._linkList.update(add_node)
+            # update_node.divide_count_reward(self.count)
+            # return update_node
 
 
 
@@ -283,6 +293,9 @@ class C_ANode(Node):
     @property
     def STNNode(self):
         return self._STNNode
+
+    def max_interval(self):
+        return self._linkList.max_interval
 
     def is_consistent(self):
         return self._stn.is_consistent()
