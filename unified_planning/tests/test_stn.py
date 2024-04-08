@@ -179,7 +179,14 @@ class TestSTN(unittest.TestCase):
         self.assertTrue(terminal,
                         'if the goal is achieved and the plan is consistent this is a terminal state')
 
+    def test_legal_interval(self):
+        print("Running test_legal_interval...")
 
+        node = update_stn(self.stn, self.a_start_short)
+        self.stn.fix_action_time(node, 2)
+        node = update_stn(self.stn, self.a_end_short, node)
+
+        self.assertTrue(self.stn.get_legal_interval(node)==(4,4), 'The deadline is 6 and the action is 5 seconds')
 
 
 if __name__ == '__main__':
