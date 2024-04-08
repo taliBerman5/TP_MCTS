@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
+import math
 from itertools import product
 from numbers import Real
 
@@ -557,6 +556,8 @@ class STNPlan(unified_planning.plans.plan.Plan):
         """ add constraint so the time of the action is fixed and can't be changed
         :param fix_time is the fixed execution time of the action
         """
+        frac, whole = math.modf(fix_time)
+        fix_time = whole if frac < 0.002 else fix_time
 
         f_fix_time = Fraction(fix_time)
         if (action.environment is not None
@@ -565,6 +566,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
                     "Different environments given inside the same STNPlan!"
                 )
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+        self._stn.insert_interval(start_plan, action, left_bound=f_fix_time)
         self._stn.insert_interval(start_plan, action, right_bound=f_fix_time)
 
     def add_deadline(self, deadline: int):
