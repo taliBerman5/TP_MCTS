@@ -15,7 +15,7 @@ def create_init_stn(mdp: "up.engines.MDP"):
 
 
 
-def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previous_action_node: "up.plans.stn.STNPlanNode"=None, type=None):
+def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previous_action_node: "up.plans.stn.STNPlanNode"=None, type=None, action_node:"up.engines.C_ANode" = None):
     """
     Add constrains to the `stn` according to the `action` and the `previous_action`
 
@@ -53,7 +53,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         upper_bound = action.duration.upper.type.upper_bound
         stn.add_potential_end_action([(start_node, lower_bound, upper_bound, end_node)])
 
-        check_fix_time(stn, start_node, type)
+        check_fix_time(stn, start_node, type, action_node)
         return start_node
 
     if isinstance(action, up.engines.action.InstantaneousEndAction):
@@ -68,7 +68,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
 
         if start_node != previous_action_node:
             stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, end_node)])
-        check_fix_time(stn, end_node, type)
+        check_fix_time(stn, end_node, type, action_node)
         return end_node
 
 
@@ -79,12 +79,19 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
     else:
         stn.add_action(Instant_node)
 
-    check_fix_time(stn, Instant_node, type)
+    check_fix_time(stn, Instant_node, type, action_node)
 
     return Instant_node
 
 
-def check_fix_time(stn: "up.plans.stn.STNPlan", action: "up.plans.stn.STNPlanNode", type):
+def check_fix_time(stn: "up.plans.stn.STNPlan", action: "up.plans.stn.STNPlanNode", type, action_node:"up.engines.C_ANode" = None):
     if type == 'SetTime':
-        fix_time = stn.get_current_time(action)
+        if action_node is None:
+            # set to the earliest time in the STN
+            fix_time = stn.get_current_time(action)
+
+        else:
+            # set to the earliest time to the best interval calculated
+            fix_time = action_node.max_interval()[0]
+
         stn.fix_action_time(action, fix_time)
