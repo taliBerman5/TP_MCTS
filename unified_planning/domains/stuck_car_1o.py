@@ -175,8 +175,8 @@ class Stuck_Car_1o(Domain):
         def rock_probability(state, actual_params):
             # The probability of finding a good rock when searching
             p = 0.1
-            return {p: {got_rock_0_exp: True, got_rock_1_exp: False},
-                    1 - p: {got_rock_0_exp: False, got_rock_1_exp: True}}
+            return {p: {got_rock_0_exp: True},
+                    1 - p: {got_rock_1_exp: True}}
 
         search.add_probabilistic_effect([got_rock(bad), got_rock(good)], rock_probability)
         self.problem.add_action(search)
