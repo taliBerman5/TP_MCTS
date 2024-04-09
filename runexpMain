@@ -32,7 +32,7 @@ do
     echo "started depth $d and search_time time $t:"
 
     echo "Started Stuck Car 1 object"
-    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
+#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
 #    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
 #    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
@@ -79,7 +79,7 @@ do
 
 
     echo "Started Conc"
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type rootInterval
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type rootInterval
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
