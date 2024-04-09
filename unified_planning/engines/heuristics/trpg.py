@@ -35,7 +35,6 @@ class TRPG:
                 if perform:
                     self.add_probabilistic_effects(action, negative_eps, positive_eps)
 
-
             for action in self.new_actions[:]:
 
                 # end action can occur only after `earliest[action]` time
@@ -48,7 +47,6 @@ class TRPG:
 
                 if not legal:
                     continue
-
 
                 # Sets the time when the end action can be executed
                 if isinstance(action, up.engines.InstantaneousStartAction):
@@ -79,7 +77,7 @@ class TRPG:
                     t = math.inf
 
         # -t + 10 if t <= self.deadline else -self.deadline - 10
-        return 1 - t*1.0/self.deadline if t <= self.deadline else 0
+        return 1 - t * 1.0 / self.deadline if t <= self.deadline else 0
 
     def add_probabilistic_effects(self, action, negative_eps, positive_eps):
         state = up.engines.State(positive_eps)
@@ -115,5 +113,3 @@ class TRPG:
 
     def legal_action(self, action):
         return action.pos_preconditions.issubset(self.positive) and action.neg_preconditions.issubset(self.negative)
-
-
