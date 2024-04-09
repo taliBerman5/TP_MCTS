@@ -14,7 +14,7 @@ class TestLinkedList(unittest.TestCase):
 
         node = LinkedListNode(3, 5, 10)
 
-        self.linkedList.update(node)
+        self.linkedList.update(3, 5, 10)
         self.assertTrue(self.linkedList.max_value == 10, 'max value should be 10')
         self.assertTrue(self.linkedList.head.equal(node), 'head must be equal to node')
 
@@ -24,8 +24,8 @@ class TestLinkedList(unittest.TestCase):
         next = LinkedListNode(3, 5, 10)
         head = LinkedListNode(1, 2, 20)
 
-        self.linkedList.update(next)
-        self.linkedList.update(head)
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(1, 2, 20)
 
         head.next = next
 
@@ -35,11 +35,8 @@ class TestLinkedList(unittest.TestCase):
     def test_add_intersection_head(self):
         print("Running test_add_intersection_head...")
 
-        node = LinkedListNode(3, 5, 10)
-        node1 = LinkedListNode(1, 4, 20)
-
-        self.linkedList.update(node)
-        self.linkedList.update(node1)
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(1, 4, 20)
 
         head = LinkedListNode(1, 3 - self.linkedList.epsilon, 20)
         next = LinkedListNode(3, 4, 30)
@@ -53,10 +50,10 @@ class TestLinkedList(unittest.TestCase):
     def test_add_intersection(self):
         print("Running test_add_intersection_head...")
 
-        self.linkedList.update(LinkedListNode(3, 5, 10))
-        self.linkedList.update(LinkedListNode(6, 8, 10))
-        self.linkedList.update(LinkedListNode(9, 11, 10))
-        self.linkedList.update(LinkedListNode(7, 10, 20))
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(6, 8, 10)
+        self.linkedList.update(9, 11, 10)
+        self.linkedList.update(7, 10, 20)
 
         head = LinkedListNode(3, 5, 10)
         next = LinkedListNode(6, 7 - self.linkedList.epsilon, 10)
@@ -86,8 +83,8 @@ class TestLinkedList(unittest.TestCase):
         head = LinkedListNode(3, 5, 10)
         next = LinkedListNode(6, 7, 20)
 
-        self.linkedList.update(head)
-        self.linkedList.update(next)
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(6, 7, 20)
 
 
         head.next = next
@@ -99,14 +96,13 @@ class TestLinkedList(unittest.TestCase):
     def test_add_several_nodes_at_once(self):
         print("Running test_add_several_nodes_at_once...")
 
-        self.linkedList.update(LinkedListNode(3, 5, 10))
-        self.linkedList.update(LinkedListNode(6, 8, 10))
-        self.linkedList.update(LinkedListNode(10, 12, 10))
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(6, 8, 10)
+        self.linkedList.update(10, 12, 10)
 
-        node = LinkedListNode(4, 5, 10)
-        node.next = LinkedListNode(6, 11, 10)
 
-        self.linkedList.update(node)
+        self.linkedList.update(4, 5, 10)
+        self.linkedList.update(6, 11, 10)
 
         head = LinkedListNode(3, 4 - self.linkedList.epsilon, 10)
         next = LinkedListNode(4, 5, 20)
@@ -127,13 +123,11 @@ class TestLinkedList(unittest.TestCase):
     def test_same_interval(self):
         print("Running test_same_interval...")
 
-        self.linkedList.update(LinkedListNode(3, 5, 10))
-        self.linkedList.update(LinkedListNode(6, 10, 10))
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(6, 10, 10)
 
-        node = LinkedListNode(3, 5, 10)
-        node.next = LinkedListNode(6, 6, 10)
-
-        self.linkedList.update(node)
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(6, 6, 10)
 
         head = LinkedListNode(3, 5, 20)
         next = LinkedListNode(6, 6, 20)
@@ -147,12 +141,10 @@ class TestLinkedList(unittest.TestCase):
     def test_same_interval_and_head_change(self):
         print("Running test_same_interval_and_head_change...")
 
-        self.linkedList.update(LinkedListNode(6, 10, 10))
+        self.linkedList.update(6, 10, 10)
 
-        node = LinkedListNode(3, 5, 10)
-        node.next = LinkedListNode(6, 6, 10)
-
-        self.linkedList.update(node)
+        self.linkedList.update(3, 5, 10)
+        self.linkedList.update(6, 6, 10)
 
         head = LinkedListNode(3, 5, 10)
         next = LinkedListNode(6, 6, 20)
@@ -167,12 +159,12 @@ class TestLinkedList(unittest.TestCase):
     def test_maximum_value_interval(self):
         print("Running test_maximum_value_interval...")
 
-        self.linkedList.update(LinkedListNode(6, 10, 10))
-        self.linkedList.update(LinkedListNode(6, 10, 13))
-        self.linkedList.update(LinkedListNode(6, 10, 13))
-        self.linkedList.update(LinkedListNode(6, 10, 10))
-        self.linkedList.update(LinkedListNode(8, 10, 10))
-        self.linkedList.update(LinkedListNode(8, 10, 10))
+        self.linkedList.update(6, 10, 10)
+        self.linkedList.update(6, 10, 13)
+        self.linkedList.update(6, 10, 13)
+        self.linkedList.update(6, 10, 10)
+        self.linkedList.update(8, 10, 10)
+        self.linkedList.update(8, 10, 10)
 
         self.assertTrue(self.linkedList.max_value == 66, 'max value should be 66')
         self.assertTrue(self.linkedList.max_interval == (8, 10), 'the maximum interval should be (8,10)')

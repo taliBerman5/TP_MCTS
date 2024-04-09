@@ -14,7 +14,7 @@ class LinkedListNode:
     def equal(self, oth: object) -> bool:
         if isinstance(oth, LinkedListNode):
             if self.lower_bound == oth.lower_bound and \
-                self.upper_bound == oth.upper_bound and self.value == oth.value:
+                    self.upper_bound == oth.upper_bound and self.value == oth.value:
                 if self.next is None:
                     return True
                 else:
@@ -27,13 +27,6 @@ class LinkedListNode:
         if self.next is not None:
             copy.next = self.next.copy()
         return copy
-
-
-    def clone(self):
-        assert self.next is None
-
-        cloned = LinkedListNode(self.lower_bound, self.upper_bound, self.value)
-        return cloned
 
     def update_value(self, reward):
         self.value += reward
@@ -82,25 +75,11 @@ class LinkedList:
 
     @property
     def max_value(self):
-        max_value = self.head.value
-        current_node = self.head
-        while current_node is not None:
-            if current_node.value > max_value:
-                max_value = current_node.value
-            current_node = current_node.next
-        return max_value
+        return self._max_value
 
     @property
     def max_interval(self):
-        max_value = self.head.value
-        max_interval = self.head.interval()
-        current_node = self.head
-        while current_node is not None:
-            if current_node.value > max_value:
-                max_value = current_node.value
-                max_interval = current_node.interval()
-            current_node = current_node.next
-        return max_interval
+        return self._max_interval
 
     def interval_value(self, lower, upper):
         """ Returns the value of the intervals between the lower and upper bound
@@ -137,29 +116,16 @@ class LinkedList:
 
         return node
 
-    def insert(self, node):
-        copy = node.clone()
-        if self.head is None:
-            self.head = copy
-            return
-
-        current_node = self.head
-        while current_node.next is not None:
-            current_node = current_node.next
-
-        current_node.next = copy
-
     def update(self, lower_bound, upper_bound, value):
-        """updates the value of the list according to the add_node intervals
-        param add_node: node to update
-        param type: type of update (AVG, Max)
-
-        returns:  updated node with the updated value
+        """updates the value of the list according to the lower_bound and upper_bound
+        param lower_bound: lower bound of the interval to update
+        param upper_bound: upper bound of the interval to update
+        param value: the value to update the interval with
 
         """
-        type = 'AVG'
         if self.head is None:
             self.head = LinkedListNode(lower_bound, upper_bound, value)
+            self.update_max_value(lower_bound, upper_bound, value)
             return
 
         previous_node = None
@@ -168,9 +134,8 @@ class LinkedList:
         while current_node is not None:
 
             # Should be inserted before the current node
-            x = self.before_current_node(current_node, previous_node, lower_bound, upper_bound,
-                                         value)
-            if x is not None:
+            if self.before_current_node(current_node, previous_node, lower_bound, upper_bound,
+                                        value):
                 return
 
             # Should be inserted after the current node
@@ -182,7 +147,7 @@ class LinkedList:
             # There is an intersection
 
             # Same interval
-            if self.same_interval(current_node, lower_bound, upper_bound, value, type):
+            if self.same_interval(current_node, lower_bound, upper_bound, value):
                 return
 
             # Find the intersection interval
@@ -192,6 +157,8 @@ class LinkedList:
             # Create a node with the intersection interval and update the value
             common_node = LinkedListNode(common_lower, common_upper, current_node.value)
             common_node.update_value(value)
+
+            self.update_max_value(common_lower, common_upper, common_node.value)
 
             previous_node = self.part_before_intersection(current_node, previous_node, common_node,
                                                           lower_bound,
@@ -203,118 +170,37 @@ class LinkedList:
             else:
                 return
 
-
         # should be inserted as the last node
         previous_node.next = LinkedListNode(lower_bound, upper_bound, value)
+        self.update_max_value(lower_bound, upper_bound, value)
 
-
-
-    def update_with_max(self, add_node: LinkedListNode, type="AVG"):
-        """updates the value of the list according to the add_node intervals
-        param add_node: node to update
-        param type: type of update (AVG, Max)
-
-        returns:  updated node with the updated value
-
+    def update_max_value(self, lower_bound, upper_bound, value_candidate):
         """
-        if self.head is None:
-            self.head = add_node.copy()
-            # self.update_max_value(*add_node.get_max_value_interval())
-            return add_node
+        Works only  if the rewards are not negative
+        update the max_value according to the added interval
+        """
 
-        previous_node = None
-        current_node = self.head
-        update_list = LinkedList()
+        # The candidate it bigger -> need to change
+        if self.max_value < value_candidate:
+            self._max_value = value_candidate
+            self._max_interval = lower_bound, upper_bound
+            return
 
-        while current_node is not None and add_node is not None:
-
-            # Should be inserted before the current node
-            x = self.before_current_node(current_node, previous_node, add_node.lower_bound, add_node.upper_bound,
-                                         add_node.value)
-            if x is not None:
-                previous_node = x
-                update_list.insert(LinkedListNode(add_node.lower_bound, add_node.upper_bound, add_node.value))
-                add_node = add_node.next
-                continue
-
-            # Should be inserted after the current node
-            after = self.after_current_node(current_node, add_node.lower_bound)
-            if after is not None:  # Should insert after the current node
-                previous_node, current_node = after
-                continue
-
-            # There is an intersection
-
-            # Same interval
-            if self.same_interval(current_node, add_node.lower_bound, add_node.upper_bound, add_node.value, type):
-                update_list.insert(LinkedListNode(add_node.lower_bound, add_node.upper_bound, current_node.value))
-                previous_node = current_node
-                current_node = current_node.next
-                add_node = add_node.next
-                continue
-
-            # Find the intersection interval
-            common_lower = max(add_node.lower_bound, current_node.lower_bound)
-            common_upper = min(add_node.upper_bound, current_node.upper_bound)
-
-            # Create a node with the intersection interval and update the value
-            common_node = LinkedListNode(common_lower, common_upper, current_node.value)
-            if type == 'AVG':
-                common_node.update_value(add_node.value)
-            else:
-                common_node.max_update_value(add_node.value)
-
-            # self.update_max_value(common_node.value, common_lower, common_upper)
-
-            previous_node = self.part_before_intersection(current_node, previous_node, common_node, update_list,
-                                                          add_node.lower_bound,
-                                                          common_lower, add_node.value)
-
-            current_node, add_node = self.part_after_intersection(current_node, previous_node, add_node, common_upper)
-
-        # should be inserted as the last node
-        if add_node is not None:
-            previous_node.next = add_node.copy()
-            # self.update_max_value(*add_node.get_max_value_interval())
-
-        return update_list.head
-
-    # # Works only  if the rewards are not negative
-    # def update_max_value(self, value_candidate, lower_bound, upper_bound):
-    #     # The candidate it bigger -> need to change
-    #     if self.max_value < value_candidate:
-    #         self.max_value = value_candidate
-    #         self.max_interval = lower_bound, upper_bound
-    #         return
-    #
-    #     # if they have the same intervals then the value must be updated
-    #     if self.max_interval[1] == lower_bound and self.max_interval[0] == upper_bound:
-    #         self.max_value = value_candidate
-    #         return
-    #
-    #     # the candidate interval is overlapping the current maximum interval
-    #     # the candidate value is lower
-    #     if self.max_interval[1] >= lower_bound and self.max_interval[0] <= upper_bound:
-    #         if self.max_interval[0] < lower_bound:
-    #             # the earliest maximum interval is kept
-    #             self.max_interval = self.max_interval[0], lower_bound - self.epsilon
-    #         elif self.max_interval[1] > upper_bound:
-    #             self.max_interval = upper_bound + self.epsilon, self.max_interval[1]
 
     def before_current_node(self, current_node, previous_node, lower_bound, upper_bound, value):
         if current_node.lower_bound > upper_bound:
             new_node = LinkedListNode(lower_bound, upper_bound, value)
             new_node.next = current_node
 
-            # self.update_max_value(value, lower_bound, upper_bound)
+            self.update_max_value(lower_bound, upper_bound, value)
 
             if current_node == self.head:
                 self.head = new_node
             else:
                 previous_node.next = new_node
-            return new_node
+            return True
 
-        return None
+        return False
 
     def after_current_node(self, current_node, lower_bound):
         if current_node.upper_bound < lower_bound:
@@ -324,13 +210,10 @@ class LinkedList:
 
         return None
 
-    def same_interval(self, current_node, lower_bound, upper_bound, value, type):
+    def same_interval(self, current_node, lower_bound, upper_bound, value):
         if current_node.lower_bound == lower_bound and current_node.upper_bound == upper_bound:
-            if type == 'AVG':
-                current_node.update_value(value)
-            else:
-                current_node.max_update_value(value)
-            # self.update_max_value(current_node.value, lower_bound, upper_bound)
+            current_node.update_value(value)
+            self.update_max_value(lower_bound, upper_bound, current_node.value)
             return True
 
         return False
@@ -345,16 +228,11 @@ class LinkedList:
                 first_node = LinkedListNode(current_node.lower_bound, upper_bound, current_node.value)
             else:
                 first_node = LinkedListNode(lower_bound, upper_bound, value)
-                # self.update_max_value(value, lower_bound, upper_bound)
-
-                # update_list.insert(first_node)
 
             first_node.next = common_node
 
         else:  # lower_bound = current_node.lower_bound
             first_node = common_node
-
-        # update_list.insert(common_node)
 
         if current_node == self.head:
             self.head = first_node
@@ -365,7 +243,6 @@ class LinkedList:
 
         # If there is a part after the intersection the nodes must be updated
         return common_node
-
 
     def part_after_intersection(self, current_node, previous_node, common_upper, upper_bound):
         lower_bound = common_upper + self.epsilon
@@ -381,19 +258,3 @@ class LinkedList:
             return previous_node.next, lower_bound
 
         return None
-
-    def part_after_intersection_node(self, current_node, previous_node, add_node, common_upper):
-        lower_bound = common_upper + self.epsilon
-
-        if current_node.upper_bound > common_upper:
-            next = previous_node.next
-            current_node = LinkedListNode(lower_bound, current_node.upper_bound, current_node.value)
-            previous_node.next = current_node
-            current_node.next = next
-            return current_node, add_node.next
-
-        if add_node.upper_bound > common_upper:
-            add_node.lower_bound = lower_bound
-            return previous_node.next, add_node
-
-        return previous_node, add_node.next

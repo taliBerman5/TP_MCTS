@@ -253,7 +253,7 @@ class C_MCTS(Base_MCTS):
         super().__init__(mdp, search_depth, exploration_constant, k)
         self._previous_chosen_action_node = previous_chosen_action_node
 
-        create_snode = self.create_Snode_max if selection_type == 'max' else (self.create_Snode_root_interval_max if selection_type == 'rootInterval' else self.create_Snode)
+        create_snode = self.create_Snode_max if selection_type == 'max' else (self.create_Snode_root_interval if selection_type == 'rootInterval' else self.create_Snode)
         snode, _ = create_snode(root_state, 0, stn,
                                 previous_chosen_action_node=previous_chosen_action_node)
         self.set_root_node(root_node if root_node is not None else snode)
@@ -270,6 +270,13 @@ class C_MCTS(Base_MCTS):
     def create_Snode(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
                      parent: "up.engines.C_ANode" = None,
                      previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None, isInterval=False):
+        """ Create a new Snode for the state `state` with parent `parent`"""
+        return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent,
+                                  previous_chosen_action_node, isInterval), None
+
+    def create_Snode_root_interval(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
+                     parent: "up.engines.C_ANode" = None,
+                     previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None, isInterval=True):
         """ Create a new Snode for the state `state` with parent `parent`"""
         return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent,
                                   previous_chosen_action_node, isInterval), None
@@ -391,14 +398,15 @@ class C_MCTS(Base_MCTS):
 
     def selection_root_interval(self, snode: "up.engines.C_Snode", root_STNnode: "up.plans.stn.STNPlanNode" = None):
         if len(snode.possible_actions) == 0:
+            # Stop when there are no possible actions to take so the plan remains consistent
             if root_STNnode is None:
                 return 0
-            # Stop when there are no possible actions to take so the plan remains consistent
             return 0, *snode.parent.stn.get_legal_interval(root_STNnode)
 
         if snode.depth > self.search_depth:
             # Stop if the search depth is reached
-            return LinkedListNode(*snode.parent.stn.get_legal_interval(root_STNnode), self.heuristic(snode))
+            return self.heuristic(snode), *snode.parent.stn.get_legal_interval(root_STNnode)
+
         explore_constant = self.exploration_constant
         # Choose a consistent action
         action = self.uct(snode, explore_constant)
@@ -415,18 +423,21 @@ class C_MCTS(Base_MCTS):
                 reward += next_reward * self.mdp.discount_factor
 
             else:
-                next_snode, _ = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode, isInterval=True)
+                next_snode, _ = self.create_Snode_root_interval(next_state, snode.depth + 1, anode.stn, anode)
                 lower, upper = anode.stn.get_legal_interval(root_STNnode)
                 reward += self.heuristic(next_snode) * self.mdp.discount_factor
                 anode.add_child(next_snode)
                 next_snode.update(reward, lower, upper)
 
         else:
+            # when the state is terminal set the lower and upper according to anode root
             lower, upper = anode.stn.get_legal_interval(root_STNnode)
 
         anode.update(reward, lower, upper)
         snode.update(reward, lower, upper)
         return reward, lower, upper
+
+
     def selection_root_interval_max(self, snode: "up.engines.C_Snode", root_STNnode: "up.plans.stn.STNPlanNode" = None):
         if len(snode.possible_actions) == 0:
             if root_STNnode is None:
@@ -500,8 +511,6 @@ def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int,
         print(f"Current state is {root_state}")
         print(f"The chosen action is {action.name}")
 
-        root_state_copy = root_state
-
         terminal, root_state, reward = mcts.mdp.step(root_state, action)
 
         if reuse and root_state in mcts.root_node.children[action].children:
@@ -510,14 +519,8 @@ def plan(mdp: "up.engines.MDP", steps: int, search_time: int, search_depth: int,
 
         # update STN to include the action
         action_node = mcts.root_node.children[action] if selection_type == 'rootInterval' else None
-        stn_copy = stn.clone()
 
-        previous_action_node_copy = previous_action_node
         previous_action_node = update_stn(stn, action, previous_action_node, type='SetTime', action_node=action_node)
-        if not stn.is_consistent():
-            mcts = C_MCTS(mdp, root_node, root_state_copy, search_depth, exploration_constant, stn_copy, selection_type, k,
-                          previous_action_node_copy)
-            mcts.search(search_time, selection_type)
 
         assert stn.is_consistent()
 
