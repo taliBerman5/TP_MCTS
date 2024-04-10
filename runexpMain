@@ -12,13 +12,13 @@ C_DEADLINE=15
 RS_DEADLINE=15
 
 
-STUCKCAR1o="-l log/stuck_car_1o_rootInterval.log run_domain.py --domain stuck_car_1o"
-STUCKCAR="-l log/stuck_car_rootInterval.log run_domain.py --domain stuck_car"
-MACHINESHOP="-l log/machine_shop_rootInterval.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/nasa_rover_rootInterval.log run_domain.py --domain nasa_rover"
-CONC="-l log/conc_rootInterval.log run_domain.py --domain conc"
-PROBCONC="-l log/prob_conc_rootInterval.log run_domain.py --domain prob_conc"
-SIMPLE="-l log/simple_rootInterval.log run_domain.py --domain simple"
+STUCKCAR1o="-l log/rootInterval/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
+STUCKCAR="-l log/rootInterval/stuck_car.log run_domain.py --domain stuck_car"
+MACHINESHOP="-l log/rootInterval/machine_shop.log run_domain.py --domain machine_shop"
+NASAROVER="-l log/rootInterval/nasa_rover.log run_domain.py --domain nasa_rover"
+CONC="-l log/rootInterval/conc.log run_domain.py --domain conc"
+PROBCONC="-l log/rootInterval/prob_conc.log run_domain.py --domain prob_conc"
+SIMPLE="-l log/rootInterval/simple.log run_domain.py --domain simple"
 
 set -e
 
@@ -32,7 +32,7 @@ do
     echo "started depth $d and search_time time $t:"
 
     echo "Started Stuck Car 1 object"
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
 #    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
 #    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
 #    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
@@ -92,7 +92,7 @@ do
     for ((g = 10; g <= 15; g += 1))
     do
       echo "started garbage $g"
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
