@@ -97,7 +97,15 @@ class MDP:
         if not isinstance(action, up.engines.InstantaneousStartAction):
             return True #-1
 
-        not_relevant = action.end_action.add_effects.issubset(state.predicates)
+        add = action.add_effects.copy()
+        # Remove inExecution - this is not considered new effect
+        for add_effect in add.copy():
+            if add_effect._content.payload == self.problem.fluent_by_name('inExecution'):
+                add.remove(add_effect)
+
+        not_relevant = add.issubset(state.predicates)
+        not_relevant &= action.del_effects.isdisjoint(state.predicates)
+        not_relevant &= action.end_action.add_effects.issubset(state.predicates)
         not_relevant &= action.end_action.del_effects.isdisjoint(state.predicates)
         for pe in action.end_action.probabilistic_effects:
             not_relevant = not_relevant & set(pe.fluents).issubset(state.predicates)
