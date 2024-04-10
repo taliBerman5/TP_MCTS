@@ -16,10 +16,10 @@ class TRPG:
         self.deadline = self.mdp.deadline() if self.mdp.deadline() else math.inf
         self.current_time = current_time
 
-    def get_heuristic(self):
+    def get_heuristic(self, lower_bounds=None):
 
         t = self.current_time
-        earliest = self.init_actions()
+        earliest = self.init_actions(lower_bounds)
 
         while t <= self.deadline and not self.mdp.problem.goals.issubset(self.positive):
             negative_eps = set(self.negative)
@@ -90,7 +90,7 @@ class TRPG:
         positive_eps.update(action.add_effects)
         self.add_probabilistic_effects(action, negative_eps, positive_eps)
 
-    def init_actions(self):
+    def init_actions(self, lower_bounds):
         """
         Init all actions into the new actions list
         ensures the end actions can be performed only after the start actions.
@@ -107,7 +107,15 @@ class TRPG:
             # Makes sure end action can start only after the start action is performed
             if isinstance(action, up.engines.InstantaneousEndAction):
                 action_object = self.mdp.problem.object_by_name(f'start-{action.name[4:]}')
-                earliest[action] = self.current_time if inExecution(action_object) in self.positive else math.inf
+
+                if not inExecution(action_object) in self.positive:
+                    earliest[action] = math.inf
+                elif lower_bounds is None:
+                    earliest[action] = self.current_time
+                else:
+                    earliest[action] = lower_bounds[action]
+
+                # earliest[action] = self.current_time if inExecution(action_object) in self.positive else math.inf
 
         return earliest
 

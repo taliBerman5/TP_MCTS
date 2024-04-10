@@ -476,10 +476,12 @@ class C_MCTS(Base_MCTS):
 
     def heuristic(self, snode: "up.engines.C_SNode"):
         current_time = 0
+        lower_bounds = None
         if snode.parent:
             current_time = snode.parent.stn.get_current_end_time()
+            lower_bounds = snode.parent.stn.get_lower_bound_potential_end_action()
         h = up.engines.heuristics.TRPG(self.mdp, snode.state, current_time)
-        return h.get_heuristic()
+        return h.get_heuristic(lower_bounds)
 
     def heuristic_init(self, state, stn):
         current_time = stn.get_current_end_time()
