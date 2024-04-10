@@ -18,11 +18,11 @@ import unified_planning.domains
 
 domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car_1o=up.domains.Stuck_Car_1o,
                stuck_car=up.domains.Stuck_Car, conc=up.domains.Conc, full_conc=up.domains.Full_Conc,
-               prob_conc=up.domains.Prob_Conc, best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple)
+               prob_conc=up.domains.Prob_Conc, best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple, hosting=up.domains.Hosting)
 domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_rover_domain_comb",
                      stuck_car_1o="stuck_car_1o_domain_comb", stuck_car="stuck_car_domain_comb", conc="conc_domain_comb",
                      full_conc="full_conc_domain_comb", prob_conc="prob_conc_domain_comb",
-                     simple="simple_domain_comb")
+                     simple="simple_domain_comb", hosting="hosting_domain_comb")
 
 
 def print_stats():
