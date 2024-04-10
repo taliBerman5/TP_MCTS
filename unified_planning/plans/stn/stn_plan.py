@@ -457,6 +457,13 @@ class STNPlan(unified_planning.plans.plan.Plan):
         upper = apsp[node].numerator
         return lower, upper
 
+    def get_lower_bound_potential_end_action(self):
+        lower_bounds = {}
+        for action_node in self._potential_end_actions:
+            action = action_node.action_instance.action
+            lower_bounds[action] = self._stn.get_stn_model(action_node).numerator
+        return lower_bounds
+
     def get_upper_bound_node(self, node: "up.plans.stn.STNPlanNode"):
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
         apsp = self._stn.calculate_shortest_path(start_plan)
