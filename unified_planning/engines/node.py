@@ -52,17 +52,6 @@ class Node:
         else:
             self._linkList.update(lower, upper, reward)
 
-    def update_old(self, reward, add_node: "LinkedListNode" = None):
-        self._count += 1
-        if add_node is None:
-            self._value = (self._value * self._count + reward) / (self._count + 1)
-        else:
-            self._linkList.update(add_node)
-            # update_node = self._linkList.update(add_node)
-            # update_node.divide_count_reward(self.count)
-            # return update_node
-
-
 
 class SNode(Node):
     """ State node """
