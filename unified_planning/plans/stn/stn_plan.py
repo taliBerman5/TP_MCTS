@@ -467,12 +467,9 @@ class STNPlan(unified_planning.plans.plan.Plan):
 
     def get_upper_bound_node(self, node: "up.plans.stn.STNPlanNode"):
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
-        apsp = self._stn.calculate_shortest_path(start_plan)
-        return apsp[node]
+        upper = self._stn.calculate_shortest_path(start_plan, node)
+        return upper
 
-    def get_upper_bound(self):
-        start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
-        return self._stn.calculate_shortest_path(start_plan)
 
     def add_constrains_to_previous_chosen_action(self, constraints: Union[
             List[Tuple[STNPlanNode, Optional[Real], Optional[Real], STNPlanNode]],

@@ -188,6 +188,16 @@ class TestSTN(unittest.TestCase):
 
         self.assertTrue(self.stn.get_legal_interval(node)==(4,4), 'The deadline is 6 and the action is 5 seconds')
 
+    def test_legal_interval_same_action(self):
+        print("Running test_legal_interval...")
+
+        node1 = update_stn(self.stn, self.a_start_short)
+        node = update_stn(self.stn, self.a_end_short, node1)
+        node = update_stn(self.stn, self.a_start_short, node)
+        node = update_stn(self.stn, self.a_end_short, node)
+
+        self.assertTrue(self.stn.get_legal_interval(node)==(4,6), 'The deadline is 6')
+
 
 if __name__ == '__main__':
     unittest.main()
