@@ -18,6 +18,7 @@ from collections import deque
 from dataclasses import dataclass
 from numbers import Real
 from typing import Deque, Dict, List, Optional, Any, Generic, Set, Tuple, TypeVar, cast
+import networkx as nx
 
 import unified_planning
 
@@ -235,7 +236,7 @@ class DeltaSimpleTemporalNetwork(Generic[T]):
             neighbor = neighbor.next
         self._constraints[x] = new_constraints
 
-    def calculate_shortest_path(self, start_node):
+    def calculate_shortest_path1(self, start_node):
         vertices = self._constraints.keys()
         g = unified_planning.plans.stn.Graph(vertices)
         for x, neighbor in self._constraints.items():
@@ -244,3 +245,55 @@ class DeltaSimpleTemporalNetwork(Generic[T]):
                 neighbor = neighbor.next
 
         return g.BellmanFord(start_node)
+
+
+
+    def calculate_shortest_path(self, start_node, target_node):
+        G = nx.DiGraph()
+
+        # Maintain a mapping between node identifiers and actual node objects
+        node_map = {}
+
+        # Add edges to the graph
+        for x, neighbor in self._constraints.items():
+            while neighbor is not None:
+
+                # use the node when it is end or start plan node
+                if x.kind.name == 'GLOBAL_END' or x.kind.name == 'GLOBAL_START':
+                    dest_id = x
+                else:
+                    # Generate unique identifiers for the nodes
+                    dest_id = id(x)
+                    # Add the nodes to the graph if not already added
+                    if dest_id not in node_map:
+                        node_map[dest_id] = x
+                        G.add_node(dest_id)
+
+                # use the node when it is end or start plan node
+                if neighbor.dst.kind.name == 'GLOBAL_END' or neighbor.dst.kind.name == 'GLOBAL_START':
+                    src_id = neighbor.dst
+                else:
+                    # Generate unique identifiers for the nodes
+                    src_id = id(neighbor.dst)
+                    # Add the nodes to the graph if not already added
+                    if src_id not in node_map:
+                        node_map[src_id] = neighbor.dst
+                        G.add_node(src_id)
+
+
+                # Add the edge to the graph
+                G.add_edge(src_id, dest_id, weight=neighbor.bound)
+                neighbor = neighbor.next
+
+        # Use the identifiers for start and target nodes
+        if start_node.kind.name == 'GLOBAL_END' or start_node.kind.name == 'GLOBAL_START':
+            start_id = start_node
+        else:
+            start_id = id(start_node)
+
+        if target_node.kind.name == 'GLOBAL_END' or target_node.kind.name == 'GLOBAL_START':
+            target_id = target_node
+        else:
+            target_id = id(target_node)
+
+        return nx.bellman_ford_path_length(G, source=start_id, target=target_id, weight='weight')

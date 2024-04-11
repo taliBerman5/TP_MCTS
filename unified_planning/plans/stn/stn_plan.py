@@ -453,8 +453,9 @@ class STNPlan(unified_planning.plans.plan.Plan):
     def get_legal_interval(self, node: "up.plans.stn.STNPlanNode"):
         lower = self._stn.get_stn_model(node).numerator
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
-        apsp = self._stn.calculate_shortest_path(start_plan)
-        upper = apsp[node].numerator
+        apsp = self._stn.calculate_shortest_path(start_plan, node)
+        # upper = apsp[node].numerator
+        upper = apsp.numerator
         return lower, upper
 
     def get_lower_bound_potential_end_action(self):
@@ -502,9 +503,9 @@ class STNPlan(unified_planning.plans.plan.Plan):
 
             start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
             end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
-            self._stn.insert_interval(start_plan, b_node, left_bound=f0)
+            # self._stn.insert_interval(start_plan, b_node, left_bound=f0)
 
-            # self._stn.remove_endPlan_constraint(a_node, end_plan)
+            self._stn.remove_endPlan_constraint(a_node, end_plan) # TODO: remove?
             self._stn.insert_interval(b_node, end_plan, left_bound=f0)
             lb = None if lower_bound is None else Fraction(float(lower_bound))
             ub = None if upper_bound is None else Fraction(float(upper_bound))
@@ -555,7 +556,7 @@ class STNPlan(unified_planning.plans.plan.Plan):
                 )
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
         end_plan = STNPlanNode(TimepointKind.GLOBAL_END)
-        # self._stn.remove_endPlan_constraint(start_plan, end_plan)
+        self._stn.remove_endPlan_constraint(start_plan, end_plan) #TODO: remove?
         self._stn.insert_interval(start_plan, action, left_bound=f0)
         self._stn.insert_interval(action, end_plan, left_bound=f0)
 
@@ -622,8 +623,8 @@ class STNPlan(unified_planning.plans.plan.Plan):
                 raise UPUsageError(
                     "Different environments given inside the same STNPlan!"
                 )
-            start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
-            self._stn.insert_interval(start_plan, b_node, left_bound=f0)
+            # start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
+            # self._stn.insert_interval(start_plan, b_node, left_bound=f0)
             lb = None if lower_bound is None else Fraction(float(lower_bound))
             ub = None if upper_bound is None else Fraction(float(upper_bound))
             self._stn.insert_interval(a_node, b_node, left_bound=lb, right_bound=ub)
