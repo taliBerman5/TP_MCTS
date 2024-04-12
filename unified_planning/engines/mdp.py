@@ -104,7 +104,7 @@ class MDP:
                 add.remove(add_effect)
 
         not_relevant = add.issubset(state.predicates)
-        not_relevant &= action.del_effects.isdisjoint(state.predicates)
+        # not_relevant &= action.del_effects.isdisjoint(state.predicates)
         not_relevant &= action.end_action.add_effects.issubset(state.predicates)
         not_relevant &= action.end_action.del_effects.isdisjoint(state.predicates)
         for pe in action.end_action.probabilistic_effects:
