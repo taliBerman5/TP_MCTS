@@ -15,10 +15,11 @@ RS_DEADLINE=15
 STUCKCAR1o="-l log/newRootInterval/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
 STUCKCAR="-l log/newRootInterval/stuck_car.log run_domain.py --domain stuck_car"
 MACHINESHOP="-l log/newRootInterval/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/newRootInterval/nasa_rover.log run_domain.py --domain nasa_rover"
+NASAROVER="-l log/newRootInterval/nasa_rover1.log run_domain.py --domain nasa_rover"
 CONC="-l log/newRootInterval/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/newRootInterval/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/newRootInterval/simple.log run_domain.py --domain simple"
+HOSTING="-l log/newRootInterval/hosting.log run_domain.py --domain hosting"
 
 set -e
 
@@ -64,7 +65,7 @@ do
 
 
     echo "Started Nasa Rover"
-    for o in 1 2
+    for o in 1 #2
     do
       echo "Started object $o"
       bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount $o
@@ -75,7 +76,7 @@ do
     done
 
     echo "Started object 3"
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
 
