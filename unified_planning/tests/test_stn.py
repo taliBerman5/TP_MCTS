@@ -85,6 +85,27 @@ class TestSTN(unittest.TestCase):
         self.assertFalse(self.stn.is_consistent(), 'Long action cannot end before the short action')
 
 
+    def test_long_short_combinations(self):
+        print("Running test_long_short_combinations...")
+
+        stn_copy = self.stn.clone()
+
+        node = update_stn(self.stn, self.a_start_long)
+        node_short = update_stn(self.stn, self.a_start_short, node)
+        node = update_stn(self.stn, self.a_end_long, node_short)
+        node = update_stn(self.stn, self.a_end_short, node)
+
+        node = update_stn(stn_copy, self.a_start_long)
+        node_short_copy = update_stn(stn_copy, self.a_start_short, node)
+        node = update_stn(stn_copy, self.a_end_short, node_short_copy)
+        node = update_stn(stn_copy, self.a_end_long, node)
+
+
+
+        self.assertTrue(self.stn.get_legal_interval(node_short) == (3,4), 'the legal interval should be []')
+        self.assertTrue(stn_copy.get_legal_interval(node_short_copy) == (0,4), 'the legal interval should be []')
+
+
     def test_long_ends_before_short(self):
         print("Running test_long_before_short...")
 

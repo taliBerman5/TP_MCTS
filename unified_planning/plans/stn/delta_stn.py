@@ -249,6 +249,22 @@ class DeltaSimpleTemporalNetwork(Generic[T]):
 
 
     def calculate_shortest_path(self, start_node, target_node):
+        """
+        Calculate the shortest path between start_node and target_node using bellman Ford algorithm
+
+        :param start_node: starts the path from start_node
+        :param target_node: ends the path at target_node
+
+        :return: shortest path between start_node and target_node
+
+
+        Multiple occurrences of the same action can appear
+        (the node represent each action execution points to different memory point) in the STN.
+
+        To ensure that nodes with same logical meaning but different objects in the memory are treated as different vertex
+        unique identifiers are used for each node using the id() except Start_Plan and End_Plan nodes.
+
+        """
         G = nx.DiGraph()
 
         # Maintain a mapping between node identifiers and actual node objects

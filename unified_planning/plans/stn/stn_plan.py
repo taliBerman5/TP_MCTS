@@ -453,9 +453,10 @@ class STNPlan(unified_planning.plans.plan.Plan):
     def get_legal_interval(self, node: "up.plans.stn.STNPlanNode"):
         lower = self._stn.get_stn_model(node).numerator
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
-        apsp = self._stn.calculate_shortest_path(start_plan, node)
+        # apsp = self._stn.calculate_shortest_path1(start_plan)
         # upper = apsp[node].numerator
-        upper = apsp.numerator
+        sp = self._stn.calculate_shortest_path(start_plan, node)
+        upper = sp.numerator
         return lower, upper
 
     def get_lower_bound_potential_end_action(self):
