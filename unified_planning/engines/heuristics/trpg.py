@@ -79,11 +79,11 @@ class TRPG:
         # -t + 10 if t <= self.deadline else -self.deadline - 10
         value = 0
         if t < self.deadline:
-            value = 1 - t * 1.0
+            value = 1 - t * 1.0 / self.deadline
         elif t == self.deadline:
-            value = 0.05
+            value = 0.5 / self.deadline
+        # value = 0.5*(1 + (self.deadline - t) * 1.0 / self.deadline) if t <= self.deadline else 0
 
-        # 1 - t * 1.0 / self.deadline if t <= self.deadline else 0
         return value
 
     def add_probabilistic_effects(self, action, negative_eps, positive_eps):
