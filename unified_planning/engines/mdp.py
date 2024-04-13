@@ -228,7 +228,9 @@ class combinationMDP(MDP):
 
         # common = len(self.problem.goals.intersection(state.predicates))
         # reward = 100 if terminal else 2 ** (common - len(self.problem.goals))
-        reward = 10 if terminal else -1
+
+        # reward = 10 if terminal else -1
+        reward = 1 if terminal else 0
 
         return terminal, next_state, reward
 
