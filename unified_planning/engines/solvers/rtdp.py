@@ -140,7 +140,7 @@ def plan(mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", steps: int, search_
 
         history.append(action)
 
-        if terminal:
+        if terminal and root_state.current_time <= mdp.deadline():
             print(f"Current state is {root_state}")
             return 1, root_state.current_time
 
