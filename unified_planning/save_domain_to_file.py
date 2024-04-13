@@ -70,15 +70,15 @@ def compilation_time(domain_name, domain, object_amount=1, garbage_amount=0):
     # Print the result and elapsed time
     print(f"Compilation Time {domain_name} object={object_amount}, garbage={garbage_amount}: {elapsed_time} seconds")
 
-
+# create_save_model("hosting", "../pickle_domains/hosting_domain_comb_2.pkl", up.domains.Hosting, garbage_amount=2)
 # create_save_model("stuck_car_1o", "../pickle_domains/stuck_car_1o_domain_comb.pkl", up.domains.Stuck_Car_1o)
 # create_save_model("conc", "../pickle_domains/conc_domain_comb.pkl", up.domains.Conc)
 # create_save_model("full_conc", "../pickle_domains/full_conc_domain_comb.pkl", up.domains.Full_Conc)
 
 
-for o in range(1, 4):
-    stuck_car = up.domains.Stuck_Car
-    create_save_model("stuck_car", f"../pickle_domains/stuck_car_domain_comb_{o}.pkl", stuck_car, object_amount=o)
+# for o in range(1, 4):
+#     stuck_car = up.domains.Stuck_Car
+#     create_save_model("stuck_car", f"../pickle_domains/stuck_car_domain_comb_{o}.pkl", stuck_car, object_amount=o)
 
 
 # for o in range(2, 4):
