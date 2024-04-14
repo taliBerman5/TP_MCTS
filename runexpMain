@@ -17,7 +17,7 @@ STUCKCAR1o="-l log/oneDevideDeadline/stuck_car_1o.log run_domain.py --domain stu
 STUCKCAR="-l log/one2half/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/one2half/hosting.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/one2half/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/one2half/nasa_rover.log run_domain.py --domain nasa_rover"
+NASAROVER="-l log/one2half/nasa_rover3.log run_domain.py --domain nasa_rover"
 CONC="-l log/oneDevideDeadline/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/oneDevideDeadline/simple.log run_domain.py --domain simple"
@@ -53,10 +53,10 @@ do
     for g in 1 2
     do
       echo "Started object $g"
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
     echo "Started Machine Shop"
@@ -88,7 +88,7 @@ do
     done
 
     echo "Started object 3"
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
 
