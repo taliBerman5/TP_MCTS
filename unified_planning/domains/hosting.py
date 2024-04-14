@@ -7,6 +7,7 @@ class Hosting(Domain):
     def __init__(self, kind, deadline, object_amount=None, garbage_amount=None):
         Domain.__init__(self, 'hosting', kind)
         self.object_amount = object_amount
+        self.garbage_amount = garbage_amount
         self.user_types()
         self.objects()
         self.fluents()
@@ -25,28 +26,34 @@ class Hosting(Domain):
 
     def fluents(self):
 
-        lightOn = unified_planning.model.Fluent('lightOn', BoolType())
-        self.problem.add_fluent(lightOn, default_initial_value=False)
+        if self.garbage_amount > 1:
+            lightOn = unified_planning.model.Fluent('lightOn', BoolType())
+            self.problem.add_fluent(lightOn, default_initial_value=False)
+
 
         # found = unified_planning.model.Fluent('found', BoolType(), b=self.userTypes['Broom'])
         # self.problem.add_fluent(found, default_initial_value=False)
 
         found_broom = unified_planning.model.Fluent('found_broom', BoolType())
-        self.problem.add_fluent(found_broom, default_initial_value=False)
+        if self.garbage_amount == 1:
+            self.problem.add_fluent(found_broom, default_initial_value=True)
+        else:
+            self.problem.add_fluent(found_broom, default_initial_value=False)
 
         houseClean = unified_planning.model.Fluent('houseClean', BoolType())
         self.problem.add_fluent(houseClean, default_initial_value=False)
 
-        wet = unified_planning.model.Fluent('wet', BoolType())
-        self.problem.add_fluent(wet, default_initial_value=False)
+        # wet = unified_planning.model.Fluent('wet', BoolType())
+        # self.problem.add_fluent(wet, default_initial_value=False)
 
         foodReady = unified_planning.model.Fluent('foodReady', BoolType())
         self.problem.add_fluent(foodReady, default_initial_value=False)
 
 
     def actions(self):
-        self.turn_on_light_action()
-        self.find_broom_action()
+        if self.garbage_amount > 1:
+            self.turn_on_light_action()
+            self.find_broom_action()
         self.clean_action()
         self.cook_action()
 
@@ -61,7 +68,7 @@ class Hosting(Domain):
         return found_probability
 
     def turn_on_light_action(self):
-        lightOn, wet = self.get_fluents(['lightOn', 'wet'])
+        lightOn = self.problem.fluent_by_name('lightOn')
 
         turn_on_light = unified_planning.model.DurativeAction('turn_on_light')
         turn_on_light.set_fixed_duration(8)
