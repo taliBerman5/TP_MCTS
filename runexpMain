@@ -20,14 +20,14 @@ MACHINESHOP="-l log/one2half/machine_shop.log run_domain.py --domain machine_sho
 NASAROVER="-l log/one2half/nasa_rover3.log run_domain.py --domain nasa_rover"
 CONC="-l log/oneDevideDeadline/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
-SIMPLE="-l log/oneDevideDeadline/simple.log run_domain.py --domain simple"
+SIMPLE="-l log/one2half/simple.log run_domain.py --domain simple"
 
 set -e
 
 
 
 
-for t in 10 #1 10
+for t in 1 10
 do
   for d in 30
   do
@@ -88,7 +88,7 @@ do
     done
 
     echo "Started object 3"
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
 
@@ -104,10 +104,11 @@ do
 
 
     echo "Started Simple"
-    for ((g = 10; g <= 15; g += 1))
+#    for ((g = 10; g <= 15; g += 1))
+    for g in 15
     do
       echo "started garbage $g"
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
