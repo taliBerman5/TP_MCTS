@@ -2,9 +2,6 @@ import unified_planning as up
 import math
 import time
 import random
-from collections import defaultdict
-
-random.seed(10)
 
 
 class RTDP:

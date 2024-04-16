@@ -10,8 +10,6 @@ from unified_planning.engines.utils import (
 )
 from unified_planning.engines.linked_list import LinkedListNode
 
-random.seed(10)
-
 
 class Base_MCTS:
     def __init__(self, mdp: "up.engines.MDP", search_depth: int,
