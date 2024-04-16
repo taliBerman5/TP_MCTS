@@ -8,6 +8,8 @@ and comes with efficient consistency checking and solution generation algorithms
 ## domains
 
 * **Stuck Car(C)** - C cars are stuck in the mud. The goal of the C agents is to get the cars out of the mud before a deadline is reached.
+* **Hosting(H)** - Guests will arrive soon, necessitating a clean house and
+prepared food prior to their arrival. H parameter defines the complexity of the domain. 
 * **Nasa Rover(R)** - A probabilistic variant of the well-known NASA Rover domain from the 2002 AIPS Planning Competition (Long and Fox 2003a) with R different rovers.
 * **Machine Shop(O)** - This domain captures a manufacturing environment comprising various subtasks, including shaping, painting, polishing, and more.
 * **Simple-x** - In this simple domain, there are x distinct actions, each of which accomplishes a unique goal upon completion.
