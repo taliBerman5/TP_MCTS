@@ -30,10 +30,6 @@ class Hosting(Domain):
             lightOn = unified_planning.model.Fluent('lightOn', BoolType())
             self.problem.add_fluent(lightOn, default_initial_value=False)
 
-
-        # found = unified_planning.model.Fluent('found', BoolType(), b=self.userTypes['Broom'])
-        # self.problem.add_fluent(found, default_initial_value=False)
-
         found_broom = unified_planning.model.Fluent('found_broom', BoolType())
         if self.garbage_amount == 1:
             self.problem.add_fluent(found_broom, default_initial_value=True)
@@ -42,9 +38,6 @@ class Hosting(Domain):
 
         houseClean = unified_planning.model.Fluent('houseClean', BoolType())
         self.problem.add_fluent(houseClean, default_initial_value=False)
-
-        # wet = unified_planning.model.Fluent('wet', BoolType())
-        # self.problem.add_fluent(wet, default_initial_value=False)
 
         foodReady = unified_planning.model.Fluent('foodReady', BoolType())
         self.problem.add_fluent(foodReady, default_initial_value=False)
