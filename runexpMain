@@ -17,7 +17,7 @@ STUCKCAR1o="-l log/oneDevideDeadline/stuck_car_1o.log run_domain.py --domain stu
 STUCKCAR="-l log/one2half/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/one2half/hosting.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/one2half/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/one2half/nasa_rover.log run_domain.py --domain nasa_rover"
+NASAROVER="-l log/one2half/nasa_rover1.log run_domain.py --domain nasa_rover"
 CONC="-l log/oneDevideDeadline/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/one2half/simple.log run_domain.py --domain simple"
@@ -27,7 +27,7 @@ set -e
 
 
 
-for t in 10 #1 10
+for t in 1 #10
 do
   for d in 30
   do
@@ -77,7 +77,7 @@ do
 
 
     echo "Started Nasa Rover"
-    for o in 2 #1 2
+    for o in 1 #2
     do
       echo "Started object $o"
       bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount $o
