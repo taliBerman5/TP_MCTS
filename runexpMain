@@ -17,7 +17,7 @@ STUCKCAR1o="-l log/oneDevideDeadline/stuck_car_1o.log run_domain.py --domain stu
 STUCKCAR="-l log/one2half/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/one2half/hosting.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/one2half/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/one2half/nasa_rover.log run_domain.py --domain nasa_rover"
+NASAROVER="-l log/one2half/nasa_rover25.log run_domain.py --domain nasa_rover"
 CONC="-l log/oneDevideDeadline/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/one2half/simple.log run_domain.py --domain simple"
@@ -27,7 +27,7 @@ set -e
 
 
 
-for t in 1 #10
+for t in 25 #1 #10
 do
   for d in 30
   do
