@@ -28,7 +28,7 @@ set -e
 
 
 
-for t in 25 #1 #10
+for t in 1 10
 do
   for d in 30
   do
