@@ -10,7 +10,8 @@ SC_DEADLINE=20
 MS_DEADLINE=40
 #NR_DEADLINE=35
 NR_DEADLINE=50
-C_DEADLINE=15
+#C_DEADLINE=15
+C_DEADLINE=30
 RS_DEADLINE=15
 H_DEADLINE=15
 
@@ -96,12 +97,12 @@ do
 
 
     echo "Started Conc"
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type rootInterval
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $RS_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval
+#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max
+#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg --domain_type combination
+#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
+#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
 
 
 
