@@ -21,7 +21,7 @@ STUCKCAR="-l log/one2half/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/one2half/hosting.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadline40/machine_shop4.log run_domain.py --domain machine_shop"
 NASAROVER="-l log/deadline40/nasa_rover3.log run_domain.py --domain nasa_rover"
-CONC="-l log/oneDevideDeadline/conc.log run_domain.py --domain conc"
+CONC="-l log/deadline40/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/one2half/simple.log run_domain.py --domain simple"
 
