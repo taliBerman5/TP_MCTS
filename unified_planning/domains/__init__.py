@@ -9,6 +9,7 @@ from unified_planning.domains.full_conc import Full_Conc
 from unified_planning.domains.best_no_parallel import Best_No_Parallel
 from unified_planning.domains.simple import Simple
 from unified_planning.domains.hosting import Hosting
+from unified_planning.domains.prob_match_cellar import Prob_MatchCellar
 
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "Best_No_Parallel",
     "Simple",
     "Hosting",
+    "Prob_MatchCellar",
     ]

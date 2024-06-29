@@ -14,6 +14,7 @@ NR_DEADLINE=50
 C_DEADLINE=30
 RS_DEADLINE=15
 H_DEADLINE=15
+PMC_DEADLINE=10
 
 
 STUCKCAR1o="-l log/oneDevideDeadline/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
@@ -24,6 +25,7 @@ NASAROVER="-l log/deadline40/nasa_rover3.log run_domain.py --domain nasa_rover"
 CONC="-l log/deadline40/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/deadline40/simple.log run_domain.py --domain simple"
+PROBMATCHCELLAR="-l log/deadline40/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
 
 set -e
 
@@ -111,8 +113,8 @@ do
     for 10 11 12 13 15
     do
       echo "started garbage $g"
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
 #      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
@@ -126,6 +128,17 @@ do
 #      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
 #      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
 #      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+    done
+
+
+    echo "Started Probabilistic Match Cellar"
+    for o in 1 2 3 4 5 6
+    do
+      echo "started object $o"
+      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
+      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --domain_type combination --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
     done
 
   done
