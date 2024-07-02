@@ -23,7 +23,7 @@ HOSTING="-l log/one2half/hosting.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadline40/machine_shop4.log run_domain.py --domain machine_shop"
 NASAROVER="-l log/deadline40/nasa_roverMW.log run_domain.py --domain nasa_rover"
 CONC="-l log/deadline40/conc.log run_domain.py --domain conc"
-PROBCONC="-l log/oneDevideDeadline/prob_conc.log run_domain.py --domain prob_conc"
+PROBCONC="-l log/deadline40/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/deadline40/simple.log run_domain.py --domain simple"
 PROBMATCHCELLAR="-l log/deadline40/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
 
@@ -113,10 +113,10 @@ do
     for g in 10 11 12 13 15
     do
       echo "started garbage $g"
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 #
 
@@ -124,10 +124,10 @@ do
     for g in 7 8 9 10
     do
       echo "started garbage $g"
-#      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
-#      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
-#      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-#      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+      bash runexp $PROBCONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
 
