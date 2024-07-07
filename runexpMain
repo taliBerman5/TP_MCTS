@@ -25,7 +25,7 @@ STUCKCAR="-l log/deadline40/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/deadline40/hosting2.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadline40/machine_shopMW.log run_domain.py --domain machine_shop"
 NASAROVER="-l log/deadline40/nasa_roverMW.log run_domain.py --domain nasa_rover"
-CONC="-l log/deadline40/conc.log run_domain.py --domain conc"
+CONC="-l log/deadline40/concMW.log run_domain.py --domain conc"
 PROBCONC="-l log/deadline40/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/deadline40/simple.log run_domain.py --domain simple"
 PROBMATCHCELLAR="-l log/deadline40/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
@@ -58,12 +58,12 @@ do
     done
 
      echo "Started Hosting"
-    for g in 2
+    for g in 1 2
     do
       echo "Started object $g"
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
 #      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type avg --domain_type combination --garbage_amount $g
 #      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
@@ -107,8 +107,8 @@ do
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
 
 
 
