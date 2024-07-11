@@ -13,7 +13,7 @@ SC_DEADLINE=30
 MS_DEADLINE=17
 #NR_DEADLINE=35
 #NR_DEADLINE=50
-NR_DEADLINE=20
+NR_DEADLINE=25
 #C_DEADLINE=15
 C_DEADLINE=30
 RS_DEADLINE=15
@@ -26,7 +26,7 @@ STUCKCAR1o="-l log/deadline40/stuck_car_1o.log run_domain.py --domain stuck_car_
 STUCKCAR="-l log/deadline40/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/deadline40/hosting2.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadlineSmall/machine_shopMW.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/deadline40/nasa_roverMW.log run_domain.py --domain nasa_rover"
+NASAROVER="-l log/deadlineSmall/nasa_rover.log run_domain.py --domain nasa_rover"
 CONC="-l log/deadline40/concMW.log run_domain.py --domain conc"
 PROBCONC="-l log/deadline40/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/deadline40/simple.log run_domain.py --domain simple"
@@ -81,9 +81,9 @@ do
     done
 
     echo "Started object 4"
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount 4
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount 4
 #    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30 --object_amount 4
-    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount 4
+#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount 4
 
 
 
@@ -91,11 +91,11 @@ do
     for o in 1 2
     do
       echo "Started object $o"
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount $o
 #      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
     done
 
     echo "Started object 3"
