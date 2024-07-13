@@ -16,6 +16,7 @@ MS_DEADLINE=17
 NR_DEADLINE=25
 #C_DEADLINE=15
 C_DEADLINE=30
+C_DEADLINE=10
 RS_DEADLINE=15
 #H_DEADLINE=15
 H_DEADLINE=30
@@ -27,7 +28,7 @@ STUCKCAR="-l log/deadline40/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/deadline40/hosting2.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadlineSmall/machine_shopMW.log run_domain.py --domain machine_shop"
 NASAROVER="-l log/deadlineSmall/nasa_rover3.log run_domain.py --domain nasa_rover"
-CONC="-l log/deadline40/concMW.log run_domain.py --domain conc"
+CONC="-l log/deadlineSmall/conc.log run_domain.py --domain conc"
 PROBCONC="-l log/deadline40/prob_conc.log run_domain.py --domain prob_conc"
 SIMPLE="-l log/deadline40/simple.log run_domain.py --domain simple"
 PROBMATCHCELLAR="-l log/deadline40/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
@@ -99,18 +100,18 @@ do
     done
 
     echo "Started object 3"
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
 
 
     echo "Started Conc"
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval
 #    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
 
 
 
