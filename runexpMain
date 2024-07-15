@@ -6,6 +6,7 @@ REWIND=false
 NUMRUN=100
 #SC1_DEADLINE=15
 SC1_DEADLINE=30
+SC1_DEADLINE=10
 SC_DEADLINE=20
 SC_DEADLINE=30
 #MS_DEADLINE=27
@@ -24,7 +25,7 @@ H_DEADLINE=30
 PMC_DEADLINE=5
 
 
-STUCKCAR1o="-l log/deadline40/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
+STUCKCAR1o="-l log/deadlineSmall/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
 STUCKCAR="-l log/deadline40/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/deadline40/hosting2.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadlineSmall/machine_shopMW.log run_domain.py --domain machine_shop"
@@ -46,10 +47,10 @@ do
     echo "started depth $d and search_time time $t:"
 
     echo "Started Stuck Car 1 object"
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
 
     echo "Started Stuck Car"
     for o in 2
@@ -143,10 +144,10 @@ do
     for o in 1 2 3 4 5 6
     do
       echo "started object $o"
-      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
-      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
-      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --domain_type combination --object_amount $o
-      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --domain_type combination --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
     done
 
   done
