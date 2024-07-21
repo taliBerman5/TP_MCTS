@@ -4,30 +4,17 @@ DIR="unified_planning"               # Domain directory
 LOG=/dev/stdout             # Log file output
 REWIND=false
 NUMRUN=100
-#SC1_DEADLINE=15
-SC1_DEADLINE=30
-SC1_DEADLINE=10
+SC1_DEADLINE=15
 SC_DEADLINE=20
-SC_DEADLINE=30
-SC_DEADLINE=10
-#MS_DEADLINE=27
-#MS_DEADLINE=40
-MS_DEADLINE=17
-#NR_DEADLINE=35
-#NR_DEADLINE=50
-NR_DEADLINE=25
-#C_DEADLINE=15
-#C_DEADLINE=30
-C_DEADLINE=10
-RS_DEADLINE=15
-#H_DEADLINE=15
-H_DEADLINE=30
+MS_DEADLINE=27
+NR_DEADLINE=35
+C_DEADLINE=15
 H_DEADLINE=15
-#PMC_DEADLINE=10
-PMC_DEADLINE=5
+PMC_DEADLINE=10
 
 
-STUCKCAR1o="-l log/deadlineSmall/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
+
+STUCKCAR1o="-l log/logicPTRPG/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
 STUCKCAR="-l log/deadlineSmall/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/deadlineSmall/hosting2.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/deadlineSmall/machine_shopMW.log run_domain.py --domain machine_shop"
@@ -49,10 +36,10 @@ do
     echo "started depth $d and search_time time $t:"
 
     echo "Started Stuck Car 1 object"
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
 
     echo "Started Stuck Car"
     for o in 2
@@ -68,15 +55,15 @@ do
     for g in 1
     do
       echo "Started object $g"
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
     echo "Started Hosting 2"
-    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount 2
-    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount 2
+#    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount 2
+#    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount 2
 
 
     echo "Started Machine Shop"
