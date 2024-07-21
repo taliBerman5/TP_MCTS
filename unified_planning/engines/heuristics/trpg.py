@@ -98,6 +98,8 @@ class TRPG:
     def logistic_evaluate(self, t):
         if t > self.deadline:
             return 0
+        if t == 0:
+            return 1
 
         c = 1
         D_tag = self.deadline + c
@@ -152,3 +154,4 @@ class TRPG:
 
     def legal_action(self, action):
         return action.pos_preconditions.issubset(self.positive) and action.neg_preconditions.issubset(self.negative)
+
