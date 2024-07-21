@@ -84,9 +84,31 @@ class TRPG:
         #     value = 1 - t * 1.0 / self.deadline
         # elif t == self.deadline:
         #     value = 0.5 / self.deadline
-        value = 0.5*(1 + (self.deadline - t) * 1.0 / self.deadline) if t <= self.deadline else 0
-
+        # value = 0.5*(1 + (self.deadline - t) * 1.0 / self.deadline) if t <= self.deadline else 0
+        # value = self.deadline - t + 10 if t <= self.deadline else 0
+        value = self.logistic_evaluate(t)
         return value
+
+    def prob_evaluate(self, t):
+        return 0.5 * (1 + (self.deadline - t) * 1.0 / self.deadline) if t <= self.deadline else 0
+
+    def add_evaluate(self, t):
+        return self.deadline - t + 10 if t <= self.deadline else 0
+
+    def logistic_evaluate(self, t):
+        if t > self.deadline:
+            return 0
+
+        c = 1
+        D_tag = self.deadline + c
+        z1 = math.log(t/(D_tag - t))
+        a1 = -0.5
+        a0 = 1
+        z2 = a1*z1 + a0
+        p = 1/(1+math.exp(-z2))
+        return p
+
+
 
     def add_probabilistic_effects(self, action, negative_eps, positive_eps):
         state = up.engines.State(positive_eps)
