@@ -67,13 +67,13 @@ do
 
 
     echo "Started Machine Shop"
-    for o in 3 #2 3
+    for o in 2 #3
     do
       echo "Started object $o"
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount $o
     done
 
     echo "Started object 4"
@@ -137,8 +137,8 @@ do
     for o in 1 2 3 4 5
     do
       echo "started object $o"
-      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
-      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
+#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
     done
 
   done
