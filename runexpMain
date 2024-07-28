@@ -18,7 +18,7 @@ STUCKCAR1o="-l log/logicPTRPG/stuck_car_1o.log run_domain.py --domain stuck_car_
 STUCKCAR="-l log/logicPTRPG/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/logicPTRPG/hosting2.log run_domain.py --domain hosting"
 MACHINESHOP="-l log/logicPTRPG/machine_shopMW.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/logicPTRPG/nasa_rover.log run_domain.py --domain nasa_rover"
+NASAROVER="-l log/logicPTRPG/nasa_rover1.log run_domain.py --domain nasa_rover"
 CONC="-l log/logicPTRPG/conc.log run_domain.py --domain conc"
 SIMPLE="-l log/logicPTRPG/simple.log run_domain.py --domain simple"
 PROBCONC="-l log/logicPTRPG/prob_conc.log run_domain.py --domain prob_conc"
@@ -96,7 +96,7 @@ do
 
     echo "Started object 3"
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
     bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 
 
