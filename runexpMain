@@ -11,6 +11,7 @@ NR_DEADLINE=35
 C_DEADLINE=15
 H_DEADLINE=10
 PMC_DEADLINE=10
+PMC_DEADLINE=3
 
 
 
@@ -22,14 +23,14 @@ NASAROVER="-l log/logicPTRPG/nasa_rover1.log run_domain.py --domain nasa_rover"
 CONC="-l log/logicPTRPG/conc.log run_domain.py --domain conc"
 SIMPLE="-l log/logicPTRPG/simple.log run_domain.py --domain simple"
 PROBCONC="-l log/logicPTRPG/prob_conc.log run_domain.py --domain prob_conc"
-PROBMATCHCELLAR="-l log/logicPTRPG/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
+PROBMATCHCELLAR="-l log/deadlineSmall/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
 
 set -e
 
 
 
 
-for t in 10 #1 10
+for t in 1 10
 do
   for d in 30
   do
@@ -97,7 +98,7 @@ do
     echo "Started object 3"
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
-    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 
 
     echo "Started Conc"
@@ -137,8 +138,8 @@ do
     for o in 1 2 3 4 5
     do
       echo "started object $o"
-#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
-#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
+      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
+      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
     done
 
   done
