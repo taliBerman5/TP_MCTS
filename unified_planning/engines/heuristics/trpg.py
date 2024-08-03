@@ -86,8 +86,7 @@ class TRPG:
         #     value = 0.5 / self.deadline
         # value = 0.5*(1 + (self.deadline - t) * 1.0 / self.deadline) if t <= self.deadline else 0
         # value = self.deadline - t + 10 if t <= self.deadline else 0
-        # value = self.logistic_evaluate(t)
-        value = self.prob_evaluate(t)
+        value = self.logistic_evaluate(t)
         return value
 
     def prob_evaluate(self, t):
