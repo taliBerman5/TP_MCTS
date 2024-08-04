@@ -19,10 +19,10 @@ H_DEADLINE=30
 
 
 STUCKCAR1o="-l log/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
-STUCKCAR="-l log/stuck_car.log run_domain.py --domain stuck_car"
-HOSTING="-l log/hosting2.log run_domain.py --domain hosting"
-MACHINESHOP="-l log/machine_shopMW.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/nasa_rover1.log run_domain.py --domain nasa_rover"
+STUCKCAR="-l log/addition/stuck_car.log run_domain.py --domain stuck_car"
+HOSTING="-l log/addition/hosting.log run_domain.py --domain hosting"
+MACHINESHOP="-l log/machine_shop.log run_domain.py --domain machine_shop"
+NASAROVER="-l log/nasa_rover.log run_domain.py --domain nasa_rover"
 CONC="-l log/conc.log run_domain.py --domain conc"
 SIMPLE="-l log/simple.log run_domain.py --domain simple"
 PROBCONC="-l log/prob_conc.log run_domain.py --domain prob_conc"
