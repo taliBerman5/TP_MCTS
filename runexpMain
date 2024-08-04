@@ -15,6 +15,7 @@ PMC_DEADLINE=10
 
 SC_DEADLINE = 30
 H_DEADLINE=30
+NR_DEADLINE=50
 
 
 
@@ -49,25 +50,25 @@ do
     for o in 2
     do
       echo "Started object $o"
-      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --object_amount $o
-      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type rootInterval --object_amount $o
-      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination --object_amount $o
+#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --object_amount $o
+#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type rootInterval --object_amount $o
+#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination --object_amount $o
     done
 
      echo "Started Hosting"
     for g in 1
     do
       echo "Started object $g"
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
     echo "Started Hosting 2"
-    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount 2
-    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount 2
+#    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount 2
+#    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount 2
 
 
     echo "Started Machine Shop"
@@ -100,8 +101,8 @@ do
 
     echo "Started object 3"
 #    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 
 
     echo "Started Conc"
