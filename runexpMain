@@ -18,6 +18,7 @@ H_DEADLINE=30
 NR_DEADLINE=50
 MS_DEADLINE=40
 C_DEADLINE=30
+SC1_DEADLINE=30
 
 STUCKCAR1o="-l log/addition/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
 STUCKCAR="-l log/addition/stuck_car.log run_domain.py --domain stuck_car"
@@ -41,10 +42,10 @@ do
     echo "started depth $d and search_time time $t:"
 
     echo "Started Stuck Car 1 object"
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
 
     echo "Started Stuck Car"
     for o in 2
@@ -121,10 +122,10 @@ do
     for g in 15
     do
       echo "started garbage $g"
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
-      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
     done
 #
 
