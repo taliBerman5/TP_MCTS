@@ -19,15 +19,15 @@ NR_DEADLINE=50
 
 
 
-STUCKCAR1o="-l log/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
+STUCKCAR1o="-l log/addition/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
 STUCKCAR="-l log/addition/stuck_car.log run_domain.py --domain stuck_car"
 HOSTING="-l log/addition/hosting.log run_domain.py --domain hosting"
-MACHINESHOP="-l log/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/nasa_rover.log run_domain.py --domain nasa_rover"
-CONC="-l log/conc.log run_domain.py --domain conc"
-SIMPLE="-l log/simple.log run_domain.py --domain simple"
-PROBCONC="-l log/prob_conc.log run_domain.py --domain prob_conc"
-PROBMATCHCELLAR="-l log/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
+MACHINESHOP="-l log/addition/machine_shop.log run_domain.py --domain machine_shop"
+NASAROVER="-l log/addition/nasa_rover.log run_domain.py --domain nasa_rover"
+CONC="-l log/addition/conc.log run_domain.py --domain conc"
+SIMPLE="-l log/addition/simple.log run_domain.py --domain simple"
+PROBCONC="-l log/addition/prob_conc.log run_domain.py --domain prob_conc"
+PROBMATCHCELLAR="-l log/addition/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
 
 set -e
 
