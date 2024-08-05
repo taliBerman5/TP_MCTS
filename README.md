@@ -15,6 +15,7 @@ prepared food prior to their arrival. H parameter defines the complexity of the 
 * **Simple-x** - In this simple domain, there are x distinct actions, each of which accomplishes a unique goal upon completion.
 * **Conc** - This domain was designed to challenge the planners’ abilities to handle problems requiring maximal concurrency to meet a deadline.
 * **Prob Conc+G** - A probabilistic version of the Conc domain.
+* **Prob Match Cellar(x)** - A probabilistic version of the Match Cellar domain.
 
 ## Quick Start
 
