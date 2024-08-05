@@ -13,79 +13,72 @@ H_DEADLINE=10
 PMC_DEADLINE=10
 
 
-SC_DEADLINE = 30
-H_DEADLINE=30
-NR_DEADLINE=50
-MS_DEADLINE=40
-C_DEADLINE=30
-SC1_DEADLINE=30
-
-STUCKCAR1o="-l log/addition/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
-STUCKCAR="-l log/addition/stuck_car.log run_domain.py --domain stuck_car"
-HOSTING="-l log/addition/hosting.log run_domain.py --domain hosting"
-MACHINESHOP="-l log/addition/machine_shop.log run_domain.py --domain machine_shop"
-NASAROVER="-l log/addition/nasa_rover.log run_domain.py --domain nasa_rover"
-CONC="-l log/addition/conc.log run_domain.py --domain conc"
-SIMPLE="-l log/addition/simple.log run_domain.py --domain simple"
-PROBCONC="-l log/addition/prob_conc.log run_domain.py --domain prob_conc"
-PROBMATCHCELLAR="-l log/addition/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
+STUCKCAR1o="-l log/stuck_car_1o.log run_domain.py --domain stuck_car_1o"
+STUCKCAR="-l log/stuck_car.log run_domain.py --domain stuck_car"
+HOSTING="-l log/hosting.log run_domain.py --domain hosting"
+MACHINESHOP="-l log/machine_shop.log run_domain.py --domain machine_shop"
+NASAROVER="-l log/nasa_rover.log run_domain.py --domain nasa_rover"
+CONC="-l log/conc.log run_domain.py --domain conc"
+SIMPLE="-l log/simple.log run_domain.py --domain simple"
+PROBCONC="-l log/prob_conc.log run_domain.py --domain prob_conc"
+PROBMATCHCELLAR="-l log/prob_match_cellar.log run_domain.py --domain prob_match_cellar"
 
 set -e
 
 
 
 
-for t in 1 #10
+for t in 1 10
 do
   for d in 30
   do
     echo "started depth $d and search_time time $t:"
 
     echo "Started Stuck Car 1 object"
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
-#    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type rootInterval
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $STUCKCAR1o --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC1_DEADLINE --selection_type max --domain_type combination
 
     echo "Started Stuck Car"
     for o in 2
     do
       echo "Started object $o"
-#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --object_amount $o
-#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type rootInterval --object_amount $o
-#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-#      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination --object_amount $o
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --object_amount $o
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type rootInterval --object_amount $o
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+      bash runexp $STUCKCAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $SC_DEADLINE --selection_type max --domain_type combination --object_amount $o
     done
 
      echo "Started Hosting"
     for g in 1
     do
       echo "Started object $g"
-#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
-#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
-#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
-#      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount $g
+      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount $g
+      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+      bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
     done
 
     echo "Started Hosting 2"
-#    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount 2
-#    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount 2
+    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type rootInterval --garbage_amount 2
+    bash runexp $HOSTING --runs $NUMRUN --search_depth $d --search_time $t --deadline $H_DEADLINE --selection_type max --garbage_amount 2
 
 
     echo "Started Machine Shop"
     for o in 2 #3
     do
       echo "Started object $o"
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount $o
-#        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+        bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --domain_type combination --exploration_constant 30 --object_amount $o
     done
 
     echo "Started object 4"
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30 --object_amount 4
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount 4
-#    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount 4
+    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type avg --exploration_constant 30 --object_amount 4
+    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type max --exploration_constant 30 --object_amount 4
+    bash runexp $MACHINESHOP --runs $NUMRUN --search_depth $d --search_time $t --deadline $MS_DEADLINE --selection_type rootInterval --exploration_constant 30 --object_amount 4
 
 
 
@@ -93,39 +86,38 @@ do
     for o in 1 2
     do
       echo "Started object $o"
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount $o
-#      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --domain_type combination --object_amount $o
+      bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --solver rtdp --domain_type combination --object_amount $o
     done
 
     echo "Started object 3"
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
-#    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type avg --object_amount 3
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type max --object_amount 3
+    bash runexp $NASAROVER --runs $NUMRUN --search_depth $d --search_time $t --deadline $NR_DEADLINE --selection_type rootInterval --object_amount 3
 
 
     echo "Started Conc"
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
-#    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type avg --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination
+    bash runexp $CONC --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination
 
 
 
     echo "Started Simple"
 #   for ((g = 10; g <= 15; g += 1))
-#    for g in 10 11 12 13 15
-    for g in 15
+    for g in 10 11 12 13 15
     do
       echo "started garbage $g"
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
-#      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type rootInterval --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --solver rtdp --domain_type combination --garbage_amount $g
+      bash runexp $SIMPLE --runs $NUMRUN --search_depth $d --search_time $t --deadline $C_DEADLINE --selection_type max --domain_type combination --garbage_amount $g
     done
 #
 
@@ -144,8 +136,8 @@ do
     for o in 1 2 3 4 5
     do
       echo "started object $o"
-#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
-#      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
+      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type max --object_amount $o
+      bash runexp $PROBMATCHCELLAR --runs $NUMRUN --search_depth $d --search_time $t --deadline $PMC_DEADLINE --selection_type rootInterval --object_amount $o
     done
 
   done
