@@ -129,6 +129,9 @@ class QueueNode:
 
 
 class ActionQueue:
+    """
+    Actions currently in execution and the remaining duration left for their execution
+    """
     def __init__(self):
         self.data = []
 
@@ -163,6 +166,10 @@ class ActionQueue:
         heapq.heappush(self.data, node)
 
     def get_next_actions(self):
+        """
+        Get the actions that have the smallest duration left.
+        There can be several actions that have the same duration left.
+        """
         next_actions = []
         if self.data:
             min_duration = self.data[0].duration_left

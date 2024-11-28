@@ -2,7 +2,7 @@ import unified_planning as up
 from typing import List
 def create_init_stn(mdp: "up.engines.MDP"):
     """
-    Creats
+    Initiate a new STN with StartPlan and EndPlan nodes
     :param mdp:
     :return:
     """
@@ -38,9 +38,12 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
     :return: The STNPlanNode of the `action`
     """
 
+    # action is a Start action
     if isinstance(action, up.engines.action.InstantaneousStartAction):
         start_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.START, up.plans.plan.ActionInstance(action, ()))
+
         if previous_action_node:
+            # add constraints to previous action performed
             stn.add_constrains_to_previous_chosen_action([(previous_action_node, 0, None, start_node)])
         else:
             stn.add_action(start_node)
@@ -56,6 +59,7 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
         check_fix_time(stn, start_node, type, action_node)
         return start_node
 
+    # action is an End action
     if isinstance(action, up.engines.action.InstantaneousEndAction):
         # Find the end node already created
         temp_end_node = up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.END, up.plans.plan.ActionInstance(action, ()))
@@ -85,6 +89,15 @@ def update_stn(stn: "up.plans.stn.STNPlan", action: "up.engines.Action", previou
 
 
 def check_fix_time(stn: "up.plans.stn.STNPlan", action: "up.plans.stn.STNPlanNode", type, action_node:"up.engines.C_ANode" = None):
+    """
+    Checks if the time of the action execution needs to be fixed
+    action time needs to be fixed when it is chosen in the "real" world and not as part of the planning
+
+    :param stn: The STN containing the constraints so far
+    :param action: In rootInterval approach it is the chosen action node
+    :param type: "SetTime" to fix the action time
+
+    """
     if type == 'SetTime':
         if action_node is None:
             # set to the earliest time in the STN
@@ -94,4 +107,5 @@ def check_fix_time(stn: "up.plans.stn.STNPlan", action: "up.plans.stn.STNPlanNod
             # set to the earliest time to the best interval calculated
             fix_time = action_node.max_interval()[0]
 
+        # fix the action execution time in the STN
         stn.fix_action_time(action, fix_time)

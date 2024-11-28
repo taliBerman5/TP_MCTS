@@ -50,7 +50,7 @@ class Base_MCTS:
         """ Choose a random action. Heustics can be used here to improve simulations. """
         return random.choice(self.mdp.legal_actions(state))
 
-    def uct(self, snode: "up.engines.Snode", explore_constant: float):  # TODO: need to check to the uct logic
+    def uct(self, snode: "up.engines.Snode", explore_constant: float):
         anodes = snode.children
         best_ub = -float('inf')
         best_action = -1
@@ -60,7 +60,7 @@ class Base_MCTS:
                 return action
 
             ub = (anodes[action].value / anodes[action].count) + (
-                    explore_constant * math.sqrt(math.log(snode.count) / anodes[action].count)) #TODO: this was the original (ICAPS)
+                    explore_constant * math.sqrt(math.log(snode.count) / anodes[action].count))
             # ub = anodes[action].value + (
             #         explore_constant * math.sqrt(math.log(snode.count + 1) / anodes[action].count))
             if ub > best_ub:
@@ -121,6 +121,9 @@ class Base_MCTS:
 
 
 class MCTS(Base_MCTS):
+    """
+    Original MCTS solver implementation.
+    """
     def __init__(self, mdp: "up.engines.MDP", split_mdp: "up.engines.MDP", root_node: "up.engines.SNode",
                  root_state: "up.engines.state.State", search_depth: int,
                  exploration_constant: float, selection_type, k: int):
@@ -137,15 +140,21 @@ class MCTS(Base_MCTS):
 
     def create_Snode_max(self, state: "up.engines.State", depth: int,
                          parent: "up.engines.C_ANode" = None):
-        """ Create a new Snode for the state `state` with parent `parent`"""
+        """
+        Create a new Snode for the state `state` with parent `parent`
+        In this approach k children of snode are evaluated and the initiate value of snode is set to maximum value.
+
+        """
         snode = up.engines.SNode(state, depth, self.mdp.legal_actions(state), parent)
         best = -math.inf
 
         actions_idx = list(range(len(snode.children)))
         if self.k < len(snode.children):
+            # samples k children
             actions_idx = random.sample(range(0, len(snode.children)), self.k)
 
         for action_idx in actions_idx:
+            # perform each action and evaluate the next state with the heuristic function
             action = list(snode.children.keys())[action_idx]
             terminal, next_state, reward = self.mdp.step(snode.state, action)
             reward += self.mdp.discount_factor * self.heuristic(next_state)
@@ -166,6 +175,9 @@ class MCTS(Base_MCTS):
         return h.get_heuristic()
 
     def selection(self, snode: "up.engines.Snode"):
+        """
+        Traverse the tree until reaching a leaf node.
+        """
         if len(snode.possible_actions) == 0 or snode.state.current_time > self.mdp.deadline():
             # Stop when there are no possible actions to take so the plan remains consistent
             return -100
@@ -184,7 +196,7 @@ class MCTS(Base_MCTS):
             if next_state in snodes:
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
-            else:
+            else: # leaf
                 next_snode, _ = self.create_Snode(next_state, snode.depth + 1, anode)
                 reward += self.mdp.discount_factor * self.heuristic(next_state)
                 anode.add_child(next_snode)
@@ -195,6 +207,11 @@ class MCTS(Base_MCTS):
         return reward
 
     def selection_max(self, snode: "up.engines.Snode"):
+        """
+        Traverse the tree until reaching a leaf node.
+        Selection with max logic -
+        average between states and maximum between possible actions
+        """
         if len(snode.possible_actions) == 0 or snode.state.current_time > self.mdp.deadline():
             # Stop when there are no possible actions to take so the plan remains consistent
             return -100
@@ -213,7 +230,7 @@ class MCTS(Base_MCTS):
             if next_state in snodes:
                 reward += self.mdp.discount_factor * self.selection_max(snodes[next_state])
 
-            else:
+            else: # leaf
                 next_snode, snode_reward = self.create_Snode_max(next_state, snode.depth + 1, anode)
                 reward += snode_reward
                 anode.add_child(next_snode)
@@ -245,6 +262,10 @@ class MCTS(Base_MCTS):
 
 
 class C_MCTS(Base_MCTS):
+    """
+    TP MCTS solver implementation.
+    Contains STNs in each node
+    """
     def __init__(self, mdp, root_node: "up.engines.C_SNode", root_state: "up.engines.state.State", search_depth: int,
                  exploration_constant: float, stn: "up.plans.stn.STNPlan", selection_type, k: int,
                  previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
@@ -275,14 +296,16 @@ class C_MCTS(Base_MCTS):
     def create_Snode_root_interval(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
                      parent: "up.engines.C_ANode" = None,
                      previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None, isInterval=True):
-        """ Create a new Snode for the state `state` with parent `parent`"""
+        """ Create a new Snode for the state `state` with parent `parent`
+        RootInterval approach """
         return up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent,
                                   previous_chosen_action_node, isInterval), None
 
     def create_Snode_max(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
                          parent: "up.engines.C_ANode" = None,
                          previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None):
-        """ Create a new Snode for the state `state` with parent `parent`"""
+        """ Create a new Snode for the state `state` with parent `parent`
+         In this approach k children of snode are evaluated and the initiate value of snode is set to maximum value."""
         snode = up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent,
                                    previous_chosen_action_node)
         best = -math.inf
@@ -305,35 +328,10 @@ class C_MCTS(Base_MCTS):
         return snode, best
 
 
-    def create_Snode_root_interval_max(self, state: "up.engines.State", depth: int, stn: "up.plans.stn.STNPlan",
-                                       parent: "up.engines.C_ANode" = None,
-                                       previous_chosen_action_node: "up.plans.stn.STNPlanNode" = None, root_STNnode = None):
-        """ Create a new Snode for the state `state` with parent `parent`"""
-        snode = up.engines.C_SNode(state, depth, self.mdp.legal_actions(state), stn, parent,
-                                   previous_chosen_action_node, isInterval=True)
-        best = -math.inf
-
-        actions_idx = list(range(len(snode.children)))
-        if self.k < len(snode.children):
-            actions_idx = random.sample(range(0, len(snode.children)), self.k)
-
-        for action_idx in actions_idx:
-            action = list(snode.children.keys())[action_idx]
-            terminal, next_state, reward = self.mdp.step(snode.state, action)
-            reward += self.mdp.discount_factor * self.heuristic_init(next_state, snode.children[action].stn)
-            # snode.children[action].update(reward) #TODO: maybe change the update according to the interval
-            if reward > best:
-                best = reward
-        if best == -math.inf:
-            best = self.heuristic(snode)
-
-        backup_node = None
-        if root_STNnode is not None:
-            backup_node = LinkedListNode(*snode.parent.stn.get_legal_interval(root_STNnode), best)
-            snode.update(None, backup_node)
-        return snode, backup_node
-
     def selection(self, snode: "up.engines.C_Snode"):
+        """
+                Traverse the tree until reaching a leaf node.
+         """
         if len(snode.possible_actions) == 0:
             # Stop when there are no possible actions to take so the plan remains consistent
             return -100
@@ -354,7 +352,7 @@ class C_MCTS(Base_MCTS):
             if next_state in snodes:
                 reward += self.mdp.discount_factor * self.selection(snodes[next_state])
 
-            else:
+            else: # leaf
                 next_snode, _ = self.create_Snode(next_state, snode.depth + 1, anode.stn, anode)
                 reward += self.mdp.discount_factor * self.heuristic(next_snode)
                 anode.add_child(next_snode)
@@ -366,6 +364,11 @@ class C_MCTS(Base_MCTS):
         return reward
 
     def selection_max(self, snode: "up.engines.C_Snode"):
+        """
+        Traverse the tree until reaching a leaf node.
+        Selection with max logic -
+        average between states and maximum between possible actions
+        """
         if len(snode.possible_actions) == 0:
             # Stop when there are no possible actions to take so the plan remains consistent
             return -100
@@ -384,7 +387,7 @@ class C_MCTS(Base_MCTS):
             if next_state in snodes:
                 reward += self.mdp.discount_factor * self.selection_max(snodes[next_state])
 
-            else:
+            else: #leaf
                 next_snode, snode_reward = self.create_Snode_max(next_state, snode.depth + 1, anode.stn, anode)
                 reward += snode_reward
                 anode.add_child(next_snode)
@@ -395,6 +398,12 @@ class C_MCTS(Base_MCTS):
         return max_v
 
     def selection_root_interval(self, snode: "up.engines.C_Snode", root_STNnode: "up.plans.stn.STNPlanNode" = None):
+        """
+        Traverse the tree until reaching a leaf node.
+        Selection with root interval logic -
+        set the value per root action legal interval.
+        The value is propagated and updated according the legal interval
+        """
         if len(snode.possible_actions) == 0:
             # Stop when there are no possible actions to take so the plan remains consistent
             if root_STNnode is None:
@@ -420,8 +429,9 @@ class C_MCTS(Base_MCTS):
                 next_reward, lower, upper = self.selection_root_interval(snodes[next_state], root_STNnode)
                 reward += next_reward * self.mdp.discount_factor
 
-            else:
+            else: # leaf
                 next_snode, _ = self.create_Snode_root_interval(next_state, snode.depth + 1, anode.stn, anode)
+                # legal interval of the root action node in the leaf node
                 lower, upper = anode.stn.get_legal_interval(root_STNnode)
                 reward += self.heuristic(next_snode) * self.mdp.discount_factor
                 anode.add_child(next_snode)

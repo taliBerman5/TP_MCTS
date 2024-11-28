@@ -5,6 +5,9 @@ import operator
 
 
 class Convert_problem:
+    """
+    Transform phase - split each duration action to start and end actions
+    """
     def __init__(
             self,
             _original_problem: "up.model.Problem",

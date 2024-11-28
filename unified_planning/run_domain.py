@@ -16,9 +16,12 @@ import unified_planning as up
 from unified_planning.shortcuts import *
 import unified_planning.domains
 
+
+# Map each domain name to its class
 domains = dict(machine_shop=up.domains.Machine_Shop, nasa_rover=up.domains.Nasa_Rover, stuck_car_1o=up.domains.Stuck_Car_1o,
                stuck_car=up.domains.Stuck_Car, conc=up.domains.Conc, full_conc=up.domains.Full_Conc,
                prob_conc=up.domains.Prob_Conc, best_no_parallel=up.domains.Best_No_Parallel, simple=up.domains.Simple, hosting=up.domains.Hosting, prob_match_cellar=up.domains.Prob_MatchCellar)
+# Map each domain name to its pickle file name
 domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_rover_domain_comb",
                      stuck_car_1o="stuck_car_1o_domain_comb", stuck_car="stuck_car_domain_comb", conc="conc_domain_comb",
                      full_conc="full_conc_domain_comb", prob_conc="prob_conc_domain_comb",
@@ -26,6 +29,9 @@ domains_files = dict(machine_shop="machine_shop_domain_comb", nasa_rover="nasa_r
 
 
 def print_stats():
+    """
+    Prints parameters values
+    """
     print(f'Model = {up.args.domain}')
     print(f'Solver = {up.args.solver}')
     print(f'Selection Type = {up.args.selection_type}')
@@ -41,10 +47,16 @@ def print_stats():
 
 def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, exploration_constant, object_amount, garbage_amount,
                 selection_type='avg', k=10):
+    """
+    Run split action to start and end actions logic - TP-MCTS approach
+    """
     assert domain in domains
     print_stats()
     start_time = time.time()
+
     model = domains[domain](kind=domain_type, deadline=deadline, object_amount=object_amount, garbage_amount=garbage_amount)
+
+    # ground the actions
     if domain == 'nasa_rover':
         grounder = up.engines.compilers.Grounder(model.grounding_map())
     else:
@@ -53,6 +65,7 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
     grounding_result = grounder._compile(model.problem)
     ground_problem = grounding_result.problem
 
+    # Transform each duration action to start and end
     convert_problem = Convert_problem(ground_problem)
     converted_problem = convert_problem._converted_problem
 
@@ -72,7 +85,12 @@ def run_regular(domain, runs, domain_type, deadline, search_time, search_depth, 
 
 
 def create_combination_domain(domain, deadline, object_amount, garbage_amount):
+    """
+        Create combination of domain - creates combination actions
+    """
     model = domains[domain](kind='combination', deadline=deadline, object_amount=object_amount, garbage_amount=garbage_amount)
+
+    # ground the actions
     if domain == 'nasa_rover':
         grounder = up.engines.compilers.Grounder(model.grounding_map())
     else:
@@ -89,9 +107,13 @@ def create_combination_domain(domain, deadline, object_amount, garbage_amount):
 
 def run_combination(domain, runs, solver, deadline, search_time, search_depth, exploration_constant, object_amount, garbage_amount,
                     selection_type='avg', k=10):
+    """
+    Run the combination logic - Mausem and Weld approach
+    """
     assert domain in domains
     print_stats()
 
+    # create the pickle file name associated with the domain
     file_name = './pickle_domains/' + domains_files[domain]
     if domain == 'prob_conc' or domain == 'simple':
         file_name += "_" + str(garbage_amount)
@@ -129,6 +151,8 @@ def run_combination(domain, runs, solver, deadline, search_time, search_depth, e
     else:
         params = (mdp, split_mdp, 90, search_time, search_depth, exploration_constant, selection_type, k)
         up.engines.solvers.evaluate.evaluation_loop(runs, up.engines.solvers.mcts.combination_plan, params)
+
+
 
 
 if up.args.domain_type == 'combination':

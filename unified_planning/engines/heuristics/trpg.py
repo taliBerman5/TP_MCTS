@@ -17,7 +17,9 @@ class TRPG:
         self.current_time = current_time
 
     def get_heuristic(self, lower_bounds=None):
-
+        """
+        Calculates the heuristic based on the current state and time
+        """
         t = self.current_time
         earliest = self.init_actions(lower_bounds)
 
@@ -76,16 +78,6 @@ class TRPG:
                 else:
                     t = math.inf
 
-        # -t + 10 if t <= self.deadline else -self.deadline - 10
-
-
-        # value = 0
-        # if t < self.deadline:
-        #     value = 1 - t * 1.0 / self.deadline
-        # elif t == self.deadline:
-        #     value = 0.5 / self.deadline
-        # value = 0.5*(1 + (self.deadline - t) * 1.0 / self.deadline) if t <= self.deadline else 0
-        # value = self.deadline - t + 10 if t <= self.deadline else 0
         value = self.logistic_evaluate(t)
         return value
 

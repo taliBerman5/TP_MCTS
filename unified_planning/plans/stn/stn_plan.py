@@ -445,12 +445,21 @@ class STNPlan(unified_planning.plans.plan.Plan):
         return self._stn.check_stn()
 
     def get_current_end_time(self):
+        """
+        Returns the end time according to the STN when the actions are performed in the erliest time possible
+        """
         return self._stn.get_stn_model(up.plans.stn.STNPlanNode(up.model.timing.TimepointKind.GLOBAL_END)).numerator
 
     def get_current_time(self, node: "up.plans.stn.STNPlanNode"):
+        """
+            Returns the earliest tine node can be executed according to the STN constraints
+        """
         return self._stn.get_stn_model(node).numerator
 
     def get_legal_interval(self, node: "up.plans.stn.STNPlanNode"):
+        """
+        Legal interval for this node in the current plan.
+        """
         lower = self._stn.get_stn_model(node).numerator
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
         # apsp = self._stn.calculate_shortest_path1(start_plan)
@@ -467,6 +476,9 @@ class STNPlan(unified_planning.plans.plan.Plan):
         return lower_bounds
 
     def get_upper_bound_node(self, node: "up.plans.stn.STNPlanNode"):
+        """
+        Returns the latest tine node can be executed according to the STN constraints
+        """
         start_plan = STNPlanNode(TimepointKind.GLOBAL_START)
         upper = self._stn.calculate_shortest_path(start_plan, node)
         return upper

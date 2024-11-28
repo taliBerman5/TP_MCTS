@@ -12,6 +12,7 @@ from unified_planning.engines.linked_list import LinkedList
 class Node:
     def __init__(self, isInterval=False):
         if isInterval:
+            # The node value is per intervals, each interval is a node in the link list
             self._linkList = LinkedList()
         else:
             self._value = 0.0
@@ -184,7 +185,7 @@ class C_SNode(Node):
 
     def max_update(self, node=None):
         self._count += 1
-        if node is None:  # TODO: maybe change to if self.isInterval
+        if node is None:
             return self.max_update_wo_interval()
         else:
             return self.max_update_interval(node)
@@ -198,7 +199,6 @@ class C_SNode(Node):
         return max_v
 
     def max_update_interval(self, node):
-        #TODO: is it ok to do max between the new value and the current value or should i go over all the children
         update_node = self._linkList.update(node, type='Max')
         return update_node
 

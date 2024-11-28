@@ -3,6 +3,10 @@ import statistics
 
 
 def evaluation_loop(runs, plan_func, params):
+    """
+    perform runs times the planner on the domain
+    Returns the statistics of the runs
+    """
     amount_success = 0
     time_round = []
     avg_time = -math.inf

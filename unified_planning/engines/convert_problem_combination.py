@@ -6,6 +6,9 @@ import itertools
 
 
 class Convert_problem_combination:
+    """
+    Transform phase, creates combination actions to actions that can be executed concurrently
+    """
     def __init__(
             self,
             model,
